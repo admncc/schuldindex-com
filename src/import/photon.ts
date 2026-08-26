@@ -104,7 +104,8 @@ export class PhotonGeocoder implements Geocoder {
         // Achtung: GeoJSON führt [Länge, Breite] — nicht umgekehrt.
         const [lon, lat] = punkt;
         this.treffer++;
-        return { lat, lon };
+        const plz = daten.features?.[0]?.properties?.["postcode"];
+        return { lat, lon, plz: typeof plz === "string" ? plz : null };
       } catch {
         if (versuch === this.versuche) {
           this.fehler++;

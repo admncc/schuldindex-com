@@ -41,7 +41,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 
 ```bash
 npm install
-npm test        # 178 Tests
+npm test        # 184 Tests
 npm run typecheck
 
 # Messung der Schulart-Normalisierung am echten Bestand (34.094 Datensätze):

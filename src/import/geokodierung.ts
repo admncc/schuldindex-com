@@ -27,6 +27,8 @@ export type Genauigkeit = "adresse" | "plz" | "ort" | "keine";
 export interface Koordinate {
   readonly lat: number;
   readonly lon: number;
+  /** Postleitzahl des Treffers, soweit der Dienst sie mitliefert. */
+  readonly plz?: string | null;
 }
 
 export interface Anschrift {
@@ -134,6 +136,29 @@ export interface Geocoder {
 }
 
 /**
+ * Prüft die Postleitzahl des Treffers gegen die gesuchte.
+ *
+ * Der Grund ist ein realer Fehlgriff: für „Grundschule Klixbüll, Schulstraße 5,
+ * 25899 Klixbüll“ fand der Dienst eine Schulstraße 5 rund 110 km weiter
+ * südlich. Beide Orte liegen in Schleswig-Holstein, weshalb die Prüfung gegen
+ * den Landesumriss nichts merkte — das Land ist 200 km lang.
+ *
+ * Verlangt wird **Gleichheit**, nicht Ähnlichkeit. Ein Vergleich der ersten
+ * beiden Stellen reicht nicht: in Schleswig-Holstein beginnt jede Postleitzahl
+ * mit 25 oder 24, und die 110 km auseinanderliegenden Orte des Fehlgriffs
+ * trugen beide eine 25.
+ *
+ * Die Strenge kostet wenig: wer die Prüfung nicht besteht, fällt auf die
+ * Postleitzahl-Stufe zurück und bekommt eine Koordinate, die für die
+ * 150-km-Prüfung vollwertig und für die Karte brauchbar ist. Eine Schule
+ * hunderte Kilometer entfernt zu verorten wäre der weit größere Schaden.
+ */
+export function plzPasst(gesucht: string | null, gefunden: string | null | undefined): boolean {
+  if (!gesucht || !gefunden) return true; // ohne Angabe nicht prüfbar
+  return gesucht.trim() === gefunden.trim();
+}
+
+/**
  * Arbeitet die Anfragestufen ab und gibt das erste plausible Ergebnis zurück.
  * Ein unplausibles Ergebnis beendet die Suche nicht — es wird verworfen und die
  * nächste, gröbere Stufe versucht.
@@ -148,6 +173,12 @@ export async function geokodiere(a: Anschrift, geocoder: Geocoder): Promise<Geok
     const einwand = pruefe(treffer, a.bundesland);
     if (einwand) {
       letzterEinwand = einwand;
+      continue;
+    }
+    // Auf der Ortsstufe ist eine abweichende Postleitzahl zu erwarten und kein
+    // Einwand — dort wurde bewusst nur nach dem Ort gefragt.
+    if (genauigkeit !== "ort" && !plzPasst(a.plz, treffer.plz)) {
+      letzterEinwand = `Postleitzahl ${treffer.plz} statt ${a.plz}`;
       continue;
     }
     return { koordinate: treffer, genauigkeit };

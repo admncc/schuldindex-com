@@ -3,11 +3,11 @@ import { PhotonGeocoder, mitZwischenspeicher } from "./photon.js";
 import type { Geocoder } from "./geokodierung.js";
 
 /** Antwort im Format von Photon. GeoJSON führt [Länge, Breite]. */
-function antwort(lon: number | null, lat?: number) {
+function antwort(lon: number | null, lat?: number, postcode?: string) {
   const body =
     lon === null
       ? { features: [] }
-      : { features: [{ geometry: { coordinates: [lon, lat] } }] };
+      : { features: [{ geometry: { coordinates: [lon, lat] }, properties: { postcode } }] };
   return new Response(JSON.stringify(body), { status: 200 });
 }
 
@@ -25,7 +25,7 @@ describe("Photon-Anbindung", () => {
     // Verwechselt man sie, landet jede deutsche Schule im Südsudan.
     const holen = vi.fn(async () => antwort(8.6157, 53.7836));
     const treffer = await geocoder(holen as unknown as typeof fetch).suche("Nordweg 75");
-    expect(treffer).toEqual({ lat: 53.7836, lon: 8.6157 });
+    expect(treffer).toMatchObject({ lat: 53.7836, lon: 8.6157 });
   });
 
   it("liefert null, wenn nichts gefunden wurde", async () => {
@@ -49,7 +49,7 @@ describe("Photon-Anbindung", () => {
       return aufrufe === 1 ? new Response("", { status: 429 }) : antwort(8.6, 53.7);
     });
     const g = geocoder(holen as unknown as typeof fetch);
-    expect(await g.suche("Testschule")).toEqual({ lat: 53.7, lon: 8.6 });
+    expect(await g.suche("Testschule")).toMatchObject({ lat: 53.7, lon: 8.6 });
     expect(aufrufe).toBe(2);
   });
 
@@ -116,5 +116,20 @@ describe("Zwischenspeicher", () => {
     await aussen.suche("Unfug");
     await aussen.suche("Unfug");
     expect(innen.suche).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Postleitzahl", () => {
+  it("reicht die Postleitzahl des Treffers weiter", async () => {
+    // Sie ist die einzige Handhabe gegen den Fehlgriff „richtige Straße,
+    // falscher Ort“ — dafür muss sie erst einmal ankommen.
+    const holen = vi.fn(async () => antwort(8.8941, 54.8023, "25899"));
+    const treffer = await geocoder(holen as unknown as typeof fetch).suche("Schulstraße 5");
+    expect(treffer?.plz).toBe("25899");
+  });
+
+  it("kommt ohne Postleitzahl im Treffer zurecht", async () => {
+    const holen = vi.fn(async () => antwort(8.6, 53.7));
+    expect((await geocoder(holen as unknown as typeof fetch).suche("x"))?.plz).toBeNull();
   });
 });

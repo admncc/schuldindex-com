@@ -4,6 +4,7 @@ import {
   geokodiere,
   liegtImBundesland,
   liegtInDeutschland,
+  plzPasst,
   pruefe,
   type Anschrift,
   type Geocoder,
@@ -138,5 +139,62 @@ describe("Ablauf der Geokodierung", () => {
     // Jede gesparte Anfrage ist bei 5.048 Schulen und einer Anfrage je Sekunde
     // eine gesparte Sekunde Laufzeit.
     expect(g.suche).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Postleitzahl des Treffers", () => {
+  it("verlangt Gleichheit, nicht Ähnlichkeit", () => {
+    expect(plzPasst("25899", "25899")).toBe(true);
+    expect(plzPasst("25899", " 25899 ")).toBe(true);
+    // Der reale Fehlgriff: „Schulstraße 5, 25899 Klixbüll“ wurde rund 110 km
+    // weiter südlich gefunden. Beide Orte liegen in Schleswig-Holstein und
+    // beide Postleitzahlen beginnen mit 25 — ein Vergleich der ersten beiden
+    // Stellen hätte das durchgelassen.
+    expect(plzPasst("25899", "25524")).toBe(false);
+    expect(plzPasst("25899", "25917")).toBe(false);
+  });
+
+  it("prüft nicht, was sich nicht prüfen lässt", () => {
+    expect(plzPasst(null, "25899")).toBe(true);
+    expect(plzPasst("25899", null)).toBe(true);
+    expect(plzPasst("25899", undefined)).toBe(true);
+  });
+});
+
+describe("Postleitzahl im Ablauf", () => {
+  const KLIXBUELL: Anschrift = {
+    name: "Grundschule Klixbüll",
+    strasse: "Schulstraße 5",
+    plz: "25899",
+    ort: "Klixbüll",
+    bundesland: "SH",
+  };
+
+  it("verwirft einen Treffer mit fremder Postleitzahl und sucht weiter", async () => {
+    const g: Geocoder = {
+      name: "Attrappe",
+      suche: vi.fn(async (anfrage: string) =>
+        anfrage.startsWith("Grundschule Klixbüll,")
+          ? { lat: 53.8434, lon: 9.3995, plz: "25524" } // falscher Ort, gleiches Bundesland
+          : { lat: 54.8023, lon: 8.8941, plz: "25899" },
+      ),
+    };
+    const ergebnis = await geokodiere(KLIXBUELL, g);
+    expect(ergebnis.koordinate?.lat).toBeCloseTo(54.8023, 3);
+  });
+
+  it("lässt auf der Ortsstufe eine abweichende Postleitzahl zu", async () => {
+    // Dort wurde bewusst nur nach dem Ort gefragt — eine passende
+    // Postleitzahl wäre gar nicht zu erwarten.
+    const nurOrt = { ...KLIXBUELL, strasse: null, plz: "25899" };
+    const g: Geocoder = {
+      name: "Attrappe",
+      suche: vi.fn(async (anfrage: string) =>
+        anfrage.includes("Schleswig-Holstein") ? { lat: 54.8, lon: 8.89, plz: "25917" } : null,
+      ),
+    };
+    const ergebnis = await geokodiere(nurOrt, g);
+    expect(ergebnis.genauigkeit).toBe("ort");
+    expect(ergebnis.koordinate).not.toBeNull();
   });
 });

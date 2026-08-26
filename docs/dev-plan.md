@@ -775,6 +775,49 @@ Ergebnissen: keine einzige über 25 km entfernt, größte Abweichung 7,4 km.
 
 Der Engpass ist Photons Antwortzeit, nicht der eigene Takt. Mehrere Anfragen gleichzeitig
 lösen das; der Takt begrenzt weiterhin die Gesamtlast auf den fremden Dienst.
+
+### Ergebnis des vollständigen Laufs
+
+| Genauigkeit | Schulen | Anteil |
+|---|---|---|
+| aus der Quelle | 27.369 | 81,5 % |
+| auf die Adresse nachgeocodiert | 6.020 | 17,9 % |
+| auf die Postleitzahl | 141 | 0,4 % |
+| nur auf den Ort | 65 | 0,2 % |
+| **ohne Koordinate** | **5** | **0,01 %** |
+
+**99,99 % der Schulen haben eine Koordinate.** Die fünf Ausnahmen sind aufschlussreich: zwei
+Dörfer in Sachsen-Anhalt, die der Dienst nicht kennt, und drei Datensätze aus
+Schleswig-Holstein, die entweder keine Schule sind („Regionale Fachberater“) oder in
+**Dänemark** liegen — die Deutsche Nachschule Tingleff und das University College Syddanmark
+gehören zum dänisch-deutschen Grenzschulwesen. Die Prüfung auf deutsches Staatsgebiet weist
+sie zu Recht ab.
+
+### Zwei Fehler, die erst der Betrieb zeigte
+
+**Der Lauf endete nie.** Er holte sich die Schulen ohne Koordinate, scheiterte bei denen, die
+sich nicht auflösen lassen, und fand beim nächsten Durchgang exakt dieselben wieder — bei den
+letzten 71 Schulen drehte er sich endlos weiter. Behoben mit einem Vermerk je Versuch
+(`geokodierung_versucht_am`), der auch erfolglose Anläufe festhält. Nach 30 Tagen werden sie
+erneut aufgegriffen, weil OpenStreetMap wächst.
+
+**Die richtige Straße im falschen Ort.** Für „Grundschule Klixbüll, Schulstraße 5, 25899
+Klixbüll“ fand der Dienst eine Schulstraße 5 rund **110 km weiter südlich**. Beide Orte liegen
+in Schleswig-Holstein, die Prüfung gegen den Landesumriss merkte deshalb nichts — das Land ist
+200 km lang. Aufgefallen ist es allein dem Qualitätstor, das gegen die bekannten Schulen
+derselben Postleitzahl vergleicht.
+
+Behoben, indem der Treffer seine **Postleitzahl mitliefern muss** und diese mit der gesuchten
+übereinstimmen muss. Verlangt wird Gleichheit, nicht Ähnlichkeit: ein Vergleich der ersten
+beiden Stellen hätte nichts gebracht, weil in Schleswig-Holstein jede Postleitzahl mit 24 oder
+25 beginnt. Wer die Prüfung nicht besteht, fällt eine Stufe zurück und bekommt eine Koordinate
+auf Postleitzahl-Ebene — für die 150-km-Prüfung vollwertig, für die Karte brauchbar, und
+allemal besser als eine Schule hunderte Kilometer entfernt.
+
+**Verbliebener Ausreißer:** ein Datensatz mit der Postleitzahl 01665 (Sachsen) und dem Ort
+Halle an der Saale (Sachsen-Anhalt). Die Quelle widerspricht sich hier selbst; die Schule
+landet auf Ortsebene bei Halle und damit 112 km von den übrigen Schulen ihrer Postleitzahl
+entfernt. Kein Fehler der Geokodierung.
 - AP 1.4 Slug-Erzeugung mit Umlautbehandlung (`gymnasium-am-muehlenweg-hamburg`)
 - AP 1.5 ✅ **Suche** — `src/db/schulsuche.ts`: Autovervollständigung, unscharfe Suche, Umkreis, Filter
 - AP 1.6 Suchseite `/schulen` mit Filtern (Bundesland, Schulart, Ort) auf Deutsch
