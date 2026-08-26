@@ -24,17 +24,27 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/import/slug.ts` | Slug-Vergabe für Schulprofile — umlautfest und über Re-Importe hinweg stabil |
 | `src/import/geokodierung.ts` | Nachgeocodierung der 6.202 Schulen ohne Koordinaten, mit Genauigkeitsstufen und Plausibilitätsprüfung |
 | `src/domain/bundesland.ts` | Die 16 Bundesländer als Domänenbegriff |
+| `src/import/normalisiere.ts` | Rohdatensatz → Schule: Adresse, Koordinate samt Reparatur vertauschter Werte, Suchtext |
+| `db/migrations/` | Datenbankschema |
 | `scripts/lade-schulen.ts` | Abruf des Schulbestands, mit Abgleich gegen die Statistik der Quelle |
+| `scripts/importiere.ts` | Import in die Datenbank, wiederholbar |
 
 ```bash
 npm install
-npm test        # 99 Tests
+npm test        # 115 Tests
 npm run typecheck
 
 # Messung der Schulart-Normalisierung am echten Bestand (34.094 Datensätze):
 npx tsx scripts/lade-schulen.ts > schulen.json
 SCHULEN_JSON=schulen.json npx vitest run scripts/analyse-schularten.test.ts
+
+# Import in eine Datenbank (Schema: db/migrations/)
+SCHULEN_JSON=schulen.json DATABASE_URL=postgres://… npx tsx scripts/importiere.ts
 ```
+
+**Kein PostGIS nötig.** Geprüft an echten Daten: `cube` und `earthdistance`
+leisten die Entfernungsprüfung auf den Kilometer genau und die Umkreissuche in
+1,4 ms über 27.393 Schulen. Polygone oder Routing braucht das Portal nirgends.
 
 Der Rohbestand liegt bewusst nicht im Repository (rund 12 MB). Er wird von
 `https://jedeschule.codefor.de/schools/` geladen; ohne die Datei überspringt der

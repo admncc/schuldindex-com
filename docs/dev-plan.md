@@ -157,7 +157,7 @@ Der in der Developer Specification vorgeschlagene Stack wird übernommen, mit dr
 | Styling | Tailwind CSS + shadcn/ui | |
 | i18n | next-intl | siehe 3.2 |
 | API | Next.js Route Handlers | Ein separater Fastify-Dienst ist für MVP-Lastprofil nicht nötig; API-Verträge aus dem Brief bleiben unverändert |
-| Datenbank | PostgreSQL 16 + **PostGIS** | PostGIS für Entfernungsprüfung und Kartenabfragen |
+| Datenbank | PostgreSQL 16 + `cube`/`earthdistance` | **Kein PostGIS** — siehe 4.1 |
 | ORM / Migrationen | Drizzle ORM + drizzle-kit | Typsicher, SQL-nah, gute PostGIS-Verträglichkeit |
 | Jobs / Queue | **pg-boss** (Postgres-basiert) | Vermeidet einen zweiten Datenspeicher; ausreichend für Mailversand, Geo-Anreicherung, Aggregat-Neuberechnung |
 | Cache / Ratelimit | Upstash Redis (EU) | Nur flüchtige Daten: IP-Hashes, Ratelimits, Autocomplete-Cache |
@@ -168,6 +168,23 @@ Der in der Developer Specification vorgeschlagene Stack wird übernommen, mit dr
 | Monitoring | Sentry (EU-Region) + Vercel Analytics | |
 | CI | GitHub Actions: Lint, Typecheck, Tests, Migrations-Dry-Run | |
 
+### 4.1 Warum kein PostGIS
+
+Ursprünglich vorgesehen, nach Prüfung verworfen. Gemessen wurde, was das Portal
+tatsächlich braucht:
+
+| Anforderung | Mit `cube` + `earthdistance` | Gemessen |
+|---|---|---|
+| Entfernung zweier Punkte (150-km-Prüfung) | `earth_distance(ll_to_earth(…), ll_to_earth(…))` | Hamburg–München: 612,7 km — auf den Kilometer korrekt |
+| Umkreissuche mit Index | GiST auf `ll_to_earth(lat, lon)`, `earth_box(…) @> …` | 5-km-Umkreis über 27.393 Schulen: **1,4 ms** |
+| Kartenausschnitt | Vergleich auf `lat`/`lon` mit B-Baum | unkritisch |
+
+Polygone, Projektionen, Routing oder Flächenverschnitte kommen im Portal
+nirgends vor. `cube` und `earthdistance` sind Bordmittel und in **jeder**
+verwalteten Postgres-Instanz vorhanden; PostGIS ist es nicht überall und muss
+teils gesondert freigeschaltet werden. Sollte sich der Bedarf ändern, ist der
+Wechsel eine Migration, keine Umkehr.
+
 **Architekturhinweis:** Öffentliche Leseseiten (Schulprofil, Ranglisten, Karte) werden über
 ISR mit kurzer Revalidierung ausgeliefert und bei Aggregat-Änderung gezielt per Tag
 invalidiert. Schreibpfade (Bewertung, Verifizierung, Moderation) laufen ungecacht.
@@ -177,6 +194,9 @@ invalidiert. Schreibpfade (Bewertung, Verifizierung, Moderation) laufen ungecach
 ## 5. Datenmodell
 
 Abgeleitet aus dem Brief, angepasst an die Entscheidungen E1–E3.
+
+Umgesetzt in `db/migrations/0001_schulen.sql` — dort ist die Fassung
+maßgeblich, die tatsächlich läuft.
 
 ```
 schools
@@ -640,6 +660,44 @@ ihrer Reihenfolge, und die längere Form ist ohnehin die aussagekräftigere.
 
 Gemessen am Gesamtbestand: 33.600 Slugs, alle eindeutig, **null Abweichung bei umgekehrter
 Eingabereihenfolge**, Medianlänge 37 Zeichen.
+
+### Datenbank und Import — ausgeführt
+
+Schema angelegt und der vollständige Bestand eingespielt:
+
+```
+gelesen                            34.094
+übernommen                         33.600
+verworfen: keine Schule               494
+ohne Koordinate                     6.207
+  davon unbrauchbar geliefert           5
+Koordinate repariert (vertauscht)       9
+```
+
+**Zwei Befunde aus dem Lauf:**
+
+- **Neun Schulen in Nordrhein-Westfalen liefern Breite und Länge vertauscht.**
+  `7,35 / 51,45` liegt rechnerisch im Südsudan, gedreht aber genau in Hagen. Da
+  Deutschland zwischen 47–55° Nord und 6–15° Ost liegt, überschneiden sich die
+  Wertebereiche nicht — die Vertauschung ist eindeutig erkennbar und wird beim
+  Import behoben.
+- **Eine Schule wegen eines kaputten Feldes zu verwerfen wäre falsch.** Der erste
+  Entwurf tat das und verlor damit 14 reale Schulen. Jetzt bleibt die Schule
+  erhalten und geht ohne Koordinate in die Nachgeocodierung.
+
+**Suche und Entfernung an echten Daten geprüft:**
+
+| Abfrage | Zeit |
+|---|---|
+| Umkreissuche 5 km (GiST-Index) | 1,4 ms |
+| Autovervollständigung `gymnasium…` | 7,8 ms |
+| Unscharfe Suche über Trigramme | 63 ms |
+
+Die Umlautbehandlung funktioniert in beide Richtungen: „Grünewald“ und
+„Gruenewald“ finden dieselben sechs Schulen. Postgres' `unaccent` allein
+schafft das nicht — es macht aus „Grünewald“ ein „Grunewald“, sodass die
+ausgeschriebene Form ins Leere liefe. Der Suchtext hält deshalb **beide**
+Schreibweisen nebeneinander.
 
 **Zwei Entscheidungen aus der Umsetzung**, die vom Plan abweichen:
 
