@@ -23,10 +23,14 @@ interface Rohschule {
   city?: string | null;
 }
 
+// Erst im Test lesen, nicht beim Einsammeln: `describe.skipIf` überspringt die
+// Ausführung, der Rumpf des describe-Blocks läuft trotzdem.
+const ladeSchulen = (): Rohschule[] => JSON.parse(readFileSync(PFAD, "utf8"));
+
 describe.skipIf(!vorhanden)("Normalisierung am echten Bestand", () => {
-  const schulen: Rohschule[] = JSON.parse(readFileSync(PFAD, "utf8"));
 
   it("ordnet den ganz überwiegenden Teil einer Schulart zu", () => {
+    const schulen = ladeSchulen();
     const zaehler = { schulart: 0, name: 0, unbekannt: 0, keineSchule: 0 };
     const proArt = new Map<Schulart, number>();
     const ohneGeo: string[] = [];
@@ -75,7 +79,7 @@ describe.skipIf(!vorhanden)("Normalisierung am echten Bestand", () => {
   });
 
   it("lässt keine Schule ohne Art zurück", () => {
-    for (const s of schulen) {
+    for (const s of ladeSchulen()) {
       const z = ordneSchulartZu(s.school_type, s.name);
       if (z.istSchule) expect(z.arten.length).toBeGreaterThan(0);
     }
