@@ -22,16 +22,19 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/domain/scoring.ts` | Kategoriescores, 70/30-Aufteilung der Kategorie A, Gesamtscore, Aggressionsindex, Ampelstufen |
 | `src/import/schulart.ts` | Normalisierung der 232 Schulartbezeichnungen aus jedeschule.codefor.de auf die Taxonomie des Portals |
 | `src/import/slug.ts` | Slug-Vergabe für Schulprofile — umlautfest und über Re-Importe hinweg stabil |
-| `src/import/geokodierung.ts` | Nachgeocodierung der 6.202 Schulen ohne Koordinaten, mit Genauigkeitsstufen und Plausibilitätsprüfung |
+| `src/import/geokodierung.ts` | Ablauf der Nachgeocodierung: gestufte Anfragen, Genauigkeit, Plausibilitätsprüfung |
+| `src/import/photon.ts` | Anbindung an Photon, mit Takt, Wiederholungen und Zwischenspeicher |
 | `src/domain/bundesland.ts` | Die 16 Bundesländer als Domänenbegriff |
 | `src/import/normalisiere.ts` | Rohdatensatz → Schule: Adresse, Koordinate samt Reparatur vertauschter Werte, Suchtext |
 | `db/migrations/` | Datenbankschema |
 | `scripts/lade-schulen.ts` | Abruf des Schulbestands, mit Abgleich gegen die Statistik der Quelle |
 | `scripts/importiere.ts` | Import in die Datenbank, wiederholbar |
+| `scripts/geokodiere.ts` | Holt fehlende Koordinaten nach, wiederaufnehmbar |
+| `scripts/pruefe-koordinaten.test.ts` | Qualitätstor: prüft die Koordinaten gegen die Datenbank |
 
 ```bash
 npm install
-npm test        # 115 Tests
+npm test        # 126 Tests
 npm run typecheck
 
 # Messung der Schulart-Normalisierung am echten Bestand (34.094 Datensätze):

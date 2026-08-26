@@ -78,27 +78,34 @@ describe("Verworfene Datensätze", () => {
 
 describe("Koordinaten aus der Quelle", () => {
   it("übernimmt eine brauchbare Koordinate", () => {
-    expect(pruefeKoordinate(53.78, 8.61)).toEqual({ art: "uebernommen", lat: 53.78, lon: 8.61 });
+    expect(pruefeKoordinate(53.78, 8.61, "NI")).toEqual({ art: "uebernommen", lat: 53.78, lon: 8.61 });
   });
 
   it("dreht vertauschte Breite und Länge zurück", () => {
     // Die Quelle liefert 13 Schulen in Nordrhein-Westfalen verdreht. Da
     // Deutschland zwischen 47–55° Nord und 6–15° Ost liegt, überschneiden sich
     // die Bereiche nicht — die Vertauschung ist eindeutig erkennbar.
-    expect(pruefeKoordinate(7.3465, 51.447)).toEqual({ art: "vertauscht", lat: 51.447, lon: 7.3465 });
+    expect(pruefeKoordinate(7.3465, 51.447, "NW")).toEqual({ art: "vertauscht", lat: 51.447, lon: 7.3465 });
   });
 
   it("erkennt die Nullinsel als unbrauchbar", () => {
-    expect(pruefeKoordinate(0, 0)).toEqual({ art: "unbrauchbar" });
+    expect(pruefeKoordinate(0, 0, "NI")).toEqual({ art: "unbrauchbar" });
+  });
+
+  it("erkennt eine Koordinate im falschen Bundesland", () => {
+    // Rheinland-Pfalz liefert 24 Schulen so: die Koordinate liegt in
+    // Deutschland, aber hunderte Kilometer entfernt. Eine Grundschule bei
+    // Kaiserslautern steht auf Dresden.
+    expect(pruefeKoordinate(51.083, 13.735, "RP")).toEqual({ art: "falsches_bundesland" });
   });
 
   it("erkennt Koordinaten im Ausland als unbrauchbar", () => {
-    expect(pruefeKoordinate(48.21, 16.37)).toEqual({ art: "unbrauchbar" }); // Wien
+    expect(pruefeKoordinate(48.21, 16.37, "NI")).toEqual({ art: "unbrauchbar" }); // Wien
   });
 
   it("meldet eine fehlende Koordinate als solche", () => {
-    expect(pruefeKoordinate(null, null)).toEqual({ art: "fehlt" });
-    expect(pruefeKoordinate(53.78, null)).toEqual({ art: "fehlt" });
+    expect(pruefeKoordinate(null, null, "NI")).toEqual({ art: "fehlt" });
+    expect(pruefeKoordinate(53.78, null, "NI")).toEqual({ art: "fehlt" });
   });
 
   it("behält die Schule, wenn nur die Koordinate unbrauchbar ist", () => {

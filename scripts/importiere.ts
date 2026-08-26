@@ -19,6 +19,7 @@ export interface Importbericht {
   ohneKoordinaten: number;
   koordinateRepariert: number;
   koordinateUnbrauchbar: number;
+  koordinateFalschesLand: number;
 }
 
 export function bereiteVor(rohdaten: readonly Rohschule[]): {
@@ -32,6 +33,7 @@ export function bereiteVor(rohdaten: readonly Rohschule[]): {
     ohneKoordinaten: 0,
     koordinateRepariert: 0,
     koordinateUnbrauchbar: 0,
+    koordinateFalschesLand: 0,
   };
 
   const gueltig: Schule[] = [];
@@ -45,6 +47,7 @@ export function bereiteVor(rohdaten: readonly Rohschule[]): {
     if (ergebnis.schule.lat === null) bericht.ohneKoordinaten++;
     if (ergebnis.schule.koordinatenbefund === "vertauscht") bericht.koordinateRepariert++;
     if (ergebnis.schule.koordinatenbefund === "unbrauchbar") bericht.koordinateUnbrauchbar++;
+    if (ergebnis.schule.koordinatenbefund === "falsches_bundesland") bericht.koordinateFalschesLand++;
   }
 
   const slugs = vergebeSlugs(
@@ -115,6 +118,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.error(`  übernommen     ${bericht.uebernommen}`);
     console.error(`  ohne Koordinate ${bericht.ohneKoordinaten}`);
     console.error(`    davon unbrauchbar geliefert  ${bericht.koordinateUnbrauchbar}`);
+    console.error(`    davon im falschen Bundesland ${bericht.koordinateFalschesLand}`);
     console.error(`  Koordinate repariert (vertauscht) ${bericht.koordinateRepariert}`);
     for (const [grund, n] of Object.entries(bericht.verworfen)) {
       console.error(`  verworfen: ${grund.padEnd(32)} ${n}`);

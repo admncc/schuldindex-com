@@ -7,6 +7,7 @@
  */
 
 import { bundeslandAusId, type Bundesland } from "../domain/bundesland.js";
+import { liegtImBundesland } from "./geokodierung.js";
 import { ordneSchulartZu, type Schulart } from "./schulart.js";
 import { slugify } from "./slug.js";
 
@@ -108,6 +109,7 @@ export type Koordinatenbefund =
   | { readonly art: "uebernommen"; readonly lat: number; readonly lon: number }
   | { readonly art: "vertauscht"; readonly lat: number; readonly lon: number }
   | { readonly art: "unbrauchbar" }
+  | { readonly art: "falsches_bundesland" }
   | { readonly art: "fehlt" };
 
 /**
@@ -121,14 +123,29 @@ export type Koordinatenbefund =
  *
  * Eine Schule wegen eines einzigen kaputten Feldes ganz zu verwerfen wäre
  * falsch: sie bleibt erhalten und geht ohne Koordinate in die Nachgeocodierung.
+ *
+ * Geprüft wird zusätzlich gegen den Umriss des Bundeslandes. In
+ * Rheinland-Pfalz liefert die Quelle 24 Schulen mit Koordinaten, die zwar in
+ * Deutschland liegen, aber hunderte Kilometer daneben: eine Grundschule bei
+ * Kaiserslautern steht auf Dresden, eine bei Trier auf Bayreuth. Übernähme man
+ * sie ungeprüft, fiele jede Bewertung aus der echten Nachbarschaft dieser
+ * Schulen durch die 150-km-Prüfung — und niemand käme dem auf die Spur.
  */
 export function pruefeKoordinate(
   lat: number | null | undefined,
   lon: number | null | undefined,
+  bundesland: Bundesland,
 ): Koordinatenbefund {
   if (lat == null || lon == null) return { art: "fehlt" };
-  if (koordinateGueltig(lat, lon)) return { art: "uebernommen", lat, lon };
-  if (koordinateGueltig(lon, lat)) return { art: "vertauscht", lat: lon, lon: lat };
+
+  if (koordinateGueltig(lat, lon)) {
+    return liegtImBundesland({ lat, lon }, bundesland)
+      ? { art: "uebernommen", lat, lon }
+      : { art: "falsches_bundesland" };
+  }
+  if (koordinateGueltig(lon, lat) && liegtImBundesland({ lat: lon, lon: lat }, bundesland)) {
+    return { art: "vertauscht", lat: lon, lon: lat };
+  }
   return { art: "unbrauchbar" };
 }
 
@@ -147,7 +164,7 @@ export function normalisiere(roh: Rohschule): Normalisierungsergebnis {
   const plz = saeubere(roh.zip);
   const ort = saeubere(roh.city);
 
-  const befund = pruefeKoordinate(roh.latitude, roh.longitude);
+  const befund = pruefeKoordinate(roh.latitude, roh.longitude, bundesland);
   const hatKoordinate = befund.art === "uebernommen" || befund.art === "vertauscht";
   const lat = hatKoordinate ? befund.lat : null;
   const lon = hatKoordinate ? befund.lon : null;
