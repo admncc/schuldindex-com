@@ -153,7 +153,50 @@ Kategorie A ist intern zweigeteilt: **A2 und A3 bilden den Aggressionsindex** (T
 
 ---
 
-## 7. Ansprache: Du-Variante
+## 7. Kategorie F — Außerunterrichtliches Angebot & Schulleben
+**Gewichtung 1 · optional · 10 Fragen · durchgehend Skala Q**
+
+Neu aufgenommen am 26.08.2026. Die fünf bestehenden Kategorien decken Sicherheit,
+Unterricht, Ausstattung, Verwaltung und Umwelt ab — aber nichts von dem, was für Eltern bei
+der Schulwahl oft den Ausschlag gibt: Arbeitsgemeinschaften, Klassenfahrten, Ganztag,
+Austausch, Berufsorientierung. Die Lücke ist echt und schließt sich gut.
+
+| Nr. | Frage |
+|---|---|
+| F1 | Wie vielfältig ist das Angebot an Arbeitsgemeinschaften und Kursen außerhalb des Unterrichts? |
+| F2 | Wie gut organisiert sind Ausflüge, Exkursionen und Projekttage? |
+| F3 | Wie angemessen ist die Anzahl der Ausflüge und Klassenfahrten im Schuljahr? |
+| F4 | Wie gut sind die Sport- und Bewegungsangebote außerhalb des Unterrichts? |
+| F5 | Wie gut ist das musisch-künstlerische Angebot (Chor, Orchester, Theater, Kunst)? |
+| F6 | Wie gut ist das Ganztags- und Betreuungsangebot (Hausaufgabenbetreuung, Nachmittagsangebote)? |
+| F7 | Wie gut bereitet die Schule auf Beruf und Studium vor (Praktika, Berufsorientierung, Beratung)? |
+| F8 | Wie gut unterstützt die Schule Schüleraustausch und internationale Programme? |
+| F9 | Wie gut unterstützt die Schule Eigeninitiative (Schülervertretung, Schülerzeitung, eigene Projekte)? |
+| F10 | Wie bewerten Sie insgesamt das außerunterrichtliche Angebot und das Schulleben? |
+
+**Freitext (optional):** „Weitere Anmerkungen zu außerunterrichtlichen Angeboten und Schulleben."
+
+**Zwei Hinweise zur Ausgestaltung:**
+
+1. **Alle Fragen bewusst auf Skala Q**, nicht auf die Häufigkeitsskala. Bei „Wie häufig
+   finden Ausflüge statt?" wäre *häufiger = besser* — die Umkehrung der Aggressionsfragen,
+   wo *häufiger = schlechter* gilt. Zwei gegenläufige Häufigkeitsregeln in derselben
+   Scoring-Engine sind eine sichere Fehlerquelle. „Wie angemessen ist die Anzahl?" misst
+   dasselbe ohne diesen Bruch.
+2. **Möglicher elfter Punkt zur Abstimmung:** „Wie gut sorgt die Schule dafür, dass
+   kostenpflichtige Angebote wie Klassenfahrten für alle Familien bezahlbar bleiben?"
+   Sozial aussagekräftig und in keinem Vergleichsportal zu finden — aber auch die
+   politischste Frage des Fragebogens. Aufnehmen oder nicht, ist eine Produktentscheidung.
+
+**Auswirkung auf die Länge:** Der Fragenkatalog wächst von 51 auf 61 Fragen. Da D, E und F
+alle optional sind, bleibt der Pflichtteil unverändert bei 31 Fragen (A–C). Die drei
+optionalen Kategorien werden nach Abschluss des Pflichtteils **einzeln und eingeklappt**
+angeboten („Möchten Sie noch etwas bewerten?"), nicht als eine Wand aus 30 weiteren Fragen.
+Mehr als drei optionale Kategorien sollten es nicht werden.
+
+---
+
+## 8. Ansprache: Du-Variante
 
 Kanonisch oben ist die **Sie-Form**. Für die beiden Schülerrollen wird dieselbe
 Message-Struktur in der **Du-Form** ausgeliefert (Entscheidung 3.3 im Entwicklungsplan) —
@@ -171,24 +214,27 @@ die Schule …") und werden in beiden Varianten identisch verwendet.
 
 ---
 
-## 8. Hinweistext über dem Freitextfeld
+## 9. Hinweistext über dem Freitextfeld
 
-Verpflichtend einzublenden, nicht wegklickbar (Begründung: Abschnitt 7 und 9 des
+Verpflichtend einzublenden, nicht wegklickbar. Er muss zwei Dinge sagen — was mit dem Text
+passiert, und was nicht hineingehört (Begründung: Abschnitte 7, 9 und 10 des
 Entwicklungsplans):
 
-> **Bitte keine Namen nennen.** Bewerten Sie die Schule als Einrichtung. Angaben zu einzelnen
-> Lehrkräften, Mitschülerinnen und Mitschülern oder anderen Personen werden nicht
-> veröffentlicht und führen dazu, dass Ihre Bewertung abgelehnt wird.
+> **Dein Text wird nicht veröffentlicht.** Er fließt zusammen mit anderen Bewertungen in eine
+> kurze Zusammenfassung für diese Schule ein. **Bitte nenne keine Namen** — weder von
+> Lehrkräften noch von Mitschülerinnen und Mitschülern. Bewertungen mit Namen werden
+> abgelehnt.
 
-Du-Variante:
+Sie-Variante:
 
-> **Bitte keine Namen nennen.** Bewerte die Schule als Einrichtung. Angaben zu einzelnen
-> Lehrkräften, Mitschülerinnen und Mitschülern oder anderen Personen werden nicht
-> veröffentlicht und führen dazu, dass deine Bewertung abgelehnt wird.
+> **Ihr Text wird nicht veröffentlicht.** Er fließt zusammen mit anderen Bewertungen in eine
+> kurze Zusammenfassung für diese Schule ein. **Bitte nennen Sie keine Namen** — weder von
+> Lehrkräften noch von Mitschülerinnen und Mitschülern. Bewertungen mit Namen werden
+> abgelehnt.
 
 ---
 
-## 9. Formularfelder außerhalb des Fragenkatalogs
+## 10. Formularfelder außerhalb des Fragenkatalogs
 
 Vollständige Feldliste einschließlich Rollenauswahl, Elterneinwilligung für unter
 16-Jährige, Klassenstufe und Kontaktart: **Abschnitt 7.1 des Entwicklungsplans.**
