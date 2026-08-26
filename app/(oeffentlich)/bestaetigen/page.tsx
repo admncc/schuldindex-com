@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { sql } from "@/db/verbindung";
 import { PRUEFUNG_HINWEIS, hashe, pruefeToken } from "@/domain/verifizierung";
+import { aktualisiereAggregate } from "@/db/aggregate";
 
 export const metadata: Metadata = { title: "Bewertung bestätigen" };
 export const dynamic = "force-dynamic";
@@ -52,21 +53,25 @@ export default async function Bestaetigungsseite({
   // Bestätigen: Token verbrauchen, Konto verifizieren, wartende Bewertungen
   // freigeben. In einer Transaktion, damit kein Zwischenzustand entsteht, in dem
   // das Token verbraucht, das Konto aber unbestätigt ist.
-  const [anzahl] = await sql.begin(async (tx) => {
+  const freigegeben = await sql.begin(async (tx) => {
     await tx`update verifizierungstoken set verbraucht_am = now() where id = ${gespeichert!.id}`;
     await tx`update konten set verifiziert_am = coalesce(verifiziert_am, now()) where id = ${gespeichert!.konto_id}`;
-    return tx<{ n: number }[]>`
+    const zeilen = await tx<{ schule_id: string }[]>`
       update bewertungen set status = 'freigegeben', aktualisiert_am = now()
       where konto_id = ${gespeichert!.konto_id} and status = 'wartet_auf_verifizierung'
-      returning 1 as n
+      returning schule_id
     `;
+    // Ohne diese Zeile bleibt die Bewertung sichtbar freigegeben, das
+    // Schulprofil zeigt aber weiter den Stand von vorher.
+    await aktualisiereAggregate(zeilen.map((z) => z.schule_id), tx);
+    return zeilen.length;
   });
 
   return (
     <Rueckmeldung
       titel="Danke — deine Bewertung ist bestätigt"
       text={
-        anzahl
+        freigegeben > 0
           ? "Sie erscheint in Kürze auf dem Schulprofil. Von jetzt an kannst du weitere Schulen bewerten, ohne dich erneut zu bestätigen."
           : "Dein Konto ist bestätigt. Von jetzt an kannst du Schulen bewerten, ohne dich erneut zu bestätigen."
       }

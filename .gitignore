@@ -17,3 +17,7 @@ pruef.mjs
 diag404.mjs
 durchlauf.mjs
 bestaetigen.mjs
+
+# Erzeugte Dateien
+tsconfig.tsbuildinfo
+schulen.json

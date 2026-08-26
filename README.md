@@ -37,7 +37,14 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/import/normalisiere.ts` | Rohdatensatz → Schule: Adresse, Koordinate samt Reparatur vertauschter Werte, Suchtext |
 | `src/import/dubletten.ts` | Zusammenführung mehrfach gelieferter Schulen, Standorte bleiben erhalten |
 | `src/db/schulsuche.ts` | Autovervollständigung, unscharfe Suche, Umkreissuche, Filter |
-| `app/` | Next.js-Anwendung: Startseite, Suche, Schulprofil, Bewertungsformular, Bestätigung |
+| `app/(oeffentlich)/` | Öffentliches Portal: Startseite, Suche, Schulprofil, Bewertungsformular, Bestätigung |
+| `app/moderation/` | Interne Oberfläche: Anmeldung mit zweitem Faktor, Warteschlange, Detailansicht, Entscheidungen |
+| `src/domain/totp.ts` | Zweiter Faktor nach RFC 6238, geprüft gegen die Testvektoren des RFC |
+| `src/domain/anmeldung.ts` | Kennwortabdruck (scrypt), Sitzungstoken, Sperre nach Fehlversuchen |
+| `src/domain/moderation.ts` | Was eine Entscheidung braucht: Ablehnungsgründe, Dringlichkeit, Alarme |
+| `src/dienste/moderationsanmeldung.ts` | Der Anmeldevorgang, ohne Datenbank geschrieben und dort geprüft |
+| `src/db/moderation.ts` | Warteschlange, Vorgang, Entscheidung, Protokoll |
+| `src/db/aggregate.ts` | Neuberechnung der Schulaggregate bei jeder Freigabe |
 | `src/dienste/umgebung.ts` | Anbindung des Abgabedienstes an Postgres — das einzige SQL außerhalb der Abfrageschicht |
 | `messages/de.json` | Alle Oberflächentexte |
 | `db/migrations/` | Datenbankschema |
@@ -47,13 +54,19 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `scripts/pruefe-koordinaten.test.ts` | Qualitätstor: prüft die Koordinaten gegen die Datenbank |
 | `scripts/suche.test.ts` | Prüft die Suche an den echten Daten |
 | `scripts/durchstich.test.ts` | Durchstich: echte Schulen, Bewertungen, Aggregation |
+| `scripts/moderator-anlegen.ts` | Legt ein Moderationskonto an, gibt Kennwort und App-URL einmalig aus |
 
 ```bash
 npm install
-npm test        # 278 Tests
+npm test        # 360 Tests
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000
+
+# Zugang zur Moderation anlegen (Ausgabe erscheint genau einmal):
+npx tsx scripts/moderator-anlegen.ts anna "Anna Beispiel" --leitung
+# Die ausgegebene otpauth://-URL in eine Authenticator-App übernehmen,
+# danach anmelden unter http://localhost:3000/moderation
 
 # Messung der Schulart-Normalisierung am echten Bestand (34.094 Datensätze):
 npx tsx scripts/lade-schulen.ts > schulen.json

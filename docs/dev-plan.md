@@ -405,6 +405,38 @@ Interne Oberfläche unter `/moderation`, auf Deutsch, Zugang nur mit Login + 2FA
 - **Meldewege für Dritte:** öffentliches Formular `/inhalt-melden` für Schulen und Betroffene
   (Pflicht nach Art. 16 DSA), mit deutschem Formular und Eingangsbestätigung.
 
+### 8.1 Umgesetzt — und was sich beim Bauen geändert hat
+
+Die Oberfläche steht: Anmeldung mit Kennwort und TOTP, Warteschlange mit Filtern,
+Detailansicht, Entscheidungen mit Protokoll. Fünf Festlegungen, die beim Bauen entstanden
+sind und die in der Planung so nicht standen:
+
+1. **Rückfrage ist kein eigener Zustand.** Die Bewertung bleibt in der Prüfung stehen und
+   behält ihren Platz in der Warteschlange. Ein eigener Zustand „wartet auf Antwort“ hätte
+   sie aus der 48-Stunden-Zusage genommen — und damit aus dem Blick.
+2. **Der Kontakt bleibt verdeckt, bis jemand ihn anfordert.** Jede Einsicht ist ein eigener
+   Protokolleintrag (`einsicht_kontakt`). Eine Oberfläche, die den Kontakt ungefragt zeigt,
+   macht aus der Ausnahme den Regelfall, und der Protokolleintrag wird wertlos.
+3. **Ablehnungsgründe sind Vorlagen, kein Freitext.** Der Zusatz ergänzt die Vorlage, er
+   ersetzt sie nicht. Fünf Moderatorinnen schreiben sonst fünf unterschiedlich harte
+   Begründungen für denselben Sachverhalt — und die Begründung geht nach draußen.
+4. **Entscheidungen laufen gegen den erwarteten Zustand** (`where status = vonStatus`). Zwei
+   Personen mit derselben Bewertung im Bildschirm können nicht nacheinander freigeben und
+   ablehnen; die zweite bekommt einen Hinweis statt eines stillen Überschreibens.
+5. **Freigabe rechnet das Schulaggregat in derselben Transaktion neu.** Das fehlte bisher
+   ganz: Bewertungen wurden freigegeben, `schul_aggregate` blieb stehen, und das Schulprofil
+   zeigte weiter den Stand von vorher (`src/db/aggregate.ts`).
+
+Die Anmeldung selbst ist in `src/dienste/moderationsanmeldung.ts` ohne Datenbank geschrieben
+und dort vollständig geprüft — einschließlich der Punkte, die man an einer laufenden Anwendung
+kaum testet: gleicher Fehlertext für unbekannte Kennung, falsches Kennwort und falschen Code;
+Kennwortprüfung auch bei unbekannter Kennung, damit die Antwortzeit die Kennungen nicht
+verrät; Fehlversuchszähler auch bei richtigem Kennwort und falschem Code.
+
+**Noch offen in Abschnitt 8:** Sammelaktionen für Spam-Wellen, Filter nach Zeitraum, das
+Meldeformular `/inhalt-melden` und die Zustellung der Rückfrage an die betroffene Person
+(sie steht im Protokoll, geht aber noch nicht hinaus — dafür fehlt der Versandweg).
+
 ---
 
 ## 9. Recht & Datenschutz (Deutschland)

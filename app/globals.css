@@ -244,3 +244,109 @@ a { color: var(--akzent); }
 .fehlerkasten ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
 
 .schrittleiste { display: flex; gap: 0.7rem; flex-wrap: wrap; }
+
+/* ---------- Moderation ----------
+   Eigene Oberfläche, keine öffentliche Seite: dichter gesetzt, mit Tabelle statt
+   Karten. Wer hier acht Stunden arbeitet, will Zeilen sehen, keine Kacheln. */
+.moderationskopf {
+  display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+  border-bottom: 1px solid var(--linie); padding: 0.8rem 0; margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+.moderationskopf nav { display: flex; gap: 1rem; }
+.moderationskopf nav a { color: var(--schrift-2); text-decoration: none; }
+.moderationskopf .anmeldung { display: flex; align-items: center; gap: 0.7rem; margin-left: auto; }
+.marke.klein { font-size: 1rem; }
+.knopf.klein { padding: 0.35rem 0.7rem; font-size: 0.83rem; }
+.abschnitt.schmal { max-width: 26rem; }
+
+.gedaempft { color: var(--schrift-3); }
+.fussnote { font-size: 0.82rem; color: var(--schrift-3); }
+.erfolg { color: var(--gut); font-size: 0.95rem; }
+.brotkrumen { font-size: 0.9rem; }
+.brotkrumen a { color: var(--schrift-2); text-decoration: none; }
+.versteckt {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+.alarm {
+  border-left: 3px solid var(--schlecht); background: var(--schlecht-flaeche);
+  border-radius: 0 var(--radius) var(--radius) 0; padding: 0.8rem 1rem; font-size: 0.9rem;
+}
+.alarm ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }
+
+.filter { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.filter input, .filter select {
+  padding: 0.5rem 0.7rem; font: inherit; font-size: 0.92rem;
+  border: 1px solid var(--linie-stark); border-radius: var(--radius);
+  background: var(--flaeche); color: var(--schrift);
+}
+.filter input { min-width: 16rem; }
+
+.tabelle { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.tabelle th, .tabelle td { text-align: left; padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--linie); }
+.tabelle th { font-weight: 500; color: var(--schrift-3); font-size: 0.82rem; }
+.tabelle td { vertical-align: top; }
+.tabelle a { color: var(--schrift); text-decoration: none; font-weight: 500; }
+.tabelle a:hover { color: var(--akzent); }
+.tabelle tbody tr:hover { background: var(--flaeche); }
+.alterslink { display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
+
+/* Dieselben drei Farben wie die Wertung, andere Bedeutung: hier zeigen sie
+   Rückstand, nicht Qualität. Deshalb eigene Klassennamen. */
+.plakette.neu { background: var(--gut-flaeche); color: var(--gut); }
+.plakette.faellig { background: var(--mittel-flaeche); color: var(--mittel); }
+.plakette.ueberfaellig { background: var(--schlecht-flaeche); color: var(--schlecht); }
+
+.vorgangskopf { display: flex; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; align-items: flex-start; }
+.vorgangsstatus { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; font-size: 0.88rem; }
+.vorgangsraster { display: grid; gap: 2rem; align-items: start; }
+@media (min-width: 62rem) { .vorgangsraster { grid-template-columns: 1fr 22rem; } }
+.vorgangsraster h2 { font-size: 1.15rem; margin-top: 1.5rem; }
+.vorgangsraster > div > h2:first-child, .vorgangsraster aside h2:first-child { margin-top: 0; }
+
+.hinweisliste { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; font-size: 0.92rem; }
+.hinweisliste li { padding-bottom: 0.5rem; border-bottom: 1px solid var(--linie); }
+
+.kontaktfeld { font-size: 0.92rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+.kontaktfeld code { font-size: 0.95rem; background: var(--flaeche-2); padding: 0.2rem 0.45rem; border-radius: 6px; }
+
+.angaben { display: grid; grid-template-columns: auto 1fr; gap: 0.4rem 1.2rem; margin: 0; font-size: 0.92rem; }
+.angaben dt { color: var(--schrift-3); }
+.angaben dd { margin: 0; }
+
+.freitext {
+  margin: 0 0 0.9rem; padding: 0.9rem 1.1rem; background: var(--flaeche);
+  border: 1px solid var(--linie); border-left: 3px solid var(--linie-stark); border-radius: 0 var(--radius) var(--radius) 0;
+}
+.freitext p { margin: 0 0 0.4rem; }
+.freitext cite { font-size: 0.82rem; color: var(--schrift-3); font-style: normal; }
+
+.kategorie { border-bottom: 1px solid var(--linie); padding: 0.6rem 0; }
+.kategorie summary { cursor: pointer; font-weight: 500; font-size: 0.95rem; }
+.antwortliste { list-style: none; margin: 0.8rem 0 0.3rem; padding: 0; display: grid; gap: 0.45rem; font-size: 0.9rem; }
+.antwortliste li { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: baseline; }
+.antwortliste .frage { color: var(--schrift-2); }
+.antwortliste .antwortwert { font-weight: 500; white-space: nowrap; }
+
+.entscheidung { display: flex; flex-direction: column; gap: 0.8rem; }
+.entscheidung fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+.entscheidung legend { font-size: 0.88rem; color: var(--schrift-3); padding: 0; margin-bottom: 0.4rem; }
+.entscheidung label { font-size: 0.9rem; font-weight: 500; }
+.entscheidung select, .entscheidung textarea, .formular.karte input {
+  padding: 0.55rem 0.7rem; font: inherit; font-size: 0.93rem; width: 100%;
+  border: 1px solid var(--linie-stark); border-radius: var(--radius);
+  background: var(--flaeche); color: var(--schrift);
+}
+.entscheidung textarea { resize: vertical; }
+.auswahl { display: flex; align-items: center; gap: 0.5rem; font-weight: 400; cursor: pointer; }
+.auswahl input { accent-color: var(--akzent); }
+
+.formular.karte { display: grid; gap: 0.5rem; max-width: none; }
+.formular.karte label { font-size: 0.9rem; font-weight: 500; margin-top: 0.4rem; }
+.formular.karte button { margin-top: 0.9rem; }
+
+.verlauf { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.8rem; font-size: 0.88rem; }
+.verlauf li { border-left: 2px solid var(--linie); padding-left: 0.8rem; }
+.verlauf p { margin: 0.3rem 0 0; color: var(--schrift-2); white-space: pre-wrap; }
