@@ -56,7 +56,7 @@ export default function Entscheidungsfeld({
   }
 
   return (
-    <form action={absenden} className="entscheidung karte">
+    <form action={absenden} className="entscheidung karte" key={zustand.versuch ?? 0}>
       <h2>Entscheidung</h2>
       {zustand.meldung ? (
         <p className="fehler" role="alert">{zustand.meldung}</p>

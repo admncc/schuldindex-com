@@ -201,9 +201,11 @@ export function aufZehnerskala(mittelwert: number): number {
  * oberen Bereich, Rot käme praktisch nie vor und die Farbe sagte nichts aus.
  * So ist jede Farbe einer Schule gegenüber begründbar.
  */
+export const SCORE_GRENZEN = { gut: 7.5, mittel: 5.0 } as const;
+
 export function scorestufe(score: number): Scorestufe {
-  if (score >= 7.5) return "gut";
-  if (score >= 5.0) return "mittel";
+  if (score >= SCORE_GRENZEN.gut) return "gut";
+  if (score >= SCORE_GRENZEN.mittel) return "mittel";
   return "schlecht";
 }
 

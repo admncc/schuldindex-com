@@ -52,6 +52,9 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/db/ranglisten.ts` | Beste Schulen und höchster Verbesserungsbedarf, mit Sechs-Monats-Trend |
 | `src/domain/karte.ts` | Projektion der Schulkarte — und warum sie ohne fremde Kartenkacheln auskommt |
 | `src/db/karte.ts` | Schulbestand als Raster, bewertete Schulen einzeln |
+| `src/domain/meldung.ts` | Prüfung der Meldungen nach Art. 16 DSA |
+| `src/db/meldungen.ts` | Meldungen annehmen, entscheiden, Missbrauch des Meldewegs erkennen |
+| `src/recht/betreiber.ts` | Betreiberangaben aus der Umgebung — fehlende Pflichtangaben werden sichtbar |
 | `src/dienste/umgebung.ts` | Anbindung des Abgabedienstes an Postgres — das einzige SQL außerhalb der Abfrageschicht |
 | `messages/de.json` | Alle Oberflächentexte |
 | `db/migrations/` | Datenbankschema |
@@ -66,7 +69,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 
 ```bash
 npm install
-npm test        # 410 Tests
+npm test        # 446 Tests (24 davon gegen die eingespielten Echtdaten)
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000

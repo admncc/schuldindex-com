@@ -409,3 +409,21 @@ a { color: var(--akzent); }
 .punkt.gut { background: var(--gut); }
 .punkt.mittel { background: var(--mittel); }
 .punkt.schlecht { background: var(--schlecht); }
+
+/* ---------- Rechtsseiten ---------- */
+.rechtstext { max-width: 46rem; display: flex; flex-direction: column; gap: 1.1rem; }
+.rechtstext h2 { font-size: 1.3rem; margin-top: 1.4rem; }
+.rechtstext h3 { font-size: 1.05rem; margin-top: 0.8rem; }
+.rechtstext p, .rechtstext li { color: var(--schrift-2); line-height: 1.65; }
+.rechtstext ul, .rechtstext ol { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.4rem; }
+.rechtstext dl { display: grid; grid-template-columns: auto 1fr; gap: 0.4rem 1.2rem; margin: 0; }
+.rechtstext dt { color: var(--schrift-3); }
+.rechtstext dd { margin: 0; color: var(--schrift-2); }
+.rechtstext table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+.rechtstext th, .rechtstext td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--linie); vertical-align: top; }
+.rechtstext th { color: var(--schrift-3); font-weight: 500; }
+mark.fehlt {
+  background: var(--schlecht-flaeche); color: var(--schlecht);
+  padding: 0.1rem 0.4rem; border-radius: 6px; font-size: 0.9rem;
+}
+.stand { font-size: 0.85rem; color: var(--schrift-3); }

@@ -69,6 +69,8 @@ export interface Entscheidungszustand {
   /** Wie bei der Anmeldung: React leert das Formular nach jeder Aktion. */
   readonly zusatz?: string;
   readonly grund?: string;
+  /** Schlüssel für den Neuaufbau des Formulars, damit die Werte auch dastehen. */
+  readonly versuch?: number;
 }
 
 function istAktion(wert: string): wert is Aktion {
@@ -92,7 +94,7 @@ export async function entscheiden(
   const rohAktion = String(formular.get("aktion") ?? "");
   const grund = (formular.get("grund") as string | null) ?? undefined;
   const zusatz = (formular.get("zusatz") as string | null) ?? undefined;
-  const eingaben = { grund: grund ?? "", zusatz: zusatz ?? "" };
+  const eingaben = { grund: grund ?? "", zusatz: zusatz ?? "", versuch: (_vorher.versuch ?? 0) + 1 };
 
   if (!istAktion(rohAktion)) return { ...eingaben, meldung: "Unbekannte Aktion." };
 

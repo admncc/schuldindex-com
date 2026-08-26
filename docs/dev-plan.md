@@ -433,13 +433,45 @@ kaum testet: gleicher Fehlertext für unbekannte Kennung, falsches Kennwort und 
 Kennwortprüfung auch bei unbekannter Kennung, damit die Antwortzeit die Kennungen nicht
 verrät; Fehlversuchszähler auch bei richtigem Kennwort und falschem Code.
 
-**Noch offen in Abschnitt 8:** Sammelaktionen für Spam-Wellen, Filter nach Zeitraum, das
-Meldeformular `/inhalt-melden` und die Zustellung der Rückfrage an die betroffene Person
-(sie steht im Protokoll, geht aber noch nicht hinaus — dafür fehlt der Versandweg).
+**Noch offen in Abschnitt 8:** Sammelaktionen für Spam-Wellen und Filter nach Zeitraum. Die
+Zustellung an die betroffene Person fehlt weiterhin — Rückfragen und Entscheidungen stehen im
+Protokoll, gehen aber noch nicht hinaus, weil der Versandweg Zugangsdaten braucht.
+
+### 8.2 Meldungen nach Art. 16 DSA — umgesetzt
+
+Das öffentliche Formular liegt unter `/inhalt-melden`, die Arbeitsliste unter
+`/moderation/meldungen`. Geprüft wird genau das, was der Artikel verlangt: hinreichend
+begründete Erläuterung, genaue elektronische Adresse, Kontaktangabe, Erklärung nach bestem
+Wissen. Eine höhere Hürde wäre selbst ein Verstoß gegen die Pflicht zum „leicht zugänglichen“
+Verfahren.
+
+Drei Dinge, die im Gesetz stehen und die man beim Bauen leicht übersieht:
+
+1. **Bei einer Drohung ist die Kontaktangabe freiwillig** (Art. 16 Abs. 2 lit. c). Das Formular
+   lässt solche Meldungen ohne Adresse durch und sagt dazu, dass es dann keine Antwort geben
+   kann. Der Hilfetext nennt zuerst die 110 — ein Meldeformular ist kein Notruf.
+2. **Die Eingangsbestätigung** (Abs. 4) braucht ein Kennzeichen, auf das sich die meldende
+   Person berufen kann. Sie bekommt die ersten acht Stellen der Kennung angezeigt.
+3. **Der Rechtsbehelfshinweis** (Abs. 5) hängt das System selbst an jede Entscheidung an, statt
+   darauf zu vertrauen, dass ihn jemand mitschreibt. Er sagt der meldenden Person, wie sie gegen
+   uns vorgehen kann — auch das ist Pflicht.
+
+Die Adresse der meldenden Person liegt verschlüsselt, wie jeder andere Kontakt: wer eine
+Bewertung meldet, ist häufig die betroffene Lehrkraft, und eine Klartextliste solcher Adressen
+neben den Bewertungen wäre genau die Verknüpfung, die dieses Portal nicht anlegen will.
+Wiederholte Meldungen derselben Adresse zählt die Übersicht mit (Art. 23 DSA).
 
 ---
 
 ## 9. Recht & Datenschutz (Deutschland)
+
+> **Stand der Umsetzung:** Impressum, Datenschutzerklärung, Nutzungsbedingungen und die
+> Transparenzseite `/ueber` sind gebaut (`app/(oeffentlich)/`). Die Betreiberangaben kommen aus
+> der Umgebung (`src/recht/betreiber.ts`); fehlt eine Pflichtangabe nach § 5 DDG, sagt die Seite
+> das an genau der Stelle, an der die Angabe stehen müsste, und setzt einen Warnkasten darüber.
+> Beispieldaten als Voreinstellung gibt es nicht: ein Impressum mit „Musterstraße 1“ sieht aus
+> wie ein Impressum und ist keines. Die Texte sind die Vorlage für die Kanzlei, nicht ihr Ersatz
+> — sie beschreiben aber genau, was der Code tut, sodass niemand raten muss.
 
 Ein deutschsprachiges Portal für deutsche Schulen unterliegt deutschem Recht — dieser
 Abschnitt ist kein Anhang, sondern Launch-Voraussetzung.
