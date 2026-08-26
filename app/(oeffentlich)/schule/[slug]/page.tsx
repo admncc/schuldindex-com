@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { holeSchule } from "@/db/schulen";
+import { holeZusammenfassung } from "@/db/zusammenfassungen";
+import { kennzeichnung } from "@/ki/zusammenfassung";
 import { BUNDESLAND_LABEL } from "@/domain/bundesland";
 import { MINDESTZAHL_PROFIL } from "@/domain/aggregation";
 import { ampelstufe } from "@/domain/scoring";
@@ -29,6 +31,7 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
   if (!schule) notFound();
 
   const t = await getTranslations();
+  const zusammenfassung = await holeZusammenfassung(schule.id);
   const score = schule.gesamtscore === null ? null : Number(schule.gesamtscore);
   const aggression = schule.aggressionsindex === null ? null : Number(schule.aggressionsindex);
   const sichtbar = schule.anzahl >= MINDESTZAHL_PROFIL && score !== null;
@@ -109,6 +112,47 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
               <p>{t("ampel.erklaerung")}</p>
             </div>
           )}
+        </section>
+      )}
+
+      {zusammenfassung && (
+        <section className="abschnitt">
+          <h2>Was Bewertende schreiben</h2>
+          {/* Kein einziger Originaltext wird veröffentlicht — was hier steht,
+              ist unser eigener Text, aus den Freitexten zusammengefasst und vor
+              der Veröffentlichung geprüft (Entwicklungsplan, Abschnitt 10.2).
+              Deshalb steht die Kennzeichnung darunter und nicht im Kleingedruckten. */}
+          <div className="karte zusammenfassung">
+            <p>{zusammenfassung.text}</p>
+            {(zusammenfassung.positive_themen.length > 0 ||
+              zusammenfassung.kritische_themen.length > 0) && (
+              <div className="themen">
+                {zusammenfassung.positive_themen.length > 0 && (
+                  <div>
+                    <span className="beschriftung">Häufig gelobt</span>
+                    <ul>
+                      {zusammenfassung.positive_themen.map((thema) => (
+                        <li key={thema} className="thema gut">{thema}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {zusammenfassung.kritische_themen.length > 0 && (
+                  <div>
+                    <span className="beschriftung">Häufig kritisiert</span>
+                    <ul>
+                      {zusammenfassung.kritische_themen.map((thema) => (
+                        <li key={thema} className="thema schlecht">{thema}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+            <p className="fussnote">
+              {kennzeichnung(zusammenfassung.aus_anzahl, zusammenfassung.erstellt_am)}
+            </p>
+          </div>
         </section>
       )}
 

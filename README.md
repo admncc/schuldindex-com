@@ -45,6 +45,10 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/dienste/moderationsanmeldung.ts` | Der Anmeldevorgang, ohne Datenbank geschrieben und dort geprüft |
 | `src/db/moderation.ts` | Warteschlange, Vorgang, Entscheidung, Protokoll |
 | `src/db/aggregate.ts` | Neuberechnung der Schulaggregate bei jeder Freigabe |
+| `src/ki/vorlage.ts` | Auftrag an das Modell: Systemanweisung und abgegrenzter Bewertungsblock |
+| `src/ki/pruefung.ts` | Nachprüfung der Zusammenfassung vor der Veröffentlichung |
+| `src/ki/zusammenfassung.ts` | Der Ablauf der Zusammenfassung, ohne Netz und damit prüfbar |
+| `src/ki/anthropic.ts` | Claude API mit Structured Outputs — die einzige Datei, die das SDK kennt |
 | `src/dienste/umgebung.ts` | Anbindung des Abgabedienstes an Postgres — das einzige SQL außerhalb der Abfrageschicht |
 | `messages/de.json` | Alle Oberflächentexte |
 | `db/migrations/` | Datenbankschema |
@@ -55,13 +59,19 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `scripts/suche.test.ts` | Prüft die Suche an den echten Daten |
 | `scripts/durchstich.test.ts` | Durchstich: echte Schulen, Bewertungen, Aggregation |
 | `scripts/moderator-anlegen.ts` | Legt ein Moderationskonto an, gibt Kennwort und App-URL einmalig aus |
+| `scripts/zusammenfassen.ts` | Erzeugt die Freitext-Zusammenfassungen der fälligen Schulen |
 
 ```bash
 npm install
-npm test        # 360 Tests
+npm test        # 397 Tests
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000
+
+# Freitext-Zusammenfassungen (Abschnitt 10.2 des Entwicklungsplans).
+# --trocken zeigt den Auftrag an das Modell, ohne die API aufzurufen:
+ANTHROPIC_API_KEY=… npx tsx scripts/zusammenfassen.ts --grenze 20
+npx tsx scripts/zusammenfassen.ts --schule <slug> --trocken
 
 # Zugang zur Moderation anlegen (Ausgabe erscheint genau einmal):
 npx tsx scripts/moderator-anlegen.ts anna "Anna Beispiel" --leitung

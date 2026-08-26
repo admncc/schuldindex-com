@@ -350,3 +350,16 @@ a { color: var(--akzent); }
 .verlauf { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.8rem; font-size: 0.88rem; }
 .verlauf li { border-left: 2px solid var(--linie); padding-left: 0.8rem; }
 .verlauf p { margin: 0.3rem 0 0; color: var(--schrift-2); white-space: pre-wrap; }
+
+/* ---------- KI-Zusammenfassung ---------- */
+.zusammenfassung > p:first-child { font-size: 1.05rem; line-height: 1.65; color: var(--schrift); }
+.zusammenfassung .themen { display: grid; gap: 1rem; margin-top: 1.1rem; }
+@media (min-width: 40rem) { .zusammenfassung .themen { grid-template-columns: 1fr 1fr; } }
+.zusammenfassung .themen ul { list-style: none; margin: 0.4rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.thema {
+  font-size: 0.85rem; padding: 0.25rem 0.6rem; border-radius: 999px;
+  background: var(--flaeche-2); color: var(--schrift-2);
+}
+.thema.gut { background: var(--gut-flaeche); color: var(--gut); }
+.thema.schlecht { background: var(--schlecht-flaeche); color: var(--schlecht); }
+.zusammenfassung .fussnote { margin-top: 1.1rem; padding-top: 0.8rem; border-top: 1px solid var(--linie); }

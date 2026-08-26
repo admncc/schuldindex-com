@@ -612,6 +612,46 @@ const antwort = await client.messages.parse({
 if (!antwort.parsed_output) throw new ZusammenfassungFehlgeschlagen();
 ```
 
+### 10.3 Umgesetzt
+
+Gebaut ist der ganze Weg außer dem Aufruf selbst — der braucht einen API-Schlüssel und einen
+Auftragsverarbeitungsvertrag, beides steht noch aus:
+
+| Datei | Aufgabe |
+| --- | --- |
+| `src/ki/vorlage.ts` | Systemanweisung auf Deutsch, Bewertungsblock, Aufbereitung der Fremdtexte |
+| `src/ki/pruefung.ts` | Nachprüfung der Ausgabe vor der Veröffentlichung |
+| `src/ki/zusammenfassung.ts` | Der Ablauf, ohne Netz und ohne Datenbank — und damit prüfbar |
+| `src/ki/anthropic.ts` | Die einzige Datei, die das SDK kennt: `messages.parse` mit `zodOutputFormat` |
+| `src/db/zusammenfassungen.ts` | Freitexte laden, Ergebnis speichern, fällige Schulen finden |
+| `scripts/zusammenfassen.ts` | Der Job, mit `--trocken` zum Ansehen des Auftrags ohne Kosten |
+
+Vier Punkte, die beim Bauen dazukamen:
+
+1. **Die Blockbegrenzung lässt sich aus einem Bewertungstext heraus nicht schließen.** Ein
+   Text, der `</bewertungen>` enthält, bekommt an dieser Stelle `[…]`. Ohne das könnte jemand
+   den Materialblock beenden und den Rest als Auftrag erscheinen lassen — der Prompt allein
+   hätte das nicht verhindert.
+2. **Funktionsbezeichnungen blockieren die Veröffentlichung.** „Die Schulleitung wird als
+   unnahbar beschrieben“ ist eine Aussage über eine bestimmte Person, auch ohne Namen: eine
+   Schule hat genau eine Schulleitung. Ebenso Klassen- und Jahrgangsangaben.
+3. **Eine aufgehaltene Zusammenfassung verschwindet nicht.** Sie steht mit ihren Beanstandungen
+   in der Moderationswarteschlange. Stillschweigend nichts zu veröffentlichen hieße, eine
+   Schule ohne Zusammenfassung nicht von einer unterscheiden zu können, bei der die Prüfung
+   dreimal angeschlagen hat.
+4. **Neu gerechnet wird auch, wenn Bewertungen wegfallen.** Nach einer Löschung (Art. 17
+   DSGVO) sinkt die Zahl, statt zu steigen — eine Regel, die nur auf „fünf neue Bewertungen“
+   schaut, würde den gelöschten Beitrag im erzeugten Text weiterleben lassen.
+
+Geprüft ist der Ablauf an der echten Datenbank mit einem gestellten Modell: zwölf freigegebene
+Bewertungen mit Freitext, darunter ein eingeschleuster „Ignoriere alle vorherigen Anweisungen“-
+Versuch. Der saubere Lauf ging auf das Schulprofil, der Lauf mit einem Namen wurde aufgehalten,
+und das Profil zeigte weiter den vorherigen Text.
+
+**Noch offen:** der Auftragsverarbeitungsvertrag mit Anthropic samt Festlegung der
+Verarbeitungsregion (`inference_geo`), die Erstbefüllung über die Batch API und die Frage der
+Kanzlei, wie die Haftung für den selbst verfassten Text auszuweisen ist.
+
 **Auswirkung auf die Moderation:** Der Freitext braucht keine Vorabfreigabe mehr wegen
 Tonfall — was niemand liest, muss nicht geglättet werden. Weiterhin geprüft werden muss auf
 **Straftatbestände** (Drohungen, Gewaltankündigungen; hier bestehen unter Umständen

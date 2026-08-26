@@ -9,6 +9,7 @@ import {
   warteschlangenalarm,
 } from "@/domain/moderation";
 import { warteschlange, warteschlangenlage } from "@/db/moderation";
+import { eskalierteZusammenfassungen } from "@/db/zusammenfassungen";
 import type { Zustand } from "@/domain/bewertungsstatus";
 import type { Bundesland } from "@/domain/bundesland";
 import { verlangeAnmeldung } from "./sitzung";
@@ -49,9 +50,10 @@ export default async function Warteschlangenseite({
   const bundesland = p.bundesland !== undefined && istBundesland(p.bundesland) ? p.bundesland : undefined;
   const suche = p.suche?.trim() ? p.suche.trim() : undefined;
 
-  const [eintraege, lage] = await Promise.all([
+  const [eintraege, lage, zusammenfassungen] = await Promise.all([
     warteschlange({ status, bundesland, suche }),
     warteschlangenlage(),
+    eskalierteZusammenfassungen(),
   ]);
   const jetzt = new Date();
   const alarme = warteschlangenalarm(lage, jetzt);
@@ -159,6 +161,40 @@ export default async function Warteschlangenseite({
         Sortiert nach Alter, älteste zuerst. Ab {ALARM_ALTER_STUNDEN} Stunden gilt ein Eintrag als
         überfällig.
       </p>
+
+      {/* Zusammenfassungen, die die Nachprüfung aufgehalten hat. Sie stehen
+          hier und nicht in einer eigenen Ansicht, weil sonst niemand hinsieht —
+          und weil eine aufgehaltene Zusammenfassung dasselbe bedeutet wie eine
+          gehaltene Bewertung: es fehlt eine Entscheidung. */}
+      {zusammenfassungen.length > 0 ? (
+        <section className="abschnitt">
+          <h2>Aufgehaltene Zusammenfassungen</h2>
+          <p className="hinweis">
+            Diese Texte hat die Nachprüfung vor der Veröffentlichung gestoppt. Sie sind nirgends
+            öffentlich. Der nächste Lauf erzeugt einen neuen Text; bleibt es dabei, gehört der
+            Fall angesehen.
+          </p>
+          {zusammenfassungen.map((z) => (
+            <div key={z.id} className="karte">
+              <span className="beschriftung">
+                <a href={`/schule/${z.schule_slug}`}>{z.schule_name}</a> · aus {z.aus_anzahl}{" "}
+                Bewertungen · {new Intl.DateTimeFormat("de-DE", { dateStyle: "medium", timeStyle: "short" }).format(z.erstellt_am)}
+              </span>
+              <blockquote className="freitext">
+                <p>{z.text}</p>
+              </blockquote>
+              <ul className="antwortliste">
+                {z.beanstandungen.map((b, i) => (
+                  <li key={`${b.regel}-${i}`}>
+                    <span className="frage">{b.regel}</span>
+                    <span className="antwortwert">{b.fund}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      ) : null}
     </section>
   );
 }
