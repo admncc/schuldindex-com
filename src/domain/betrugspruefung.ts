@@ -10,9 +10,9 @@
  * Deshalb ein Punktwert statt einer Kette von Wenn-Dann.
  */
 
-import type { Antworten } from "./scoring.js";
-import { FRAGEN, KEINE_ANGABE } from "./fragebogen.js";
-import type { Geobefund } from "./geopruefung.js";
+import type { Antworten } from "./scoring";
+import { FRAGEN, KEINE_ANGABE } from "./fragebogen";
+import type { Geobefund } from "./geopruefung";
 
 export type Signalart =
   | "entfernung"

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SCHULART_LABEL, ausName, ordneSchulartZu, teileBezeichnung } from "./schulart.js";
+import { SCHULART_LABEL, ausName, ordneSchulartZu, teileBezeichnung } from "./schulart";
 
 const arten = (typ: string | null, name = "Musterschule") => ordneSchulartZu(typ, name).arten;
 

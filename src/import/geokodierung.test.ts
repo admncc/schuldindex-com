@@ -9,7 +9,7 @@ import {
   type Anschrift,
   type Geocoder,
   type Koordinate,
-} from "./geokodierung.js";
+} from "./geokodierung";
 
 const NORDHOLZ: Anschrift = {
   name: "Grundschule Nordholz",

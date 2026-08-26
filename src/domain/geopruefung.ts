@@ -10,7 +10,7 @@
  * Bundesland, Konfidenz. Die Moderation braucht die Entfernung, nicht die Adresse.
  */
 
-import type { Bundesland } from "./bundesland.js";
+import type { Bundesland } from "./bundesland";
 
 export interface Punkt {
   readonly lat: number;

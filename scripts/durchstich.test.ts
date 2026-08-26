@@ -8,10 +8,10 @@
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import postgres from "postgres";
-import { FRAGEN, type Antwort, type Skalenwert } from "../src/domain/fragebogen.js";
-import { bewerte } from "../src/domain/scoring.js";
-import { aggregiere, type EinzelneBewertung } from "../src/domain/aggregation.js";
-import { pruefeEinreichung } from "../src/domain/geopruefung.js";
+import { FRAGEN, type Antwort, type Skalenwert } from "../src/domain/fragebogen";
+import { bewerte } from "../src/domain/scoring";
+import { aggregiere, type EinzelneBewertung } from "../src/domain/aggregation";
+import { pruefeEinreichung } from "../src/domain/geopruefung";
 
 const URL = process.env.DATABASE_URL ?? "";
 const vorhanden = URL !== "";

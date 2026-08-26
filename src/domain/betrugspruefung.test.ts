@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { FRAGEN, KEINE_ANGABE, type Antwort, type Skalenwert } from "./fragebogen.js";
-import type { Antworten } from "./scoring.js";
-import type { Geobefund } from "./geopruefung.js";
-import { GRENZEN, HALTESCHWELLE, pruefe, pruefeAntwortmuster, type Pruefkontext } from "./betrugspruefung.js";
+import { FRAGEN, KEINE_ANGABE, type Antwort, type Skalenwert } from "./fragebogen";
+import type { Antworten } from "./scoring";
+import type { Geobefund } from "./geopruefung";
+import { GRENZEN, HALTESCHWELLE, pruefe, pruefeAntwortmuster, type Pruefkontext } from "./betrugspruefung";
 
 const GEO_OK: Geobefund = {
   entfernungKm: 12,

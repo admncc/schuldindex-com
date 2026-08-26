@@ -9,8 +9,9 @@
  */
 import { readFileSync } from "node:fs";
 import postgres from "postgres";
-import { normalisiere, type Rohschule, type Schule } from "../src/import/normalisiere.js";
-import { vergebeSlugs } from "../src/import/slug.js";
+import { normalisiere, type Rohschule, type Schule } from "../src/import/normalisiere";
+import { vergebeSlugs } from "../src/import/slug";
+import { fuehreZusammen, type Standort } from "../src/import/dubletten";
 
 export interface Importbericht {
   gelesen: number;
@@ -20,10 +21,13 @@ export interface Importbericht {
   koordinateRepariert: number;
   koordinateUnbrauchbar: number;
   koordinateFalschesLand: number;
+  zusammengefuehrt: number;
 }
 
+export type Importschule = Schule & { slug: string; standorte: readonly Standort[] };
+
 export function bereiteVor(rohdaten: readonly Rohschule[]): {
-  schulen: Array<Schule & { slug: string }>;
+  schulen: Importschule[];
   bericht: Importbericht;
 } {
   const bericht: Importbericht = {
@@ -34,6 +38,7 @@ export function bereiteVor(rohdaten: readonly Rohschule[]): {
     koordinateRepariert: 0,
     koordinateUnbrauchbar: 0,
     koordinateFalschesLand: 0,
+    zusammengefuehrt: 0,
   };
 
   const gueltig: Schule[] = [];
@@ -50,16 +55,38 @@ export function bereiteVor(rohdaten: readonly Rohschule[]): {
     if (ergebnis.schule.koordinatenbefund === "falsches_bundesland") bericht.koordinateFalschesLand++;
   }
 
+  // Mehrfach gelieferte Schulen zusammenführen, bevor Slugs vergeben werden —
+  // sonst bekämen Standorte derselben Schule unterschiedliche URLs.
+  const zusammengefuehrt = fuehreZusammen(
+    gueltig.map((s) => ({
+      quellId: s.quellId,
+      name: s.name,
+      plz: s.plz,
+      strasse: s.strasse,
+      lat: s.lat,
+      website: s.website,
+      telefon: s.telefon,
+      email: s.email,
+      traeger: s.traeger,
+      schule: s,
+    })),
+  );
+  bericht.zusammengefuehrt = zusammengefuehrt.reduce((n, z) => n + z.aufgegangen.length, 0);
+  const eindeutig = zusammengefuehrt.map((z) => ({
+    ...z.haupt.schule,
+    standorte: z.standorte,
+  }));
+
   const slugs = vergebeSlugs(
-    gueltig.map((s) => ({ name: s.name, ort: s.ort, plz: s.plz, quellId: s.quellId })),
+    eindeutig.map((s) => ({ name: s.name, ort: s.ort, plz: s.plz, quellId: s.quellId })),
   );
 
-  const schulen = gueltig.map((s) => ({ ...s, slug: slugs.get(s.quellId)! }));
+  const schulen = eindeutig.map((s) => ({ ...s, slug: slugs.get(s.quellId)! }));
   bericht.uebernommen = schulen.length;
   return { schulen, bericht };
 }
 
-async function schreibe(sql: postgres.Sql, schulen: ReadonlyArray<Schule & { slug: string }>) {
+async function schreibe(sql: postgres.Sql, schulen: readonly Importschule[]) {
   const STAPEL = 500;
   for (let i = 0; i < schulen.length; i += STAPEL) {
     const teil = schulen.slice(i, i + STAPEL).map((s) => ({
@@ -81,6 +108,7 @@ async function schreibe(sql: postgres.Sql, schulen: ReadonlyArray<Schule & { slu
       genauigkeit: s.genauigkeit,
       suchtext: s.suchtext,
       quelle_stand: s.quelleStand,
+      standorte: sql.json(s.standorte as unknown as postgres.JSONValue),
     }));
 
     await sql`
@@ -98,6 +126,7 @@ async function schreibe(sql: postgres.Sql, schulen: ReadonlyArray<Schule & { slu
         telefon           = excluded.telefon,
         email             = excluded.email,
         suchtext          = excluded.suchtext,
+        standorte         = excluded.standorte,
         quelle_stand      = excluded.quelle_stand,
         aktualisiert_am   = now()
       -- Koordinaten und Slug bleiben bewusst unangetastet: eine nachgeocodierte
@@ -120,6 +149,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.error(`    davon unbrauchbar geliefert  ${bericht.koordinateUnbrauchbar}`);
     console.error(`    davon im falschen Bundesland ${bericht.koordinateFalschesLand}`);
     console.error(`  Koordinate repariert (vertauscht) ${bericht.koordinateRepariert}`);
+    console.error(`  Dubletten zusammengefuehrt  ${bericht.zusammengefuehrt}`);
     for (const [grund, n] of Object.entries(bericht.verworfen)) {
       console.error(`  verworfen: ${grund.padEnd(32)} ${n}`);
     }

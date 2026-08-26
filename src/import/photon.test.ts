@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { PhotonGeocoder, mitZwischenspeicher } from "./photon.js";
-import type { Geocoder } from "./geokodierung.js";
+import { PhotonGeocoder, mitZwischenspeicher } from "./photon";
+import type { Geocoder } from "./geokodierung";
 
 /** Antwort im Format von Photon. GeoJSON führt [Länge, Breite]. */
 function antwort(lon: number | null, lat?: number, postcode?: string) {

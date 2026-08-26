@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { kennung, kuerze, slugKandidaten, slugify, vergebeSlugs } from "./slug.js";
+import { kennung, kuerze, slugKandidaten, slugify, vergebeSlugs } from "./slug";
 
 describe("slugify", () => {
   it("schreibt Umlaute aus, statt sie zu verschlucken", () => {

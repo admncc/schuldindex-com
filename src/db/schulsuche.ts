@@ -12,8 +12,8 @@
  * beiden Schreibweisen führt (siehe `import/normalisiere.ts`).
  */
 
-import type { Bundesland } from "../domain/bundesland.js";
-import type { Schulart } from "../import/schulart.js";
+import type { Bundesland } from "../domain/bundesland";
+import type { Schulart } from "../import/schulart";
 
 export interface Suchtreffer {
   readonly id: string;

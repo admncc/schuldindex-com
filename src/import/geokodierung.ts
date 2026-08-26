@@ -20,7 +20,7 @@
  * die letzte Adresse zu warten.
  */
 
-import { BUNDESLAND_LABEL, type Bundesland } from "../domain/bundesland.js";
+import { BUNDESLAND_LABEL, type Bundesland } from "../domain/bundesland";
 
 export type Genauigkeit = "adresse" | "plz" | "ort" | "keine";
 

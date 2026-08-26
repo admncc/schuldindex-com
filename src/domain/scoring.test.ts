@@ -6,7 +6,7 @@ import {
   type Antwort,
   type KategorieId,
   type Skalenwert,
-} from "./fragebogen.js";
+} from "./fragebogen";
 import {
   UnvollstaendigeBewertung,
   aggressionsindex,
@@ -20,7 +20,7 @@ import {
   scorestufe,
   unbekannteFragen,
   type Antworten,
-} from "./scoring.js";
+} from "./scoring";
 
 // ---- Hilfsmittel ----
 

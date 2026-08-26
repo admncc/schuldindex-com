@@ -6,10 +6,10 @@
  * zugleich betrachten muss.
  */
 
-import { bundeslandAusId, type Bundesland } from "../domain/bundesland.js";
-import { liegtImBundesland } from "./geokodierung.js";
-import { ordneSchulartZu, type Schulart } from "./schulart.js";
-import { slugify } from "./slug.js";
+import { bundeslandAusId, type Bundesland } from "../domain/bundesland";
+import { liegtImBundesland } from "./geokodierung";
+import { ordneSchulartZu, type Schulart } from "./schulart";
+import { slugify } from "./slug";
 
 /** Felder der Quelle, soweit wir sie verwenden. */
 export interface Rohschule {

@@ -23,7 +23,7 @@
  * bewertende Person sonst noch ausgefüllt hat.
  */
 
-import { KATEGORIEN, type KategorieId } from "./fragebogen.js";
+import { KATEGORIEN, type KategorieId } from "./fragebogen";
 import {
   ampelstufe,
   aufZehnerskala,
@@ -31,7 +31,7 @@ import {
   type Ampelstufe,
   type Bewertungsergebnis,
   type Scorestufe,
-} from "./scoring.js";
+} from "./scoring";
 
 /** Mindestzahlen, entschieden am 26.08.2026. */
 export const MINDESTZAHL_PROFIL = 10;

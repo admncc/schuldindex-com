@@ -8,7 +8,7 @@ import {
   wechsle,
   type Ausloeser,
   type Zustand,
-} from "./bewertungsstatus.js";
+} from "./bewertungsstatus";
 
 const ALLE_AUSLOESER: Ausloeser[] = [
   "verifiziert",

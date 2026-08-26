@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SCHWELLE_KM, entfernungKm, pruefeEinreichung } from "./geopruefung.js";
+import { SCHWELLE_KM, entfernungKm, pruefeEinreichung } from "./geopruefung";
 
 const HAMBURG_RATHAUS = { lat: 53.5503, lon: 9.992 };
 const MUENCHEN_MARIENPLATZ = { lat: 48.1374, lon: 11.5755 };

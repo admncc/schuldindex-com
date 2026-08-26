@@ -19,7 +19,7 @@ import {
   type Antwort,
   type Frage,
   type KategorieId,
-} from "./fragebogen.js";
+} from "./fragebogen";
 
 /** Antworten einer einzelnen Bewertung, Schlüssel ist die Frage-ID. */
 export type Antworten = Readonly<Record<string, Antwort>>;

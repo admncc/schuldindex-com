@@ -8,10 +8,10 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { SCHULART_LABEL, ordneSchulartZu, type Schulart } from "../src/import/schulart.js";
-import { bundeslandAusId, BUNDESLAND_LABEL } from "../src/domain/bundesland.js";
-import { baueAnfragen } from "../src/import/geokodierung.js";
-import { vergebeSlugs } from "../src/import/slug.js";
+import { SCHULART_LABEL, ordneSchulartZu, type Schulart } from "../src/import/schulart";
+import { bundeslandAusId, BUNDESLAND_LABEL } from "../src/domain/bundesland";
+import { baueAnfragen } from "../src/import/geokodierung";
+import { vergebeSlugs } from "../src/import/slug";
 
 const PFAD = process.env.SCHULEN_JSON ?? "";
 const vorhanden = PFAD !== "" && existsSync(PFAD);

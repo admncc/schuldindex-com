@@ -1,0 +1,168 @@
+/* Gestaltung des Portals.
+   Grundton ist ein kühles Papierweiß mit Königsblau als Akzent — die Farbe der
+   Tinte, mit der in Deutschland jedes Schulkind schreibt. Die Ampelfarben sind
+   davon getrennt und ausschließlich für Bewertungen reserviert. */
+
+:root {
+  --grund: #f6f7fa;
+  --flaeche: #ffffff;
+  --flaeche-2: #eef1f7;
+  --schrift: #151a23;
+  --schrift-2: #454e60;
+  --schrift-3: #6b7488;
+  --akzent: #1b3a8c;
+  --akzent-sanft: #e5e9f7;
+  --linie: #dde2ec;
+  --linie-stark: #c3cbda;
+  --gut: #1b6e45;
+  --gut-flaeche: #e3f0e9;
+  --mittel: #8a5b06;
+  --mittel-flaeche: #f7edd9;
+  --schlecht: #a32820;
+  --schlecht-flaeche: #f8e4e2;
+  --radius: 10px;
+  --schatten: 0 1px 2px rgba(21, 26, 35, 0.05), 0 8px 24px -18px rgba(21, 26, 35, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --grund: #101319;
+    --flaeche: #181c25;
+    --flaeche-2: #1f242f;
+    --schrift: #e7eaf1;
+    --schrift-2: #b4bbc9;
+    --schrift-3: #878fa1;
+    --akzent: #8aa6f0;
+    --akzent-sanft: #1d2740;
+    --linie: #2a303c;
+    --linie-stark: #3a4252;
+    --gut: #6dc79a;
+    --gut-flaeche: #152b21;
+    --mittel: #d9a63f;
+    --mittel-flaeche: #2e2415;
+    --schlecht: #e68278;
+    --schlecht-flaeche: #331b18;
+    --schatten: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -18px rgba(0, 0, 0, 0.8);
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--grund);
+  color: var(--schrift);
+  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: "Source Serif 4", Georgia, serif; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; }
+h2 { font-size: 1.4rem; font-weight: 700; }
+h3 { font-size: 1.02rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--akzent); }
+:focus-visible { outline: 2px solid var(--akzent); outline-offset: 3px; border-radius: 3px; }
+
+.huelle { max-width: 68rem; margin: 0 auto; padding: 0 1.25rem; }
+
+/* ---------- Kopf und Fuß ---------- */
+.kopf { border-bottom: 1px solid var(--linie); background: var(--flaeche); }
+.kopf-inhalt { display: flex; align-items: center; gap: 1.75rem; padding: 0.9rem 0; flex-wrap: wrap; }
+.marke {
+  font-family: "Source Serif 4", Georgia, serif; font-weight: 700; font-size: 1.15rem;
+  letter-spacing: 0.02em; color: var(--schrift); text-decoration: none;
+}
+.kopf nav { display: flex; gap: 1.25rem; font-size: 0.93rem; margin-left: auto; flex-wrap: wrap; }
+.kopf nav a { color: var(--schrift-2); text-decoration: none; }
+.kopf nav a:hover { color: var(--akzent); }
+
+.fuss { margin-top: 4rem; border-top: 1px solid var(--linie); padding: 1.5rem 0 3rem; font-size: 0.87rem; color: var(--schrift-3); }
+.fuss ul { display: flex; gap: 1.25rem; list-style: none; margin: 0 0 0.6rem; padding: 0; flex-wrap: wrap; }
+.fuss a { color: var(--schrift-2); text-decoration: none; }
+
+/* ---------- Suche ---------- */
+.suchblock { padding: 3.5rem 0 2.5rem; display: flex; flex-direction: column; gap: 1.1rem; }
+.suchblock p.einleitung { color: var(--schrift-2); max-width: 46ch; font-size: 1.05rem; }
+.suchzeile { display: flex; gap: 0.6rem; max-width: 40rem; }
+.suchzeile input {
+  flex: 1; padding: 0.8rem 1rem; font-size: 1rem; font-family: inherit;
+  border: 1px solid var(--linie-stark); border-radius: var(--radius);
+  background: var(--flaeche); color: var(--schrift);
+}
+.knopf {
+  padding: 0.8rem 1.4rem; font-size: 1rem; font-family: inherit; font-weight: 500;
+  border: 1px solid transparent; border-radius: var(--radius);
+  background: var(--akzent); color: #fff; cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center; white-space: nowrap;
+}
+.knopf.zweitrangig { background: var(--flaeche); color: var(--akzent); border-color: var(--linie-stark); }
+.bestandshinweis { font-size: 0.9rem; color: var(--schrift-3); }
+
+/* ---------- Trefferliste ---------- */
+.treffer { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+.treffer li a {
+  display: flex; gap: 1rem; align-items: center; justify-content: space-between;
+  padding: 0.9rem 1.1rem; background: var(--flaeche); border: 1px solid var(--linie);
+  border-radius: var(--radius); text-decoration: none; color: inherit;
+}
+.treffer li a:hover { border-color: var(--linie-stark); }
+.treffer .eintrag { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.treffer .titel { font-weight: 500; display: block; }
+.treffer .beiwerk { font-size: 0.88rem; color: var(--schrift-3); display: block; }
+
+/* ---------- Wertungen ---------- */
+.wertung { display: inline-flex; align-items: baseline; gap: 0.3rem; font-variant-numeric: tabular-nums; }
+.wertung .zahl { font-family: "Source Serif 4", Georgia, serif; font-weight: 700; font-size: 1.5rem; }
+.wertung .skala { font-size: 0.82rem; color: var(--schrift-3); }
+.wertung.gross .zahl { font-size: 2.6rem; }
+
+.plakette {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  font-size: 0.85rem; font-weight: 500; border-radius: 999px; padding: 0.28rem 0.8rem 0.28rem 0.6rem;
+}
+.plakette::before { content: ""; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: currentColor; }
+.plakette.gut { background: var(--gut-flaeche); color: var(--gut); }
+.plakette.mittel { background: var(--mittel-flaeche); color: var(--mittel); }
+.plakette.schlecht { background: var(--schlecht-flaeche); color: var(--schlecht); }
+
+.marke-schulart {
+  display: inline-block; font-size: 0.78rem; color: var(--schrift-2);
+  background: var(--flaeche-2); border-radius: 5px; padding: 0.12rem 0.5rem; margin-right: 0.3rem;
+}
+
+/* ---------- Karten ---------- */
+.karten { display: grid; gap: 1rem; }
+@media (min-width: 46rem) { .karten.zwei { grid-template-columns: 1fr 1fr; } }
+.karte {
+  background: var(--flaeche); border: 1px solid var(--linie); border-radius: var(--radius);
+  padding: 1.2rem 1.3rem; display: flex; flex-direction: column; gap: 0.7rem;
+  box-shadow: var(--schatten);
+}
+.karte .beschriftung {
+  font-size: 0.73rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--schrift-3);
+}
+.karte p { color: var(--schrift-2); font-size: 0.95rem; }
+
+/* ---------- Kategoriebalken ---------- */
+.kategorien { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.kategorien li { display: grid; grid-template-columns: 1fr auto; gap: 0.3rem 1rem; align-items: center; }
+.kategorien .name { font-size: 0.93rem; }
+.kategorien .wert { font-variant-numeric: tabular-nums; font-weight: 500; font-size: 0.93rem; }
+.balken { grid-column: 1 / -1; height: 6px; background: var(--flaeche-2); border-radius: 3px; overflow: hidden; }
+.balken span { display: block; height: 100%; border-radius: 3px; background: var(--akzent); }
+
+/* ---------- Schulkopf ---------- */
+.schulkopf { padding: 2.5rem 0 1.5rem; border-bottom: 1px solid var(--linie); display: flex; flex-direction: column; gap: 0.8rem; }
+.schulkopf .anschrift { color: var(--schrift-2); }
+.schulkopf .kopfzeile { display: flex; gap: 1.5rem; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; }
+
+.abschnitt { padding-top: 2.25rem; display: flex; flex-direction: column; gap: 1rem; }
+.leerzustand {
+  background: var(--flaeche); border: 1px dashed var(--linie-stark); border-radius: var(--radius);
+  padding: 2rem 1.5rem; text-align: center; display: flex; flex-direction: column; gap: 0.6rem; align-items: center;
+}
+.leerzustand p { color: var(--schrift-2); max-width: 44ch; }
+.hinweis { font-size: 0.88rem; color: var(--schrift-3); }

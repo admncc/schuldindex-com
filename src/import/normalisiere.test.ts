@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { baueSuchtext, normalisiere, pruefeKoordinate, type Rohschule } from "./normalisiere.js";
+import { baueSuchtext, normalisiere, pruefeKoordinate, type Rohschule } from "./normalisiere";
 
 const NORDHOLZ: Rohschule = {
   id: "NI-43424",

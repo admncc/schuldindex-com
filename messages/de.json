@@ -1,0 +1,89 @@
+{
+  "allgemein": {
+    "portalname": "SCHULINDEX",
+    "beschreibung": "Schulen in Deutschland – anonym und geprüft bewertet",
+    "laden": "Wird geladen …",
+    "fehler": "Da ist etwas schiefgegangen. Bitte versuche es später noch einmal.",
+    "zurueck": "Zurück",
+    "mehr": "Mehr anzeigen"
+  },
+  "navigation": {
+    "suche": "Schule finden",
+    "ranglisten": "Ranglisten",
+    "karte": "Karte",
+    "ueber": "Über uns",
+    "anmelden": "Anmelden"
+  },
+  "startseite": {
+    "titel": "Finde deine Schule",
+    "untertitel": "Bewertungen von Schülerinnen, Schülern, Eltern und Lehrkräften – anonym abgegeben, vor der Veröffentlichung geprüft.",
+    "suchfeld": "Schulname, Ort oder Postleitzahl",
+    "suchknopf": "Suchen",
+    "schulenImBestand": "{anzahl, number} Schulen in ganz Deutschland",
+    "hinweisAnonym": "Deine Bewertung erscheint immer anonym."
+  },
+  "suche": {
+    "titel": "Schulen finden",
+    "treffer": "{anzahl, plural, =0 {Keine Schule gefunden} one {# Schule gefunden} other {# Schulen gefunden}}",
+    "keineTreffer": "Zu deiner Suche haben wir nichts gefunden.",
+    "keineTrefferHinweis": "Versuche es mit dem Ort oder der Postleitzahl.",
+    "filterBundesland": "Bundesland",
+    "filterSchulart": "Schulart",
+    "alle": "Alle",
+    "weiterTippen": "Tippe mindestens zwei Zeichen."
+  },
+  "schule": {
+    "bewertenKnopf": "Diese Schule bewerten",
+    "keineBewertungen": "Noch keine Bewertungen",
+    "keineBewertungenHinweis": "Diese Schule wurde noch nicht bewertet. Sei die erste Person, die ihre Erfahrung teilt.",
+    "zuWenigeBewertungen": "Noch nicht genug Bewertungen",
+    "zuWenigeBewertungenHinweis": "Ab {mindestzahl, number} Bewertungen zeigen wir eine Gesamtwertung. Bisher sind es {anzahl, number}.",
+    "gesamtwertung": "Gesamtwertung",
+    "vonZehn": "von 10",
+    "anzahlBewertungen": "{anzahl, plural, one {# Bewertung} other {# Bewertungen}}",
+    "kategorien": "Einzelwertungen",
+    "sicherheitsindikator": "Mobbing und Aggression",
+    "stand": "Stand {datum}",
+    "adresse": "Adresse",
+    "schulart": "Schulart",
+    "traeger": "Träger",
+    "website": "Website"
+  },
+  "ampel": {
+    "gering": "Geringe Häufigkeit",
+    "mittel": "Mittlere Häufigkeit",
+    "hoch": "Hohe Häufigkeit",
+    "erklaerung": "Der Wert zeigt, wie häufig Bewertende von Mobbing oder aggressivem Verhalten berichten. Er wird getrennt ausgewiesen und fließt zugleich in die Gesamtwertung ein."
+  },
+  "score": {
+    "gut": "Gut bewertet",
+    "mittel": "Durchschnittlich bewertet",
+    "schlecht": "Unterdurchschnittlich bewertet"
+  },
+  "kategorie": {
+    "A": "Sicherheit & Schulklima",
+    "B": "Unterrichts- & Lernqualität",
+    "C": "Ausstattung & Lernmittel",
+    "D": "Schulleitung & Verwaltung",
+    "E": "Umwelt & Nachhaltigkeit",
+    "F": "Außerunterrichtliches Angebot"
+  },
+  "schulart": {
+    "grundschule": "Grundschule",
+    "hauptschule": "Hauptschule",
+    "realschule": "Realschule",
+    "oberschule": "Mittel-/Oberschule",
+    "gesamtschule": "Gesamtschule",
+    "gymnasium": "Gymnasium",
+    "foerderschule": "Förderschule",
+    "berufliche_schule": "Berufliche Schule",
+    "waldorfschule": "Waldorf-/Freie Schule",
+    "sonstige": "Sonstige"
+  },
+  "fusszeile": {
+    "impressum": "Impressum",
+    "datenschutz": "Datenschutz",
+    "nutzungsbedingungen": "Nutzungsbedingungen",
+    "melden": "Inhalt melden"
+  }
+}

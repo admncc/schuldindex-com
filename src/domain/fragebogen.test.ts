@@ -5,7 +5,7 @@ import {
   KATEGORIEN,
   SKALEN,
   fragenDerKategorie,
-} from "./fragebogen.js";
+} from "./fragebogen";
 
 describe("Fragebogen — Struktur", () => {
   it("enthält 61 Fragen in sechs Kategorien", () => {

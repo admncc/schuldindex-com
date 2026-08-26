@@ -12,7 +12,7 @@
  * eine geänderte Basis-URL.
  */
 
-import type { Geocoder, Koordinate } from "./geokodierung.js";
+import type { Geocoder, Koordinate } from "./geokodierung";
 
 export interface PhotonEinstellungen {
   readonly basis?: string;

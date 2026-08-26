@@ -15,7 +15,7 @@
  * bricht der Lauf ab, statt einen unvollständigen Bestand weiterzureichen.
  */
 
-import { BUNDESLAENDER, type Bundesland } from "../src/domain/bundesland.js";
+import { BUNDESLAENDER, type Bundesland } from "../src/domain/bundesland";
 
 const BASIS = "https://jedeschule.codefor.de";
 const LIMIT = 20_000; // über der größten Landeszahl (Baden-Württemberg, 6.068)

@@ -22,9 +22,9 @@
  * fremden Dienst.
  */
 import postgres from "postgres";
-import { geokodiere, type Genauigkeit } from "../src/import/geokodierung.js";
-import { PhotonGeocoder, mitZwischenspeicher } from "../src/import/photon.js";
-import type { Bundesland } from "../src/domain/bundesland.js";
+import { geokodiere, type Genauigkeit } from "../src/import/geokodierung";
+import { PhotonGeocoder, mitZwischenspeicher } from "../src/import/photon";
+import type { Bundesland } from "../src/domain/bundesland";
 
 interface OffeneSchule {
   id: string;

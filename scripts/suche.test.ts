@@ -5,7 +5,7 @@
  */
 import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import postgres from "postgres";
-import { autovervollstaendige, imUmkreis, suche, type SqlAusfuehrer } from "../src/db/schulsuche.js";
+import { autovervollstaendige, imUmkreis, suche, type SqlAusfuehrer } from "../src/db/schulsuche";
 
 const URL = process.env.DATABASE_URL ?? "";
 const vorhanden = URL !== "";

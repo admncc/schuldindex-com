@@ -111,7 +111,7 @@ describe.skipIf(!vorhanden)("Entfernungsrechnung", () => {
     // Datenbankbesuch wäre reine Latenz) und earth_distance in Postgres bei
     // der Umkreissuche. Laufen sie auseinander, prüft die Anwendung anders als
     // die Datenbank — dieser Test hält beide zusammen.
-    const { entfernungKm } = await import("../src/domain/geopruefung.js");
+    const { entfernungKm } = await import("../src/domain/geopruefung");
     const sql = postgres(URL, { onnotice: () => {} });
     try {
       const paare = await sql<{ alat: number; alon: number; blat: number; blon: number }[]>`

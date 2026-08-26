@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { FRAGEN, type Antwort, type Skalenwert } from "./fragebogen.js";
-import { bewerte, type Antworten } from "./scoring.js";
+import { FRAGEN, type Antwort, type Skalenwert } from "./fragebogen";
+import { bewerte, type Antworten } from "./scoring";
 import {
   MINDESTZAHL_PROFIL,
   MINDESTZAHL_RANGLISTE,
   aggregiere,
   berechneTrend,
   type EinzelneBewertung,
-} from "./aggregation.js";
+} from "./aggregation";
 
 /** Antworten mit festem Wert je Kategorie; nicht genannte bleiben offen. */
 function antworten(werte: Partial<Record<string, Skalenwert>>): Antworten {

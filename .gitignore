@@ -7,3 +7,7 @@ coverage/
 .env.*
 !.env.example
 .DS_Store
+
+# Screenshots aus der Entwicklung
+*.png
+schuss*.mjs
