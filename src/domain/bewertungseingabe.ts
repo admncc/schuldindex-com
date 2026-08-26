@@ -96,7 +96,22 @@ export function fortschritt(antworten: Bewertungseingabe["antworten"]): number {
   return gesamt === 0 ? 1 : fertig / gesamt;
 }
 
-export function pruefeEingabe(e: Bewertungseingabe, jetzt = new Date()): Eingabefehler[] {
+export interface Pruefoptionen {
+  /**
+   * Bei einer Änderung sind Kontakt und Einwilligung schon erteilt und stehen
+   * gar nicht mehr im Formular. Sie noch einmal zu verlangen hieße, jemanden
+   * bei jeder Korrektur erneut einwilligen zu lassen — und die Einwilligung
+   * damit zur Formalität zu machen.
+   */
+  readonly kontaktNoetig?: boolean;
+}
+
+export function pruefeEingabe(
+  e: Bewertungseingabe,
+  jetzt = new Date(),
+  optionen: Pruefoptionen = {},
+): Eingabefehler[] {
+  const kontaktNoetig = optionen.kontaktNoetig ?? true;
   const fehler: Eingabefehler[] = [];
 
   if (e.rolle === null) {
@@ -144,7 +159,9 @@ export function pruefeEingabe(e: Bewertungseingabe, jetzt = new Date()): Eingabe
     }
   }
 
-  if (e.kontaktart === null) {
+  if (!kontaktNoetig) {
+    // Bei einer Änderung endet die Prüfung hier: was folgt, ist die Abgabe.
+  } else if (e.kontaktart === null) {
     fehler.push({ feld: "kontaktart", meldung: "Bitte wähle, wie wir dich bestätigen sollen." });
   } else if (e.kontakt.trim() === "") {
     fehler.push({
@@ -157,7 +174,7 @@ export function pruefeEingabe(e: Bewertungseingabe, jetzt = new Date()): Eingabe
     fehler.push({ feld: "kontakt", meldung: "Diese Mobilnummer sieht nicht vollständig aus." });
   }
 
-  if (!e.datenschutzEinwilligung) {
+  if (kontaktNoetig && !e.datenschutzEinwilligung) {
     fehler.push({
       feld: "datenschutzEinwilligung",
       meldung: "Ohne deine Einwilligung dürfen wir die Bewertung nicht verarbeiten.",
@@ -177,4 +194,9 @@ export function pruefeEingabe(e: Bewertungseingabe, jetzt = new Date()): Eingabe
 
 export function istGueltig(e: Bewertungseingabe, jetzt = new Date()): boolean {
   return pruefeEingabe(e, jetzt).length === 0;
+}
+
+/** Prüfung einer Änderung: alles außer Kontakt und Einwilligung. */
+export function pruefeAenderung(e: Bewertungseingabe, jetzt = new Date()): Eingabefehler[] {
+  return pruefeEingabe(e, jetzt, { kontaktNoetig: false });
 }

@@ -99,3 +99,33 @@ describe("Vollständigkeit", () => {
     }
   });
 });
+
+describe("Bearbeitung durch die verfassende Person", () => {
+  it("führt aus „veröffentlicht“ zurück in die Prüfung", () => {
+    // Sonst ließe sich eine harmlose Bewertung freigeben und danach umschreiben.
+    expect(wechsle("freigegeben", "bearbeitet")).toEqual({ ok: true, nach: "in_pruefung_betrug" });
+  });
+
+  it("lässt eine unbestätigte Bewertung unbestätigt", () => {
+    expect(wechsle("wartet_auf_verifizierung", "bearbeitet")).toEqual({
+      ok: true,
+      nach: "wartet_auf_verifizierung",
+    });
+  });
+
+  it("nimmt einer gehaltenen Bewertung nicht den Prüfgrund", () => {
+    // Am Ort der Abgabe ändert ein neuer Text nichts.
+    expect(wechsle("in_pruefung_geo", "bearbeitet")).toEqual({ ok: true, nach: "in_pruefung_geo" });
+    expect(wechsle("in_pruefung_betrug", "bearbeitet")).toEqual({ ok: true, nach: "in_pruefung_betrug" });
+  });
+
+  it("geht bei einer abgelehnten Bewertung nicht", () => {
+    expect(istErlaubt("abgelehnt", "bearbeitet")).toBe(false);
+  });
+
+  it("ist aus jedem Zustand außer „abgelehnt“ möglich", () => {
+    for (const zustand of ZUSTAENDE) {
+      expect(istErlaubt(zustand, "bearbeitet"), zustand).toBe(zustand !== "abgelehnt");
+    }
+  });
+});

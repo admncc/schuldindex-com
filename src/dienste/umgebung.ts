@@ -9,6 +9,9 @@
 import type postgres from "postgres";
 import { sql } from "../db/verbindung";
 import { freitexteAlsObjekt, type Umgebung } from "./bewertungAbgeben";
+import type { Aenderungsumgebung } from "./bewertungAendern";
+import { aktualisiereAggregat } from "../db/aggregate";
+import type { Zustand } from "../domain/bewertungsstatus";
 import { baueBestaetigung, sende } from "../versand/nachricht";
 import { versandkette } from "../versand/wege";
 import type { Kontaktart } from "../domain/kontakt";
@@ -135,6 +138,85 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
       const nachricht = baueBestaetigung(basisUrl, token.klartext, art as Kontaktart);
       const ergebnis = await sende(versandkette(), empfaenger, art as Kontaktart, nachricht);
       return ergebnis.ok;
+    },
+  };
+}
+
+/**
+ * Die Umgebung des Änderungsdienstes.
+ *
+ * Sie teilt sich die Freitextvorprüfung mit der Erstabgabe — dieselben Muster,
+ * dieselbe Wirkung. Neu ist nur das Schreiben einer weiteren Fassung.
+ */
+export function aenderungsumgebungMitDatenbank(): Aenderungsumgebung {
+  return {
+    async holeBewertung(bewertungId, kontoId) {
+      const [zeile] = await sql<
+        {
+          id: string;
+          konto_id: string;
+          schule_id: string;
+          slug: string;
+          status: Zustand;
+          aktuelle_version: number;
+        }[]
+      >`
+        select b.id, b.konto_id, b.schule_id, s.slug,
+               b.status::text as status, b.aktuelle_version
+        from bewertungen b join schulen s on s.id = b.schule_id
+        where b.id = ${bewertungId} and b.konto_id = ${kontoId}
+      `;
+      if (!zeile) return null;
+      return {
+        id: zeile.id,
+        kontoId: zeile.konto_id,
+        schuleId: zeile.schule_id,
+        schulSlug: zeile.slug,
+        status: zeile.status,
+        aktuelleVersion: zeile.aktuelle_version,
+      };
+    },
+
+    async pruefeFreitext(texte) {
+      return texte.some((t) => VERBOTEN.test(t));
+    },
+
+    async speichereFassung(daten) {
+      await sql.begin(async (tx: postgres.TransactionSql) => {
+        const s = daten.scores;
+        const kategorie = (id: string) => s.kategorien.find((k) => k.kategorie === id)?.score ?? null;
+
+        await tx`
+          insert into bewertung_versionen (
+            bewertung_id, version, antworten, freitexte,
+            score_a, score_b, score_c, score_d, score_e, score_f,
+            aggressionsindex, gesamtscore
+          ) values (
+            ${daten.bewertungId}, ${daten.version},
+            ${tx.json(daten.eingabe.antworten as never)},
+            ${tx.json(freitexteAlsObjekt(daten.eingabe.freitexte) as never)},
+            ${kategorie("A")}, ${kategorie("B")}, ${kategorie("C")},
+            ${kategorie("D")}, ${kategorie("E")}, ${kategorie("F")},
+            ${s.aggression?.index ?? null}, ${s.gesamtscore}
+          )
+        `;
+
+        await tx`
+          update bewertungen
+          set aktuelle_version = ${daten.version},
+              status = ${daten.status}::bewertungsstatus,
+              rolle = ${daten.eingabe.rolle!}::rolle,
+              klassenstufe = ${daten.eingabe.klassenstufe},
+              abgangsjahr = ${daten.eingabe.abgangsjahr},
+              zuletzt_bearbeitet_am = now(),
+              aktualisiert_am = now()
+          where id = ${daten.bewertungId}
+        `;
+
+        // Die vorherige Fassung war womöglich veröffentlicht und ist es jetzt
+        // nicht mehr — ohne diese Zeile stünde ihr Wert weiter im Schulscore.
+        await aktualisiereAggregat(daten.schuleId, tx);
+      });
     },
   };
 }

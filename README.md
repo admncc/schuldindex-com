@@ -55,6 +55,10 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/domain/meldung.ts` | Prüfung der Meldungen nach Art. 16 DSA |
 | `src/db/meldungen.ts` | Meldungen annehmen, entscheiden, Missbrauch des Meldewegs erkennen |
 | `src/recht/betreiber.ts` | Betreiberangaben aus der Umgebung — fehlende Pflichtangaben werden sichtbar |
+| `src/domain/kontozugang.ts` | Anmeldung ohne Kennwort: Token, Fristen, Cookie |
+| `src/dienste/kontozugang.ts` | Anmeldelink anfordern — mit immer gleicher Antwort |
+| `src/dienste/bewertungAendern.ts` | Änderung einer eigenen Bewertung, als neue Fassung |
+| `src/db/konto.ts` | Eigene Bewertungen, Sitzungen, Löschung samt Neuberechnung |
 | `src/dienste/umgebung.ts` | Anbindung des Abgabedienstes an Postgres — das einzige SQL außerhalb der Abfrageschicht |
 | `messages/de.json` | Alle Oberflächentexte |
 | `db/migrations/` | Datenbankschema |
@@ -69,7 +73,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 
 ```bash
 npm install
-npm test        # 446 Tests (24 davon gegen die eingespielten Echtdaten)
+npm test        # 454 Tests (24 davon gegen die eingespielten Echtdaten)
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000

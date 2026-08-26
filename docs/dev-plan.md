@@ -691,6 +691,41 @@ Handlungspflichten) und auf **Namensnennung**. Die Moderationslast sinkt dadurch
 
 ---
 
+### 10.4 Kontobereich — umgesetzt
+
+Unter `/konto` sehen Bewertende ihre eigenen Bewertungen, ändern sie und löschen sie. Die
+Anmeldung läuft über einen Link an den hinterlegten Kontakt — kein Kennwort. Das ist keine
+Bequemlichkeit: ein Kennwort wäre ein weiteres Geheimnis, das ein Vierzehnjähriger verwalten
+müsste, und der häufigste Weg, wie ein Konto verlorengeht. Der Kontakt ist ohnehin verifiziert.
+
+Fünf Punkte, die den Ausschlag gaben:
+
+1. **Die Antwort auf „Anmeldelink anfordern“ ist immer dieselbe** — ob es das Konto gibt oder
+   nicht. Sonst wird aus dem Formular ein Auskunftsdienst darüber, welche Handynummer schon
+   einmal eine Schule bewertet hat. Der Ablauf liegt deshalb in `dienste/kontozugang.ts` und
+   ist genau darauf geprüft.
+2. **Der Zweck geht in den Token-Hash ein.** Ohne das ginge ein zwei Stunden gültiger
+   Anmeldelink als dreißigtägiges Sitzungstoken durch.
+3. **Eine Änderung verlangt keine neue Einwilligung.** Kontakt und Einwilligung liegen vor; sie
+   bei jeder Korrektur erneut abzufragen würde die Einwilligung zur Formalität machen
+   (`pruefeAenderung`).
+4. **Die alte Fassung bleibt.** Veröffentlicht ist die neue, nachvollziehbar sind beide — bei
+   einer späteren Beschwerde ist genau das die Frage. Der Zustand geht dabei zurück in die
+   Prüfung; eine gehaltene Bewertung behält ihren Prüfgrund, eine unbestätigte bleibt
+   unbestätigt.
+5. **Löschen rechnet den Schulscore sofort neu** (Art. 17 DSGVO). Die KI-Zusammenfassung
+   erneuert der nächste Lauf: er erkennt den Fall daran, dass die Zahl der Freitexte gesunken
+   ist.
+
+Der Anmeldelink wird in einem Route-Handler eingelöst, nicht in einer Seite — ein Cookie lässt
+sich nur dort setzen. Der erste Entwurf legte die Sitzung an, das Cookie kam nie an, und die
+Anmeldung endete wieder auf dem Formular.
+
+**Noch offen:** die Zustellung. Der Anmeldelink geht denselben Weg wie die
+Bestätigungsnachricht — und der braucht Zugangsdaten.
+
+---
+
 ## 11. Arbeitspakete
 
 Sprintlänge 2 Wochen. „AP“ = Arbeitspaket.

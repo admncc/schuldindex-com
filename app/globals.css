@@ -427,3 +427,17 @@ mark.fehlt {
   padding: 0.1rem 0.4rem; border-radius: 6px; font-size: 0.9rem;
 }
 .stand { font-size: 0.85rem; color: var(--schrift-3); }
+
+/* ---------- Kontobereich ---------- */
+.eigene { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+.eigene .eigene-kopf { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
+.eigene .titel { font-weight: 500; color: var(--schrift); text-decoration: none; }
+.eigene .titel:hover { color: var(--akzent); }
+.loeschfrage { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; font-size: 0.9rem; }
+.loeschfrage .feld { width: 100%; }
+.loeschfrage input {
+  padding: 0.5rem 0.7rem; font: inherit; border: 1px solid var(--linie-stark);
+  border-radius: var(--radius); background: var(--flaeche); color: var(--schrift);
+}
+.knopf.gefahr { background: var(--schlecht); border-color: var(--schlecht); color: #fff; }
+.knopf.gefahr:disabled { opacity: 0.5; cursor: not-allowed; }

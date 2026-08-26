@@ -28,13 +28,46 @@ const FREIWILLIG: KategorieId[] = ["D", "E", "F"];
 
 type Schritt = { art: "rolle" } | { art: "kategorie"; id: KategorieId } | { art: "abschluss" };
 
-export function Bewertungsformular({ schulSlug, schulname }: { schulSlug: string; schulname: string }) {
-  const [rolle, setRolle] = useState<Rolle | null>(null);
-  const [klassenstufe, setKlassenstufe] = useState<number | null>(null);
-  const [abgangsjahr, setAbgangsjahr] = useState<number | null>(null);
-  const [antworten, setAntworten] = useState<Record<string, Antwort>>({});
-  const [freitexte, setFreitexte] = useState<Partial<Record<KategorieId, string>>>({});
-  const [freiwillige, setFreiwillige] = useState<KategorieId[]>([]);
+/**
+ * Eine bestehende Bewertung, die geändert werden soll.
+ *
+ * Dasselbe Formular, andere Ausgangslage: die Antworten stehen schon da, und
+ * Kontakt und Einwilligung fehlen ganz — beide liegen längst vor. Sie erneut zu
+ * verlangen würde die Einwilligung zur Formalität machen.
+ */
+export interface Aenderung {
+  readonly id: string;
+  readonly rolle: Rolle;
+  readonly klassenstufe: number | null;
+  readonly abgangsjahr: number | null;
+  readonly antworten: Record<string, Antwort>;
+  readonly freitexte: Partial<Record<KategorieId, string>>;
+}
+
+export function Bewertungsformular({
+  schulSlug,
+  schulname,
+  aenderung,
+}: {
+  schulSlug: string;
+  schulname: string;
+  aenderung?: Aenderung | undefined;
+}) {
+  const [rolle, setRolle] = useState<Rolle | null>(aenderung?.rolle ?? null);
+  const [klassenstufe, setKlassenstufe] = useState<number | null>(aenderung?.klassenstufe ?? null);
+  const [abgangsjahr, setAbgangsjahr] = useState<number | null>(aenderung?.abgangsjahr ?? null);
+  const [antworten, setAntworten] = useState<Record<string, Antwort>>(aenderung?.antworten ?? {});
+  const [freitexte, setFreitexte] = useState<Partial<Record<KategorieId, string>>>(
+    aenderung?.freitexte ?? {},
+  );
+  // Bei einer Änderung sind die freiwilligen Kategorien schon aufgeklappt, wenn
+  // sie beantwortet wurden — sonst wären die Antworten unsichtbar und würden
+  // beim Speichern trotzdem mitgeschickt.
+  const [freiwillige, setFreiwillige] = useState<KategorieId[]>(
+    aenderung === undefined
+      ? []
+      : FREIWILLIG.filter((id) => fragenDerKategorie(id).some((f) => aenderung.antworten[f.id] !== undefined)),
+  );
   const [kontaktart, setKontaktart] = useState<Kontaktart | null>("whatsapp");
   const [kontakt, setKontakt] = useState("");
   const [datenschutz, setDatenschutz] = useState(false);
@@ -70,7 +103,7 @@ export function Bewertungsformular({ schulSlug, schulname }: { schulSlug: string
     verlosungTeilnahme: verlosung,
   };
 
-  const fehler = pruefeEingabe(eingabe);
+  const fehler = pruefeEingabe(eingabe, new Date(), { kontaktNoetig: aenderung === undefined });
   const fehlerZu = (feld: string) => (gezeigt ? fehler.find((f) => f.feld === feld)?.meldung : undefined);
   const schritt = schritte[Math.min(nummer, schritte.length - 1)]!;
   const anteil = Math.round(fortschritt(antworten) * 100);
@@ -100,22 +133,38 @@ export function Bewertungsformular({ schulSlug, schulname }: { schulSlug: string
     setSendet(true);
     setServerfehler([]);
     try {
-      const antwort = await fetch("/api/bewertungen", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(eingabe),
-      });
+      const antwort = await fetch(
+        aenderung === undefined ? "/api/bewertungen" : `/api/bewertungen/${aenderung.id}`,
+        {
+          method: aenderung === undefined ? "POST" : "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(eingabe),
+        },
+      );
       const ergebnis = (await antwort.json()) as
-        | { ok: true; kontaktAnzeige: string }
+        | { ok: true; kontaktAnzeige?: string }
         | { ok: false; fehler: { feld: string; meldung: string }[] };
 
-      if (ergebnis.ok) setGesendet({ kontaktAnzeige: ergebnis.kontaktAnzeige });
+      if (ergebnis.ok) setGesendet({ kontaktAnzeige: ergebnis.kontaktAnzeige ?? "" });
       else setServerfehler(ergebnis.fehler.map((f) => f.meldung));
     } catch {
       setServerfehler(["Die Verbindung ist abgebrochen. Bitte versuche es noch einmal."]);
     } finally {
       setSendet(false);
     }
+  }
+
+  if (gesendet !== null && aenderung !== undefined) {
+    return (
+      <div className="leerzustand">
+        <h2>Änderung gespeichert</h2>
+        <p>
+          Deine neue Fassung wird geprüft und ersetzt danach die bisherige. Bis dahin bleibt die
+          alte Fassung stehen, falls sie veröffentlicht war.
+        </p>
+        <a className="knopf zweitrangig" href="/konto">Zu deinen Bewertungen</a>
+      </div>
+    );
   }
 
   if (gesendet !== null) {
@@ -254,53 +303,63 @@ export function Bewertungsformular({ schulSlug, schulname }: { schulSlug: string
             </fieldset>
           )}
 
-          <fieldset className="feldgruppe">
-            <legend>Bestätigung</legend>
-            <p className="hinweis">
-              Wir schicken dir eine Nachricht, um zu bestätigen, dass die Bewertung von einem
-              Menschen kommt. Deine Kontaktdaten werden nie veröffentlicht.
-            </p>
-            <div className="wahl">
-              {(["whatsapp", "sms", "email"] as const).map((art) => (
-                <label key={art} className={kontaktart === art ? "wahlfeld gewaehlt" : "wahlfeld"}>
-                  <input
-                    type="radio"
-                    name="kontaktart"
-                    checked={kontaktart === art}
-                    onChange={() => setKontaktart(art)}
-                  />
-                  {art === "whatsapp" ? "WhatsApp" : art === "sms" ? "SMS" : "E-Mail"}
-                </label>
-              ))}
-            </div>
-            <label className="feld">
-              <span>{kontaktart === "email" ? "E-Mail-Adresse" : "Mobilnummer"}</span>
-              <input
-                type={kontaktart === "email" ? "email" : "tel"}
-                value={kontakt}
-                onChange={(e) => setKontakt(e.target.value)}
-                placeholder={kontaktart === "email" ? "name@beispiel.de" : "0170 1234567"}
-              />
-            </label>
-            {fehlerZu("kontaktart") && <p className="fehler">{fehlerZu("kontaktart")}</p>}
-            {fehlerZu("kontakt") && <p className="fehler">{fehlerZu("kontakt")}</p>}
-
-            <label className="ankreuzfeld">
-              <input type="checkbox" checked={datenschutz} onChange={(e) => setDatenschutz(e.target.checked)} />
-              <span>
-                Ich habe die <a href="/datenschutz">Datenschutzerklärung</a> gelesen und willige in die
-                Verarbeitung meiner Kontaktdaten zur Bestätigung und Missbrauchsprävention ein.
-              </span>
-            </label>
-            {fehlerZu("datenschutzEinwilligung") && <p className="fehler">{fehlerZu("datenschutzEinwilligung")}</p>}
-
-            {rolle !== null && istSchueler(rolle) && (
-              <label className="ankreuzfeld">
-                <input type="checkbox" checked={verlosung} onChange={(e) => setVerlosung(e.target.checked)} />
-                <span>Ich möchte an der monatlichen Verlosung teilnehmen.</span>
+          {aenderung === undefined ? (
+            <fieldset className="feldgruppe">
+              <legend>Bestätigung</legend>
+              <p className="hinweis">
+                Wir schicken dir eine Nachricht, um zu bestätigen, dass die Bewertung von einem
+                Menschen kommt. Deine Kontaktdaten werden nie veröffentlicht.
+              </p>
+              <div className="wahl">
+                {(["whatsapp", "sms", "email"] as const).map((art) => (
+                  <label key={art} className={kontaktart === art ? "wahlfeld gewaehlt" : "wahlfeld"}>
+                    <input
+                      type="radio"
+                      name="kontaktart"
+                      checked={kontaktart === art}
+                      onChange={() => setKontaktart(art)}
+                    />
+                    {art === "whatsapp" ? "WhatsApp" : art === "sms" ? "SMS" : "E-Mail"}
+                  </label>
+                ))}
+              </div>
+              <label className="feld">
+                <span>{kontaktart === "email" ? "E-Mail-Adresse" : "Mobilnummer"}</span>
+                <input
+                  type={kontaktart === "email" ? "email" : "tel"}
+                  value={kontakt}
+                  onChange={(e) => setKontakt(e.target.value)}
+                  placeholder={kontaktart === "email" ? "name@beispiel.de" : "0170 1234567"}
+                />
               </label>
-            )}
-          </fieldset>
+              {fehlerZu("kontaktart") && <p className="fehler">{fehlerZu("kontaktart")}</p>}
+              {fehlerZu("kontakt") && <p className="fehler">{fehlerZu("kontakt")}</p>}
+
+              <label className="ankreuzfeld">
+                <input type="checkbox" checked={datenschutz} onChange={(e) => setDatenschutz(e.target.checked)} />
+                <span>
+                  Ich habe die <a href="/datenschutz">Datenschutzerklärung</a> gelesen und willige in die
+                  Verarbeitung meiner Kontaktdaten zur Bestätigung und Missbrauchsprävention ein.
+                </span>
+              </label>
+              {fehlerZu("datenschutzEinwilligung") && <p className="fehler">{fehlerZu("datenschutzEinwilligung")}</p>}
+
+              {rolle !== null && istSchueler(rolle) && (
+                <label className="ankreuzfeld">
+                  <input type="checkbox" checked={verlosung} onChange={(e) => setVerlosung(e.target.checked)} />
+                  <span>Ich möchte an der monatlichen Verlosung teilnehmen.</span>
+                </label>
+              )}
+            </fieldset>
+          ) : (
+            <fieldset className="feldgruppe">
+              <legend>Änderung speichern</legend>
+              <p className="hinweis">
+                Deine neue Fassung wird noch einmal geprüft und ersetzt danach die bisherige. Eine
+                erneute Bestätigung brauchst du nicht — dein Konto ist bestätigt.
+              </p>
+            </fieldset>
+          )}
 
           {gezeigt && fehler.length > 0 && (
             <div className="fehlerkasten">
@@ -334,7 +393,11 @@ export function Bewertungsformular({ schulSlug, schulname }: { schulSlug: string
         )}
         {schritt.art === "abschluss" ? (
           <button type="button" className="knopf" onClick={absenden} disabled={sendet}>
-            {sendet ? "Wird gesendet …" : `Bewertung für ${schulname} absenden`}
+            {sendet
+              ? "Wird gesendet …"
+              : aenderung === undefined
+                ? `Bewertung für ${schulname} absenden`
+                : "Änderung speichern"}
           </button>
         ) : (
           <button type="button" className="knopf" onClick={weiter}>Weiter</button>

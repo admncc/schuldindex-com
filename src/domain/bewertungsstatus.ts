@@ -68,15 +68,22 @@ const UEBERGAENGE: Readonly<Record<Zustand, Partial<Record<Ausloeser, Zustand>>>
     pruefung_bestanden: "freigegeben",
     pruefung_geo: "in_pruefung_geo",
     pruefung_betrug: "in_pruefung_betrug",
+    // Wer seine Bewertung ändert, bevor er sie bestätigt hat, wartet danach
+    // weiter auf die Bestätigung. Ohne diesen Übergang scheiterte die Änderung.
+    bearbeitet: "wartet_auf_verifizierung",
   },
   in_pruefung_geo: {
     moderation_freigeben: "freigegeben",
     moderation_ablehnen: "abgelehnt",
+    // Eine Änderung am Text ändert nichts am Ort der Abgabe: der Geo-Verdacht
+    // bleibt bestehen, die Bewertung behält ihren Platz in der Warteschlange.
+    bearbeitet: "in_pruefung_geo",
   },
   in_pruefung_betrug: {
     pruefung_bestanden: "freigegeben",
     moderation_freigeben: "freigegeben",
     moderation_ablehnen: "abgelehnt",
+    bearbeitet: "in_pruefung_betrug",
   },
   freigegeben: {
     bearbeitet: "in_pruefung_betrug",

@@ -14,6 +14,7 @@ export default async function OeffentlichesLayout({ children }: { children: Reac
             <a href="/ranglisten">{t("navigation.ranglisten")}</a>
             <a href="/karte">{t("navigation.karte")}</a>
             <a href="/ueber">{t("navigation.ueber")}</a>
+            <a href="/konto">{t("navigation.konto")}</a>
           </nav>
         </div>
       </header>

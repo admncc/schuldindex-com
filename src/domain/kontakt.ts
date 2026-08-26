@@ -16,7 +16,13 @@
 
 import { createCipheriv, createDecipheriv, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
-export type Kontaktart = "whatsapp" | "sms" | "email";
+export const KONTAKTARTEN = ["whatsapp", "sms", "email"] as const;
+
+export type Kontaktart = (typeof KONTAKTARTEN)[number];
+
+export function istKontaktart(wert: string): wert is Kontaktart {
+  return (KONTAKTARTEN as readonly string[]).includes(wert);
+}
 
 /**
  * Bringt eine Eingabe in die Form, in der sie gehasht wird.

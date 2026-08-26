@@ -10,6 +10,7 @@
  */
 
 import type { Kontaktart } from "../domain/kontakt";
+import { ANMELDELINK_STUNDEN } from "../domain/kontozugang";
 
 export interface Nachricht {
   readonly empfaenger: string;
@@ -55,6 +56,37 @@ export function baueBestaetigung(basisUrl: string, token: string, art: Kontaktar
     empfaenger: "",
     betreff: "",
     text: `SCHULINDEX: Bitte bestätige deine Bewertung: ${link} (24 Std. gültig)`,
+  };
+}
+
+/**
+ * Anmeldelink für den Kontobereich.
+ *
+ * Kürzere Frist als die Bestätigung und ein deutlicher Warnsatz: Wer diese
+ * Nachricht bekommt, ohne sie angefordert zu haben, hat es mit jemandem zu tun,
+ * der seine Nummer kennt und sich als er ausgeben will.
+ */
+export function baueAnmeldelink(basisUrl: string, token: string, art: Kontaktart): Nachricht {
+  const link = `${basisUrl}/konto/eintreten?token=${token}`;
+  if (art === "email") {
+    return {
+      empfaenger: "",
+      betreff: "Dein Anmeldelink für SCHULINDEX",
+      text:
+        `Hallo,\n\n` +
+        `hier ist dein Anmeldelink zu deinen Bewertungen:\n${link}\n\n` +
+        `Der Link ist ${ANMELDELINK_STUNDEN} Stunden gültig und lässt sich nur einmal benutzen.\n\n` +
+        `Hast du ihn nicht angefordert, ignorier diese Nachricht — dann versucht jemand, ` +
+        `sich Zugang zu deinen Bewertungen zu verschaffen. Gib den Link niemandem weiter.\n\n` +
+        `— SCHULINDEX`,
+    };
+  }
+  return {
+    empfaenger: "",
+    betreff: "",
+    text:
+      `SCHULINDEX: dein Anmeldelink: ${link} (${ANMELDELINK_STUNDEN} Std. gültig). ` +
+      `Nicht angefordert? Dann ignorieren und niemandem weitergeben.`,
   };
 }
 
