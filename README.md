@@ -21,14 +21,19 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/domain/fragebogen.ts` | Alle 61 Fragen, sechs Kategorien, drei Antwortskalen, Gewichtungen, Du-/Sie-Varianten |
 | `src/domain/scoring.ts` | Kategoriescores, 70/30-Aufteilung der Kategorie A, Gesamtscore, Aggressionsindex, Ampelstufen |
 | `src/import/schulart.ts` | Normalisierung der 232 Schulartbezeichnungen aus jedeschule.codefor.de auf die Taxonomie des Portals |
+| `src/import/slug.ts` | Slug-Vergabe für Schulprofile — umlautfest und über Re-Importe hinweg stabil |
+| `src/import/geokodierung.ts` | Nachgeocodierung der 6.202 Schulen ohne Koordinaten, mit Genauigkeitsstufen und Plausibilitätsprüfung |
+| `src/domain/bundesland.ts` | Die 16 Bundesländer als Domänenbegriff |
+| `scripts/lade-schulen.ts` | Abruf des Schulbestands, mit Abgleich gegen die Statistik der Quelle |
 
 ```bash
 npm install
-npm test        # 62 Tests
+npm test        # 99 Tests
 npm run typecheck
 
 # Messung der Schulart-Normalisierung am echten Bestand (34.094 Datensätze):
-SCHULEN_JSON=/pfad/zu/schulen.json npx vitest run scripts/analyse-schularten.test.ts
+npx tsx scripts/lade-schulen.ts > schulen.json
+SCHULEN_JSON=schulen.json npx vitest run scripts/analyse-schularten.test.ts
 ```
 
 Der Rohbestand liegt bewusst nicht im Repository (rund 12 MB). Er wird von

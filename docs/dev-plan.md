@@ -585,21 +585,38 @@ Sprintlänge 2 Wochen. „AP“ = Arbeitspaket.
 - **Ergebnis:** deploybare leere App auf Deutsch, CI grün, WhatsApp-Freigabe läuft
 
 ### Phase 1 — Schuldaten & Suche (Sprints 2–3)
-- AP 1.1 Import-Pipeline jedeschule.codefor.de → Normalisierung → `schools`
-- AP 1.2 ✅ **Mapping der Schulartbezeichnungen** — umgesetzt in `src/import/schulart.ts`
-- AP 1.3 Nachgeocodierung fehlender Koordinaten (Nominatim, ratelimitkonform), Qualitätsreport
+- AP 1.1 Import-Pipeline jedeschule.codefor.de → Normalisierung → `schools` — Abruf steht (`scripts/lade-schulen.ts`)
+- AP 1.2 ✅ **Mapping der Schulartbezeichnungen** — `src/import/schulart.ts`
+- AP 1.3 Nachgeocodierung — Strategie und Plausibilitätsprüfung stehen (`src/import/geokodierung.ts`), Anbindung an den Dienst offen
+- AP 1.4 ✅ **Slug-Vergabe** — `src/import/slug.ts`
 
-**Gemessener Zustand der Quelle** (Stand 26.08.2026, 34.094 Datensätze):
+### Die Falle beim Abruf
+
+Die API nimmt `skip` an, liefert bei Folgeseiten aber Datensätze erneut, die schon auf der
+ersten Seite standen. Ein Lauf mit `limit=2000` und aufsteigendem `skip` ergab **34.094
+Datensätze mit nur 21.486 verschiedenen IDs** — rund 12.600 Schulen fehlten, ohne dass die
+Gesamtzahl es verraten hätte. Jedes Bundesland mit über 1.000 Schulen endete bei genau 1.000
+verschiedenen.
+
+Das ist die gefährlichste Art von Datenfehler: die Zahlen sehen plausibel aus. Die erste
+Auswertung der Schularten lief auf diesem verzerrten Bestand, bevor eine Prüfung auf doppelte
+IDs es aufdeckte.
+
+**Richtig ist: eine Abfrage je Bundesland, ohne Offset**, mit einem Limit über der
+Landeszahl. `scripts/lade-schulen.ts` prüft jedes Land gegen `/stats` und **bricht ab**, statt
+einen unvollständigen Bestand weiterzureichen.
+
+**Gemessener Zustand der Quelle** (Stand 26.08.2026, 34.094 Datensätze, vollständig):
 
 | Befund | Zahl | Bedeutung für die Umsetzung |
 |---|---|---|
 | Datensätze gesamt | 34.094 | |
-| davon **keine Schulen** | 644 | Schulämter, Studienseminare, ZfsL, Hochschulen, Musikschulen — müssen beim Import ausgeschlossen werden |
-| echte Schulen | 33.450 | |
-| Schulart zugeordnet | 96,5 % | 28.292 aus dem Feld, 3.995 aus dem Schulnamen erschlossen |
-| **nicht zuzuordnen** | 1.163 | Die Schulart steht weder im Feld noch im Namen — die Schulen heißen schlicht „Kahlhorst-Schule“. Nur mit einer zweiten Quelle lösbar, überwiegend SH und BW. Landen in der Kategorie „Sonstige“. |
-| **ohne Koordinaten** | 5.048 (15,1 %) | Niedersachsen **zu 100 %**, Sachsen-Anhalt 52 %, Saarland 47 %, Schleswig-Holstein 37 % |
-| ohne Adresse oder PLZ | 470 | Erschwert die Nachgeocodierung zusätzlich |
+| davon **keine Schulen** | 494 | Schulämter, Studienseminare, ZfsL, Hochschulen, Musikschulen — werden beim Import ausgeschlossen |
+| echte Schulen | 33.600 | |
+| Schulart zugeordnet | **96,2 %** | 27.913 aus dem Feld, 4.399 aus dem Schulnamen erschlossen |
+| **nicht zuzuordnen** | 1.288 | Die Schulart steht weder im Feld noch im Namen — die Schulen heißen schlicht „Kahlhorst-Schule“. Nur mit einer zweiten Quelle lösbar, überwiegend SH und BW. Landen in der Kategorie „Sonstige“. |
+| **ohne Koordinaten** | **6.202 (18,5 %)** | Niedersachsen 3.091, Schleswig-Holstein 1.009, Sachsen-Anhalt 925, Baden-Württemberg 503, Saarland 347 |
+| davon geokodierbar | 6.196 | Adresse vorhanden. Nur 6 Schulen haben zu wenig Angaben. |
 
 **Vier Eigenheiten der Quelle**, die das Mapping behandeln muss:
 1. Baden-Württemberg liefert englische Codes statt Klartext — `primaryEducation`,
@@ -608,6 +625,21 @@ Sprintlänge 2 Wochen. „AP“ = Arbeitspaket.
 3. Hamburg liefert Mehrfachwerte mit `|`, das Saarland mit `;` und eingestreuten Tabulatoren.
 4. Deutsche Bindestrich-Ellipsen: „Grund- und Oberschule“ meint beide Schularten, nennt die
    erste aber nur verkürzt. Ohne Auflösung geht der erste Bestandteil verloren.
+
+### Slugs
+
+Die Vergabe musste umgebaut werden. Das naheliegende Verfahren — wer zuerst kommt, bekommt
+die kurze Form — hängt an der Reihenfolge der Quelle: **41 % der Slugs änderten sich**, wenn
+der Bestand anders sortiert geliefert wurde. Ein Slug steht in URLs, in Suchmaschinen und in
+geteilten Links; das wäre bei jedem Re-Import ein Bruch aller Verweise gewesen.
+
+Jetzt gilt: **ist eine Kurzform mehrdeutig, bekommt sie niemand.** Heißen zwei Schulen
+„Grundschule Nord“, werden beide zu `grundschule-nord-kiel` und `grundschule-nord-luebeck` —
+die nackte Form bleibt frei. Das Ergebnis hängt nur von der Menge der Schulen ab, nicht von
+ihrer Reihenfolge, und die längere Form ist ohnehin die aussagekräftigere.
+
+Gemessen am Gesamtbestand: 33.600 Slugs, alle eindeutig, **null Abweichung bei umgekehrter
+Eingabereihenfolge**, Medianlänge 37 Zeichen.
 
 **Zwei Entscheidungen aus der Umsetzung**, die vom Plan abweichen:
 
@@ -619,11 +651,29 @@ Sprintlänge 2 Wochen. „AP“ = Arbeitspaket.
   weiterhin Gemeinschaftsschule. Sonst müssten wir Schulen umbenennen, was weder ihnen noch
   den Suchenden hilft.
 
-**Nachgeocodierung ist keine Kür, sondern Voraussetzung.** Ohne Koordinaten funktionieren
-weder die 150-km-Prüfung noch die Karte noch die Umkreissuche — und Niedersachsen fehlt
-vollständig. Für 5.048 Schulen bei Nominatims Ratelimit von einer Anfrage je Sekunde sind das
-rund 85 Minuten reine Laufzeit; das ist unkritisch, muss aber als eigener Job mit
-Zwischenstand laufen, nicht als Teil des Imports.
+### Woher die fehlenden Koordinaten kommen
+
+Geprüft wurden vier Wege:
+
+| Quelle | Ergebnis der Prüfung |
+|---|---|
+| **Nominatim** (OSM) | Funktioniert, liefert für die Testschule das **Schulgebäude selbst**. Eine Anfrage je Sekunde, für 6.196 Schulen rund 1 Stunde 45. Die Nutzungsbedingungen sehen Massenabfragen nicht gern — vertretbar bei diesem Umfang, sauberer selbst betrieben. |
+| **Photon** (Komoot) | Funktioniert, ausdrücklich für höhere Lasten gedacht, gleiche OSM-Daten, selbst betreibbar. Etwas gröber: traf im Test die Bushaltestelle vor der Schule statt des Gebäudes, rund 40 m daneben. **Als Arbeitspferd vorgesehen.** |
+| **Overpass** (OSM-Massenabruf) | Wäre der eleganteste Weg — eine Abfrage statt 6.196. Aus der Entwicklungsumgebung nicht erreichbar (Zeitüberschreitung bei jedem Versuch), deshalb nicht eingeplant. Bleibt eine Option für später. |
+| Kommerziell (Google, HERE) | Kostet Geld und verschiebt Adressdaten ins Ausland. Für Schuladressen unkritisch, aber unnötig. |
+
+**Der entscheidende Entwurfspunkt: die beiden Zwecke brauchen völlig unterschiedliche
+Genauigkeit.** Die 150-km-Prüfung verträgt einen Fehler von einigen Kilometern mühelos — ein
+PLZ-Zentroid genügt. Die Karte braucht den Standort auf einige Dutzend Meter. Die erreichte
+Genauigkeit wird deshalb je Schule mitgespeichert (`adresse` / `plz` / `ort`) statt verworfen.
+Eine Schule mit PLZ-Koordinate ist für die Betrugsprüfung voll verwendbar und wird auf der
+Karte lediglich anders dargestellt. Das erlaubt den Start, ohne auf die letzte Adresse zu warten.
+
+**Plausibilitätsprüfung ist Pflicht, nicht Kür.** Ortsnamen wie „Neustadt“ gibt es dutzendfach
+in Deutschland. Ein Geocoder, der die Adresse im falschen Bundesland findet, platziert die
+Schule hunderte Kilometer entfernt — und jede Bewertung aus ihrer echten Nachbarschaft fiele
+durch die 150-km-Prüfung. Jedes Ergebnis wird deshalb gegen den Umriss seines Bundeslandes
+geprüft; fällt es durch, wird die nächstgröbere Stufe versucht statt der Treffer übernommen.
 - AP 1.4 Slug-Erzeugung mit Umlautbehandlung (`gymnasium-am-muehlenweg-hamburg`)
 - AP 1.5 Suche: `pg_trgm` + `unaccent`, Autocomplete-Endpunkt, Ratelimit
 - AP 1.6 Suchseite `/schulen` mit Filtern (Bundesland, Schulart, Ort) auf Deutsch

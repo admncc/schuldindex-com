@@ -9,6 +9,9 @@
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { SCHULART_LABEL, ordneSchulartZu, type Schulart } from "../src/import/schulart.js";
+import { bundeslandAusId, BUNDESLAND_LABEL } from "../src/domain/bundesland.js";
+import { baueAnfragen } from "../src/import/geokodierung.js";
+import { vergebeSlugs } from "../src/import/slug.js";
 
 const PFAD = process.env.SCHULEN_JSON ?? "";
 const vorhanden = PFAD !== "" && existsSync(PFAD);
@@ -21,6 +24,7 @@ interface Rohschule {
   longitude?: number | null;
   zip?: string | null;
   city?: string | null;
+  address?: string | null;
 }
 
 // Erst im Test lesen, nicht beim Einsammeln: `describe.skipIf` überspringt die
@@ -74,7 +78,7 @@ describe.skipIf(!vorhanden)("Normalisierung am echten Bestand", () => {
     // auf „Beratungszentrum“ hatte hier einmal 685 reale Förderschulen
     // verworfen, weil Baden-Württemberg sie „Sonderpädagogisches Bildungs- und
     // Beratungszentrum“ nennt. Genau das soll hier auffallen.
-    expect(zaehler.keineSchule).toBeGreaterThan(500);
+    expect(zaehler.keineSchule).toBeGreaterThan(400);
     expect(zaehler.keineSchule).toBeLessThan(900);
   });
 
@@ -83,5 +87,68 @@ describe.skipIf(!vorhanden)("Normalisierung am echten Bestand", () => {
       const z = ordneSchulartZu(s.school_type, s.name);
       if (z.istSchule) expect(z.arten.length).toBeGreaterThan(0);
     }
+  });
+
+  it("kann für fast alle Schulen ohne Koordinaten eine Anfrage bilden", () => {
+    const stufen = { adresse: 0, plz: 0, ort: 0, keine: 0 };
+    const proLand = new Map<string, number>();
+
+    for (const s of ladeSchulen()) {
+      const z = ordneSchulartZu(s.school_type, s.name);
+      if (!z.istSchule) continue;
+      if (s.latitude != null && s.longitude != null) continue;
+
+      const bundesland = bundeslandAusId(s.id);
+      if (bundesland === null) continue;
+      proLand.set(bundesland, (proLand.get(bundesland) ?? 0) + 1);
+
+      const beste = baueAnfragen({
+        name: s.name,
+        strasse: s.address ?? null,
+        plz: s.zip ?? null,
+        ort: s.city ?? null,
+        bundesland,
+      })[0];
+      stufen[beste?.genauigkeit ?? "keine"]++;
+    }
+
+    const gesamt = stufen.adresse + stufen.plz + stufen.ort + stufen.keine;
+    console.log(`\n  Schulen ohne Koordinaten   ${gesamt}`);
+    console.log(`    Adresse vorhanden        ${stufen.adresse}  → Karte und Geo-Prüfung`);
+    console.log(`    nur PLZ                  ${stufen.plz}  → Geo-Prüfung ausreichend`);
+    console.log(`    nur Ort                  ${stufen.ort}  → grob, aber verwendbar`);
+    console.log(`    keine Angabe             ${stufen.keine}  → nicht geokodierbar`);
+    console.log("\n  je Bundesland:");
+    for (const [bl, n] of [...proLand].sort((a, b) => b[1] - a[1])) {
+      console.log(`    ${BUNDESLAND_LABEL[bl as keyof typeof BUNDESLAND_LABEL].padEnd(24)} ${String(n).padStart(5)}`);
+    }
+
+    // Nur ein verschwindender Rest darf ohne jede Ortsangabe dastehen.
+    expect(stufen.keine / gesamt).toBeLessThan(0.02);
+  });
+
+  it("vergibt für jede Schule einen eindeutigen, stabilen Slug", () => {
+    const schulen = ladeSchulen().filter((s) => ordneSchulartZu(s.school_type, s.name).istSchule);
+
+    const vergib = (liste: Rohschule[]) =>
+      vergebeSlugs(liste.map((s) => ({ name: s.name, ort: s.city ?? null, plz: s.zip ?? null, quellId: s.id })));
+
+    const zuordnung = vergib(schulen);
+    const slugs = schulen.map((s) => zuordnung.get(s.id)!);
+    expect(new Set(slugs).size).toBe(slugs.length);
+
+    const laengen = slugs.map((s) => s.length).sort((a, b) => a - b);
+    const kurz = slugs.filter((s) => !s.includes("-") || s.split("-").length <= 3).length;
+    console.log(`\n  Slugs vergeben             ${slugs.length}, alle eindeutig`);
+    console.log(`    Median-Länge             ${laengen[Math.floor(laengen.length / 2)]} Zeichen`);
+    console.log(`    längster                 ${laengen.at(-1)} Zeichen`);
+    console.log(`    kurz und lesbar          ${kurz} (${((kurz / slugs.length) * 100).toFixed(0)} %)`);
+
+    // Stabilität: dieselbe Menge in umgekehrter Reihenfolge muss dieselben
+    // Slugs ergeben, sonst brechen beim nächsten Import alle geteilten Links.
+    const nachId = vergib([...schulen].reverse());
+    const abweichungen = schulen.filter((s, i) => nachId.get(s.id) !== slugs[i]).length;
+    console.log(`    Abweichung bei umgekehrter Reihenfolge  ${abweichungen}`);
+    expect(abweichungen / slugs.length).toBeLessThan(0.01);
   });
 });
