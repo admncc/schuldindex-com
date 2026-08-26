@@ -19,14 +19,6 @@ export default async function Wurzellayout({ children }: { children: React.React
     // lang="de" ist keine Formalie: Screenreader wählen danach die Aussprache,
     // und Suchmaschinen die Sprachzuordnung.
     <html lang="de">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap"
-        />
-      </head>
       <body>
         <NextIntlClientProvider messages={nachrichten}>
           <header className="kopf">

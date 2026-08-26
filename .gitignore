@@ -11,3 +11,7 @@ coverage/
 # Screenshots aus der Entwicklung
 *.png
 schuss*.mjs
+/.next/
+/next-env.d.ts
+pruef.mjs
+diag404.mjs

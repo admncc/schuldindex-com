@@ -1,7 +1,14 @@
 /* Gestaltung des Portals.
    Grundton ist ein kühles Papierweiß mit Königsblau als Akzent — die Farbe der
    Tinte, mit der in Deutschland jedes Schulkind schreibt. Die Ampelfarben sind
-   davon getrennt und ausschließlich für Bewertungen reserviert. */
+   davon getrennt und ausschließlich für Bewertungen reserviert.
+
+   Schriften kommen vom Gerät, nicht von Google. Das dynamische Einbinden von
+   Google Fonts überträgt die IP-Adresse der Besuchenden an einen Drittanbieter
+   und wurde in Deutschland als Verstoß gegen die DSGVO gewertet
+   (LG München I, 3 O 17493/20). Bei einem Portal, dessen Hauptzielgruppe
+   minderjährig ist, verbietet sich das ohnehin. Sollen eigene Schriften her,
+   werden sie selbst ausgeliefert — nicht von einem fremden Server geladen. */
 
 :root {
   --grund: #f6f7fa;
@@ -52,13 +59,13 @@ body {
   margin: 0;
   background: var(--grund);
   color: var(--schrift);
-  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3 { font-family: "Source Serif 4", Georgia, serif; margin: 0; text-wrap: balance; }
+h1, h2, h3 { font-family: Georgia, "Times New Roman", "Liberation Serif", serif; margin: 0; text-wrap: balance; }
 h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; }
 h2 { font-size: 1.4rem; font-weight: 700; }
 h3 { font-size: 1.02rem; font-weight: 600; }
@@ -72,7 +79,7 @@ a { color: var(--akzent); }
 .kopf { border-bottom: 1px solid var(--linie); background: var(--flaeche); }
 .kopf-inhalt { display: flex; align-items: center; gap: 1.75rem; padding: 0.9rem 0; flex-wrap: wrap; }
 .marke {
-  font-family: "Source Serif 4", Georgia, serif; font-weight: 700; font-size: 1.15rem;
+  font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: 1.15rem;
   letter-spacing: 0.02em; color: var(--schrift); text-decoration: none;
 }
 .kopf nav { display: flex; gap: 1.25rem; font-size: 0.93rem; margin-left: auto; flex-wrap: wrap; }
@@ -115,7 +122,7 @@ a { color: var(--akzent); }
 
 /* ---------- Wertungen ---------- */
 .wertung { display: inline-flex; align-items: baseline; gap: 0.3rem; font-variant-numeric: tabular-nums; }
-.wertung .zahl { font-family: "Source Serif 4", Georgia, serif; font-weight: 700; font-size: 1.5rem; }
+.wertung .zahl { font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: 1.5rem; }
 .wertung .skala { font-size: 0.82rem; color: var(--schrift-3); }
 .wertung.gross .zahl { font-size: 2.6rem; }
 
@@ -166,3 +173,74 @@ a { color: var(--akzent); }
 }
 .leerzustand p { color: var(--schrift-2); max-width: 44ch; }
 .hinweis { font-size: 0.88rem; color: var(--schrift-3); }
+
+/* ---------- Bewertungsformular ---------- */
+.formular { display: flex; flex-direction: column; gap: 1.5rem; max-width: 46rem; }
+
+.fortschritt { height: 5px; background: var(--flaeche-2); border-radius: 3px; overflow: hidden; }
+.fortschritt span { display: block; height: 100%; background: var(--akzent); transition: width 0.25s ease; }
+
+.feldgruppe {
+  border: 1px solid var(--linie); border-radius: var(--radius); background: var(--flaeche);
+  padding: 1.3rem 1.4rem; margin: 0; display: flex; flex-direction: column; gap: 0.9rem;
+}
+.feldgruppe legend {
+  font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: 1.2rem;
+  padding: 0 0.4rem; margin-left: -0.4rem;
+}
+
+.wahl { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.wahlfeld {
+  display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer;
+  border: 1px solid var(--linie-stark); border-radius: var(--radius);
+  padding: 0.55rem 0.9rem; font-size: 0.95rem; background: var(--flaeche);
+}
+.wahlfeld.gewaehlt { border-color: var(--akzent); background: var(--akzent-sanft); color: var(--akzent); font-weight: 500; }
+.wahlfeld input { accent-color: var(--akzent); }
+
+.feld { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.95rem; }
+.feld > span { font-weight: 500; }
+.feld input, .feld select, .feld textarea {
+  padding: 0.6rem 0.75rem; font: inherit; border: 1px solid var(--linie-stark);
+  border-radius: var(--radius); background: var(--flaeche); color: var(--schrift);
+}
+.feld textarea { resize: vertical; }
+
+.ankreuzfeld {
+  display: flex; gap: 0.65rem; align-items: flex-start; font-size: 0.93rem;
+  color: var(--schrift-2); cursor: pointer; line-height: 1.5;
+}
+.ankreuzfeld input { margin-top: 0.25rem; accent-color: var(--akzent); flex-shrink: 0; }
+
+/* ---------- Fragen ---------- */
+.fragen { list-style: none; counter-reset: frage; margin: 0; padding: 0; display: grid; gap: 1.3rem; }
+.fragen li { counter-increment: frage; display: flex; flex-direction: column; gap: 0.5rem; }
+.fragetext { font-size: 0.97rem; }
+.fragetext::before {
+  content: counter(frage) ". "; color: var(--schrift-3); font-variant-numeric: tabular-nums;
+}
+.antworten { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.antwort {
+  display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;
+  border: 1px solid var(--linie); border-radius: 999px; padding: 0.35rem 0.8rem;
+  font-size: 0.87rem; background: var(--flaeche);
+}
+.antwort.gewaehlt { border-color: var(--akzent); background: var(--akzent-sanft); color: var(--akzent); font-weight: 500; }
+.antwort input { accent-color: var(--akzent); }
+/* „Kann ich nicht beurteilen“ steht bewusst abgesetzt — es ist keine Bewertung
+   auf der Skala, sondern deren Verweigerung. */
+.antwort.weiss-nicht { color: var(--schrift-3); border-style: dashed; }
+.antwort.weiss-nicht.gewaehlt { color: var(--akzent); border-style: solid; }
+
+.warnung {
+  font-size: 0.87rem; color: var(--schrift-2); background: var(--mittel-flaeche);
+  border-radius: 8px; padding: 0.7rem 0.9rem; line-height: 1.5;
+}
+.fehler { color: var(--schlecht); font-size: 0.9rem; }
+.fehlerkasten {
+  background: var(--schlecht-flaeche); border-radius: var(--radius);
+  padding: 0.9rem 1.1rem; color: var(--schlecht); font-size: 0.93rem;
+}
+.fehlerkasten ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+
+.schrittleiste { display: flex; gap: 0.7rem; flex-wrap: wrap; }
