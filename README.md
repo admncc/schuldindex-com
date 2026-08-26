@@ -37,7 +37,8 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/import/normalisiere.ts` | Rohdatensatz → Schule: Adresse, Koordinate samt Reparatur vertauschter Werte, Suchtext |
 | `src/import/dubletten.ts` | Zusammenführung mehrfach gelieferter Schulen, Standorte bleiben erhalten |
 | `src/db/schulsuche.ts` | Autovervollständigung, unscharfe Suche, Umkreissuche, Filter |
-| `app/` | Next.js-Anwendung: Startseite, Suche, Schulprofil, Bewertungsformular — durchgehend deutsch |
+| `app/` | Next.js-Anwendung: Startseite, Suche, Schulprofil, Bewertungsformular, Bestätigung |
+| `src/dienste/umgebung.ts` | Anbindung des Abgabedienstes an Postgres — das einzige SQL außerhalb der Abfrageschicht |
 | `messages/de.json` | Alle Oberflächentexte |
 | `db/migrations/` | Datenbankschema |
 | `scripts/lade-schulen.ts` | Abruf des Schulbestands, mit Abgleich gegen die Statistik der Quelle |
@@ -51,6 +52,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 npm install
 npm test        # 278 Tests
 npm run typecheck
+cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000
 
 # Messung der Schulart-Normalisierung am echten Bestand (34.094 Datensätze):

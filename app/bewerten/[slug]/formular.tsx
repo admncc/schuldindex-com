@@ -42,6 +42,9 @@ export function Bewertungsformular({ schulSlug, schulname }: { schulSlug: string
   const [verlosung, setVerlosung] = useState(false);
   const [nummer, setNummer] = useState(0);
   const [gezeigt, setGezeigt] = useState(false);
+  const [sendet, setSendet] = useState(false);
+  const [gesendet, setGesendet] = useState<{ kontaktAnzeige: string } | null>(null);
+  const [serverfehler, setServerfehler] = useState<string[]>([]);
 
   const schritte: Schritt[] = useMemo(
     () => [
@@ -90,8 +93,50 @@ export function Bewertungsformular({ schulSlug, schulname }: { schulSlug: string
     setNummer((n) => Math.min(n + 1, schritte.length - 1));
   }
 
+  async function absenden() {
+    setGezeigt(true);
+    if (fehler.length > 0) return;
+
+    setSendet(true);
+    setServerfehler([]);
+    try {
+      const antwort = await fetch("/api/bewertungen", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(eingabe),
+      });
+      const ergebnis = (await antwort.json()) as
+        | { ok: true; kontaktAnzeige: string }
+        | { ok: false; fehler: { feld: string; meldung: string }[] };
+
+      if (ergebnis.ok) setGesendet({ kontaktAnzeige: ergebnis.kontaktAnzeige });
+      else setServerfehler(ergebnis.fehler.map((f) => f.meldung));
+    } catch {
+      setServerfehler(["Die Verbindung ist abgebrochen. Bitte versuche es noch einmal."]);
+    } finally {
+      setSendet(false);
+    }
+  }
+
+  if (gesendet !== null) {
+    return (
+      <div className="leerzustand">
+        <h2>Fast geschafft</h2>
+        <p>
+          Wir haben dir eine Nachricht an <strong>{gesendet.kontaktAnzeige}</strong> geschickt.
+          Bitte bestätige darüber deine Bewertung — der Link ist 24 Stunden gültig.
+        </p>
+        <p className="hinweis">
+          Erst nach der Bestätigung wird deine Bewertung geprüft und veröffentlicht. Deine
+          Kontaktdaten erscheinen nie öffentlich.
+        </p>
+        <a className="knopf zweitrangig" href={`/schule/${schulSlug}`}>Zurück zur Schule</a>
+      </div>
+    );
+  }
+
   return (
-    <form className="formular" action="/api/bewertungen" method="post" onSubmit={(e) => e.preventDefault()}>
+    <form className="formular" onSubmit={(e) => e.preventDefault()}>
       <div className="fortschritt" aria-hidden="true">
         <span style={{ width: `${anteil}%` }} />
       </div>
@@ -267,6 +312,17 @@ export function Bewertungsformular({ schulSlug, schulname }: { schulSlug: string
               </ul>
             </div>
           )}
+
+          {serverfehler.length > 0 && (
+            <div className="fehlerkasten">
+              <strong>Die Bewertung wurde nicht angenommen:</strong>
+              <ul>
+                {serverfehler.map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </>
       )}
 
@@ -277,13 +333,8 @@ export function Bewertungsformular({ schulSlug, schulname }: { schulSlug: string
           </button>
         )}
         {schritt.art === "abschluss" ? (
-          <button
-            type="button"
-            className="knopf"
-            onClick={() => setGezeigt(true)}
-            disabled={false}
-          >
-            Bewertung für {schulname} absenden
+          <button type="button" className="knopf" onClick={absenden} disabled={sendet}>
+            {sendet ? "Wird gesendet …" : `Bewertung für ${schulname} absenden`}
           </button>
         ) : (
           <button type="button" className="knopf" onClick={weiter}>Weiter</button>
