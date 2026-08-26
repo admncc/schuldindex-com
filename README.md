@@ -22,6 +22,8 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/domain/scoring.ts` | Kategoriescores, 70/30-Aufteilung der Kategorie A, Gesamtscore, Aggressionsindex, Ampelstufen |
 | `src/domain/aggregation.ts` | Zusammenfassung aller Bewertungen einer Schule, Sichtbarkeitsschwellen, Trend |
 | `src/domain/geopruefung.ts` | Entfernungsprüfung bei der Abgabe, 150-km-Grenze |
+| `src/domain/betrugspruefung.ts` | Automatische Signale vor der Freigabe — Signale, keine Entscheidungen |
+| `src/domain/bewertungsstatus.ts` | Zustände einer Bewertung und die erlaubten Übergänge |
 | `src/import/schulart.ts` | Normalisierung der 232 Schulartbezeichnungen aus jedeschule.codefor.de auf die Taxonomie des Portals |
 | `src/import/slug.ts` | Slug-Vergabe für Schulprofile — umlautfest und über Re-Importe hinweg stabil |
 | `src/import/geokodierung.ts` | Ablauf der Nachgeocodierung: gestufte Anfragen, Genauigkeit, Plausibilitätsprüfung |
@@ -39,7 +41,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 
 ```bash
 npm install
-npm test        # 151 Tests
+npm test        # 178 Tests
 npm run typecheck
 
 # Messung der Schulart-Normalisierung am echten Bestand (34.094 Datensätze):
