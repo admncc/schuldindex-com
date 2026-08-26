@@ -11,7 +11,25 @@ Das Portal wird vollständig deutschsprachig ausgeliefert.
 | [`docs/fragebogen-de.md`](docs/fragebogen-de.md) | Deutscher Fragebogen (kanonische Fassung), Antwortskalen, Ansprachevarianten |
 | [`docs/userflow-abgleich.md`](docs/userflow-abgleich.md) | Abgleich des SchoolUserFlow gegen die Specs: was übernommen, angepasst und ergänzt wird |
 
-Der Code entsteht ab Sprint 1 (Arbeitspaket 0.1 im Entwicklungsplan).
+## Stand der Umsetzung
+
+Begonnen mit dem Domänenkern — dem Teil, der von den offenen Entscheidungen nicht
+abhängt und bei dem Korrektheit am meisten zählt:
+
+| Modul | Inhalt |
+|---|---|
+| `src/domain/fragebogen.ts` | Alle 61 Fragen, sechs Kategorien, drei Antwortskalen, Gewichtungen, Du-/Sie-Varianten |
+| `src/domain/scoring.ts` | Kategoriescores, 70/30-Aufteilung der Kategorie A, Gesamtscore, Aggressionsindex, Ampelstufen |
+
+```bash
+npm install
+npm test        # 39 Tests
+npm run typecheck
+```
+
+Die Tests halten insbesondere die beiden Stellen fest, an denen die Spezifikation
+rechnerisch nicht aufging: der Gesamtscore reicht von 20 bis 100 statt von 0 bis 100,
+und die Ampelgrenzen des Aggressionsindex ließen zwei Wertebereiche undefiniert.
 
 ## Offene Entscheidungen
 
