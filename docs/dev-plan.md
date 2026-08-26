@@ -607,7 +607,7 @@ Sprintlänge 2 Wochen. „AP“ = Arbeitspaket.
 ### Phase 1 — Schuldaten & Suche (Sprints 2–3)
 - AP 1.1 Import-Pipeline jedeschule.codefor.de → Normalisierung → `schools` — Abruf steht (`scripts/lade-schulen.ts`)
 - AP 1.2 ✅ **Mapping der Schulartbezeichnungen** — `src/import/schulart.ts`
-- AP 1.3 Nachgeocodierung — Strategie und Plausibilitätsprüfung stehen (`src/import/geokodierung.ts`), Anbindung an den Dienst offen
+- AP 1.3 ✅ **Nachgeocodierung** — Ablauf, Plausibilitätsprüfung und Photon-Anbindung stehen und laufen
 - AP 1.4 ✅ **Slug-Vergabe** — `src/import/slug.ts`
 
 ### Die Falle beim Abruf
@@ -699,6 +699,26 @@ schafft das nicht — es macht aus „Grünewald“ ein „Grunewald“, sodass 
 ausgeschriebene Form ins Leere liefe. Der Suchtext hält deshalb **beide**
 Schreibweisen nebeneinander.
 
+### Suche
+
+Umgesetzt in `src/db/schulsuche.ts`, geprüft an den 33.600 echten Schulen. Drei Wege
+nebeneinander, weil die Suche der erste Kontakt mit dem Portal ist — findet jemand seine
+Schule nicht, ist alles Weitere belanglos:
+
+| Weg | Zweck | Gemessen |
+|---|---|---|
+| Präfix | Autovervollständigung während der Eingabe | 7,8 ms |
+| Trigramme | Tippfehler und Wortdreher | 63 ms |
+| Umkreis | „Schulen in meiner Nähe“ | 1,4 ms |
+
+Präfixtreffer stehen dabei vor Treffern mitten im Text: wer „gymn“ tippt, meint Gymnasien und
+nicht die „gymnasiale Oberstufe“ am Ende eines langen Namens. Filter nach Bundesland,
+Schulart und Ort lassen sich mit allen drei Wegen kombinieren.
+
+Eine Feinheit bei den Umlauten: die **Eingabe** wird bewusst nicht bereinigt. Der Suchtext in
+der Datenbank führt bereits beide Schreibweisen — würde man zusätzlich die Eingabe bereinigen,
+machte das aus „Grünewald“ ein „Grunewald“, was dann gerade nicht mehr passt.
+
 **Zwei Entscheidungen aus der Umsetzung**, die vom Plan abweichen:
 
 - **Eine Schule bekommt mehrere Schularten**, kein einzelnes Enum. „Grund- und Oberschule“ ist
@@ -727,13 +747,36 @@ Genauigkeit wird deshalb je Schule mitgespeichert (`adresse` / `plz` / `ort`) st
 Eine Schule mit PLZ-Koordinate ist für die Betrugsprüfung voll verwendbar und wird auf der
 Karte lediglich anders dargestellt. Das erlaubt den Start, ohne auf die letzte Adresse zu warten.
 
-**Plausibilitätsprüfung ist Pflicht, nicht Kür.** Ortsnamen wie „Neustadt“ gibt es dutzendfach
-in Deutschland. Ein Geocoder, der die Adresse im falschen Bundesland findet, platziert die
-Schule hunderte Kilometer entfernt — und jede Bewertung aus ihrer echten Nachbarschaft fiele
-durch die 150-km-Prüfung. Jedes Ergebnis wird deshalb gegen den Umriss seines Bundeslandes
-geprüft; fällt es durch, wird die nächstgröbere Stufe versucht statt der Treffer übernommen.
+**Plausibilitätsprüfung ist Pflicht, nicht Kür — und sie gilt auch für die Quelle.**
+Ortsnamen wie „Neustadt“ gibt es dutzendfach in Deutschland. Ein Geocoder, der die Adresse im
+falschen Bundesland findet, platziert die Schule hunderte Kilometer entfernt, und jede
+Bewertung aus ihrer echten Nachbarschaft fiele durch die 150-km-Prüfung. Jedes Ergebnis wird
+deshalb gegen den Umriss seines Bundeslandes geprüft; fällt es durch, wird die nächstgröbere
+Stufe versucht.
+
+Dieselbe Prüfung deckte **24 fehlerhafte Koordinaten in den Quelldaten** auf, alle in
+Rheinland-Pfalz: eine Grundschule bei Kaiserslautern steht auf Dresden, eine bei Trier auf
+Bayreuth. Sie liegen in Deutschland und fallen deshalb durch keine Bereichsprüfung — nur der
+Abgleich mit dem Bundesland findet sie. Betroffene Schulen verlieren ihre Koordinate und gehen
+in die Nachgeocodierung.
+
+**Ein zweites Qualitätstor lässt die Quelle sich selbst prüfen** (`scripts/pruefe-koordinaten.test.ts`):
+für die meisten Postleitzahlen kennen wir Koordinaten aus der Quelle, und eine nachgeocodierte
+Schule muss in deren Nähe liegen. Das findet den Fehler, den keine Bereichsprüfung findet — die
+richtige Straße in der falschen Stadt desselben Bundeslandes. Gemessen an den ersten 86
+Ergebnissen: keine einzige über 25 km entfernt, größte Abweichung 7,4 km.
+
+### Durchsatz
+
+| Betriebsart | Schulen je Minute | Hochrechnung für 6.200 |
+|---|---|---|
+| nacheinander | 27 | über 3 Stunden |
+| 6 gleichzeitig | 119 | rund 50 Minuten |
+
+Der Engpass ist Photons Antwortzeit, nicht der eigene Takt. Mehrere Anfragen gleichzeitig
+lösen das; der Takt begrenzt weiterhin die Gesamtlast auf den fremden Dienst.
 - AP 1.4 Slug-Erzeugung mit Umlautbehandlung (`gymnasium-am-muehlenweg-hamburg`)
-- AP 1.5 Suche: `pg_trgm` + `unaccent`, Autocomplete-Endpunkt, Ratelimit
+- AP 1.5 ✅ **Suche** — `src/db/schulsuche.ts`: Autovervollständigung, unscharfe Suche, Umkreis, Filter
 - AP 1.6 Suchseite `/schulen` mit Filtern (Bundesland, Schulart, Ort) auf Deutsch
 - **Ergebnis:** alle deutschen Schulen suchbar, Trefferqualität gemessen
 

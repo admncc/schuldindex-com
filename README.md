@@ -26,11 +26,13 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/import/photon.ts` | Anbindung an Photon, mit Takt, Wiederholungen und Zwischenspeicher |
 | `src/domain/bundesland.ts` | Die 16 Bundesländer als Domänenbegriff |
 | `src/import/normalisiere.ts` | Rohdatensatz → Schule: Adresse, Koordinate samt Reparatur vertauschter Werte, Suchtext |
+| `src/db/schulsuche.ts` | Autovervollständigung, unscharfe Suche, Umkreissuche, Filter |
 | `db/migrations/` | Datenbankschema |
 | `scripts/lade-schulen.ts` | Abruf des Schulbestands, mit Abgleich gegen die Statistik der Quelle |
 | `scripts/importiere.ts` | Import in die Datenbank, wiederholbar |
 | `scripts/geokodiere.ts` | Holt fehlende Koordinaten nach, wiederaufnehmbar |
 | `scripts/pruefe-koordinaten.test.ts` | Qualitätstor: prüft die Koordinaten gegen die Datenbank |
+| `scripts/suche.test.ts` | Prüft die Suche an den echten Daten |
 
 ```bash
 npm install

@@ -1,12 +1,19 @@
 /**
  * Holt die fehlenden Koordinaten nach.
  *
- *   DATABASE_URL=postgres://… npx tsx scripts/geokodiere.ts [--anzahl 500] [--pro-sekunde 2]
+ *   DATABASE_URL=postgres://… npx tsx scripts/geokodiere.ts \
+ *     [--anzahl 500] [--pro-sekunde 4] [--gleichzeitig 4]
  *
  * Der Lauf ist **wiederaufnehmbar**: er holt sich jedes Mal die Schulen ohne
  * Koordinate aus der Datenbank und schreibt jedes Ergebnis sofort zurück. Ein
- * Abbruch kostet höchstens die laufende Anfrage. Zusätzlich hält ein
+ * Abbruch kostet höchstens die laufenden Anfragen. Zusätzlich hält ein
  * Zwischenspeicher gleiche Anfragen innerhalb eines Laufs zusammen.
+ *
+ * **Zur Nebenläufigkeit:** Der Durchsatz hängt nicht am eigenen Takt, sondern
+ * an Photons Antwortzeit — nacheinander kommt man auf rund 27 Schulen je
+ * Minute, was für 6.200 Schulen über drei Stunden bedeutet. Mehrere Anfragen
+ * gleichzeitig lösen das; der Takt begrenzt weiterhin die Gesamtlast auf den
+ * fremden Dienst.
  */
 import postgres from "postgres";
 import { geokodiere, type Genauigkeit } from "../src/import/geokodierung.js";
@@ -30,7 +37,8 @@ function argument(name: string, standard: number): number {
 }
 
 const anzahl = argument("anzahl", Number.POSITIVE_INFINITY);
-const proSekunde = argument("pro-sekunde", 2);
+const proSekunde = argument("pro-sekunde", 4);
+const gleichzeitig = Math.max(1, argument("gleichzeitig", 4));
 
 const sql = postgres(process.env.DATABASE_URL!, { onnotice: () => {} });
 const photon = new PhotonGeocoder({ proSekunde });
@@ -54,47 +62,17 @@ try {
     `;
     if (offen.length === 0) break;
 
-    for (const schule of offen) {
-      const ergebnis = await geokodiere(
-        {
-          name: schule.name,
-          strasse: schule.strasse,
-          plz: schule.plz,
-          ort: schule.ort,
-          bundesland: schule.bundesland,
-        },
-        geocoder,
-      );
-      zaehler[ergebnis.genauigkeit]++;
-      bearbeitet++;
-
-      if (ergebnis.koordinate) {
-        await sql`
-          update schulen
-          set lat = ${ergebnis.koordinate.lat},
-              lon = ${ergebnis.koordinate.lon},
-              genauigkeit = ${ergebnis.genauigkeit},
-              aktualisiert_am = now()
-          where id = ${schule.id}
-        `;
-      } else {
-        if (ergebnis.verworfenWeil) {
-          verworfen.set(ergebnis.verworfenWeil, (verworfen.get(ergebnis.verworfenWeil) ?? 0) + 1);
-        }
-        // Ohne Merkmal bliebe die Schule in jedem Folgelauf wieder vorn. Sie
-        // wird nicht deaktiviert — sie ist eine echte Schule, nur ohne Punkt
-        // auf der Karte. Ein späterer Lauf mit besserer Quelle greift sie erneut auf.
-        await sql`update schulen set aktualisiert_am = now() where id = ${schule.id}`;
+    // Arbeiter teilen sich die Warteschlange des Stapels. Der Takt im Geocoder
+    // begrenzt die Gesamtlast, unabhängig davon, wie viele hier arbeiten.
+    let naechster = 0;
+    const arbeite = async (): Promise<void> => {
+      for (;;) {
+        const schule = offen[naechster++];
+        if (schule === undefined) return;
+        await bearbeiteEine(schule);
       }
-
-      if (bearbeitet % 100 === 0) {
-        const proMinute = bearbeitet / ((Date.now() - beginn) / 60000);
-        console.error(
-          `  ${bearbeitet} bearbeitet · ${proMinute.toFixed(0)}/min · ` +
-            `Adresse ${zaehler.adresse} · PLZ ${zaehler.plz} · Ort ${zaehler.ort} · ohne ${zaehler.keine}`,
-        );
-      }
-    }
+    };
+    await Promise.all(Array.from({ length: gleichzeitig }, arbeite));
   }
 
   const dauer = (Date.now() - beginn) / 1000;
@@ -105,6 +83,48 @@ try {
   console.error(`  ohne Ergebnis      ${zaehler.keine}`);
   console.error(`  Anfragen an Photon ${photon.anfragen} (${photon.fehler} Fehler)`);
   for (const [grund, n] of verworfen) console.error(`  verworfen: ${grund}: ${n}`);
+
+  async function bearbeiteEine(schule: OffeneSchule): Promise<void> {
+    const ergebnis = await geokodiere(
+      {
+        name: schule.name,
+        strasse: schule.strasse,
+        plz: schule.plz,
+        ort: schule.ort,
+        bundesland: schule.bundesland,
+      },
+      geocoder,
+    );
+    zaehler[ergebnis.genauigkeit]++;
+    bearbeitet++;
+
+    if (ergebnis.koordinate) {
+      await sql`
+        update schulen
+        set lat = ${ergebnis.koordinate.lat},
+            lon = ${ergebnis.koordinate.lon},
+            genauigkeit = ${ergebnis.genauigkeit},
+            aktualisiert_am = now()
+        where id = ${schule.id}
+      `;
+    } else {
+      if (ergebnis.verworfenWeil) {
+        verworfen.set(ergebnis.verworfenWeil, (verworfen.get(ergebnis.verworfenWeil) ?? 0) + 1);
+      }
+      // Ohne Merkmal bliebe die Schule in jedem Folgelauf wieder vorn. Sie
+      // wird nicht deaktiviert — sie ist eine echte Schule, nur ohne Punkt
+      // auf der Karte. Ein späterer Lauf mit besserer Quelle greift sie erneut auf.
+      await sql`update schulen set aktualisiert_am = now() where id = ${schule.id}`;
+    }
+
+    if (bearbeitet % 100 === 0) {
+      const proMinute = bearbeitet / ((Date.now() - beginn) / 60000);
+      console.error(
+        `  ${bearbeitet} bearbeitet · ${proMinute.toFixed(0)}/min · ` +
+          `Adresse ${zaehler.adresse} · PLZ ${zaehler.plz} · Ort ${zaehler.ort} · ohne ${zaehler.keine}`,
+      );
+    }
+  }
 } finally {
   await sql.end();
 }
