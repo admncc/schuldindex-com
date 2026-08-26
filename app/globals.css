@@ -363,3 +363,49 @@ a { color: var(--akzent); }
 .thema.gut { background: var(--gut-flaeche); color: var(--gut); }
 .thema.schlecht { background: var(--schlecht-flaeche); color: var(--schlecht); }
 .zusammenfassung .fussnote { margin-top: 1.1rem; padding-top: 0.8rem; border-top: 1px solid var(--linie); }
+
+/* ---------- Ranglisten ---------- */
+.ranglisten { display: grid; gap: 1rem; }
+@media (min-width: 62rem) { .ranglisten { grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; } }
+.rangliste { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; counter-reset: platz; }
+.rangliste li {
+  display: grid; grid-template-columns: 2rem 1fr auto; gap: 0.9rem; align-items: center;
+  border: 1px solid var(--linie); border-radius: var(--radius); background: var(--flaeche);
+  padding: 0.75rem 1rem;
+}
+.rangliste li:hover { border-color: var(--linie-stark); }
+.rangliste .platz {
+  font-family: Georgia, "Times New Roman", serif; font-size: 1.1rem; color: var(--schrift-3);
+  font-variant-numeric: tabular-nums; text-align: right;
+}
+.rangliste .eintrag { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; text-decoration: none; }
+.rangliste .titel { font-weight: 500; color: var(--schrift); }
+.rangliste .beiwerk { font-size: 0.85rem; color: var(--schrift-3); }
+.wertungsspalte { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; }
+.trend.verbessert { color: var(--gut); }
+.trend.verschlechtert { color: var(--schlecht); }
+.zuruecksetzen { font-size: 0.88rem; color: var(--schrift-2); }
+.einleitung { color: var(--schrift-2); max-width: 60ch; }
+
+/* ---------- Karte ----------
+   Ohne Kacheln von fremden Servern: die Punkte selbst sind die Karte. */
+.karte-rahmen {
+  border: 1px solid var(--linie); border-radius: var(--radius); background: var(--flaeche);
+  padding: 0.8rem; position: relative; max-height: 80vh;
+}
+.schulkarte { display: block; width: 100%; height: 100%; object-fit: contain; margin: 0 auto; }
+/* Die anklickbare Ebene liegt deckungsgleich über der Bestandsebene. */
+.bewertungsebene { position: absolute; inset: 0.8rem; }
+.schulkarte .bewertet circle { stroke: var(--flaeche); stroke-width: 1.5; cursor: pointer; }
+.schulkarte .bewertet circle.gut { fill: var(--gut); }
+.schulkarte .bewertet circle.mittel { fill: var(--mittel); }
+.schulkarte .bewertet circle.schlecht { fill: var(--schlecht); }
+.schulkarte .bewertet a:hover circle { stroke: var(--schrift); stroke-width: 2; }
+
+.legende { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 1.1rem; font-size: 0.85rem; color: var(--schrift-2); }
+.legende li { display: inline-flex; align-items: center; gap: 0.4rem; }
+.punkt { width: 0.7rem; height: 0.7rem; border-radius: 50%; display: inline-block; }
+.punkt.bestand { background: var(--linie-stark); }
+.punkt.gut { background: var(--gut); }
+.punkt.mittel { background: var(--mittel); }
+.punkt.schlecht { background: var(--schlecht); }

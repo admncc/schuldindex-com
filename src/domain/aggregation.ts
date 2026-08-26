@@ -157,15 +157,39 @@ export function berechneTrend(
   davor: readonly EinzelneBewertung[],
   mindestzahl = MINDESTZAHL_PROFIL,
 ): Trend {
-  if (aktuell.length < mindestzahl || davor.length < mindestzahl) {
+  return trendAusScores(
+    { score: aggregiere(aktuell).gesamtscore, anzahl: aktuell.length },
+    { score: aggregiere(davor).gesamtscore, anzahl: davor.length },
+    mindestzahl,
+  );
+}
+
+export interface Zeitfenster {
+  readonly score: number | null;
+  readonly anzahl: number;
+}
+
+/**
+ * Derselbe Vergleich aus zwei fertigen Werten.
+ *
+ * Gebraucht für die Ranglisten: dort stehen die beiden Stände vorberechnet in
+ * `schul_aggregate`, und die einzelnen Bewertungen dafür noch einmal zu laden
+ * hieße, für eine Liste mit fünfzig Zeilen tausende Datensätze zu holen.
+ */
+export function trendAusScores(jetzt: Zeitfenster, davor: Zeitfenster, mindestzahl = MINDESTZAHL_PROFIL): Trend {
+  if (jetzt.anzahl < mindestzahl || davor.anzahl < mindestzahl) {
     return { richtung: "unbekannt", veraenderung: null };
   }
+  if (jetzt.score === null || davor.score === null) return { richtung: "unbekannt", veraenderung: null };
 
-  const jetzt = aggregiere(aktuell).gesamtscore;
-  const vorher = aggregiere(davor).gesamtscore;
-  if (jetzt === null || vorher === null) return { richtung: "unbekannt", veraenderung: null };
-
-  const veraenderung = jetzt - vorher;
+  const veraenderung = jetzt.score - davor.score;
   if (Math.abs(veraenderung) < TRENDSCHWELLE) return { richtung: "stabil", veraenderung };
   return { richtung: veraenderung > 0 ? "verbessert" : "verschlechtert", veraenderung };
 }
+
+export const TREND_LABEL: Readonly<Record<Trendrichtung, string>> = {
+  verbessert: "verbessert",
+  verschlechtert: "verschlechtert",
+  stabil: "stabil",
+  unbekannt: "kein Vergleich möglich",
+};

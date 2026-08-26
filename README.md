@@ -49,6 +49,9 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/ki/pruefung.ts` | Nachprüfung der Zusammenfassung vor der Veröffentlichung |
 | `src/ki/zusammenfassung.ts` | Der Ablauf der Zusammenfassung, ohne Netz und damit prüfbar |
 | `src/ki/anthropic.ts` | Claude API mit Structured Outputs — die einzige Datei, die das SDK kennt |
+| `src/db/ranglisten.ts` | Beste Schulen und höchster Verbesserungsbedarf, mit Sechs-Monats-Trend |
+| `src/domain/karte.ts` | Projektion der Schulkarte — und warum sie ohne fremde Kartenkacheln auskommt |
+| `src/db/karte.ts` | Schulbestand als Raster, bewertete Schulen einzeln |
 | `src/dienste/umgebung.ts` | Anbindung des Abgabedienstes an Postgres — das einzige SQL außerhalb der Abfrageschicht |
 | `messages/de.json` | Alle Oberflächentexte |
 | `db/migrations/` | Datenbankschema |
@@ -63,7 +66,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 
 ```bash
 npm install
-npm test        # 397 Tests
+npm test        # 410 Tests
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000
