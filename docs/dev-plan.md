@@ -586,8 +586,44 @@ Sprintlänge 2 Wochen. „AP“ = Arbeitspaket.
 
 ### Phase 1 — Schuldaten & Suche (Sprints 2–3)
 - AP 1.1 Import-Pipeline jedeschule.codefor.de → Normalisierung → `schools`
-- AP 1.2 Mapping der bundeslandspezifischen Schulartbezeichnungen auf die eigene Taxonomie
+- AP 1.2 ✅ **Mapping der Schulartbezeichnungen** — umgesetzt in `src/import/schulart.ts`
 - AP 1.3 Nachgeocodierung fehlender Koordinaten (Nominatim, ratelimitkonform), Qualitätsreport
+
+**Gemessener Zustand der Quelle** (Stand 26.08.2026, 34.094 Datensätze):
+
+| Befund | Zahl | Bedeutung für die Umsetzung |
+|---|---|---|
+| Datensätze gesamt | 34.094 | |
+| davon **keine Schulen** | 644 | Schulämter, Studienseminare, ZfsL, Hochschulen, Musikschulen — müssen beim Import ausgeschlossen werden |
+| echte Schulen | 33.450 | |
+| Schulart zugeordnet | 96,5 % | 28.292 aus dem Feld, 3.995 aus dem Schulnamen erschlossen |
+| **nicht zuzuordnen** | 1.163 | Die Schulart steht weder im Feld noch im Namen — die Schulen heißen schlicht „Kahlhorst-Schule“. Nur mit einer zweiten Quelle lösbar, überwiegend SH und BW. Landen in der Kategorie „Sonstige“. |
+| **ohne Koordinaten** | 5.048 (15,1 %) | Niedersachsen **zu 100 %**, Sachsen-Anhalt 52 %, Saarland 47 %, Schleswig-Holstein 37 % |
+| ohne Adresse oder PLZ | 470 | Erschwert die Nachgeocodierung zusätzlich |
+
+**Vier Eigenheiten der Quelle**, die das Mapping behandeln muss:
+1. Baden-Württemberg liefert englische Codes statt Klartext — `primaryEducation`,
+   `lowerSecondaryEduction` (Tippfehler im Original), `education` als nichtssagenden Sammelwert.
+2. Bayern liefert Pluralformen: „Grundschulen“, „Gymnasien“, „Förderzentren“.
+3. Hamburg liefert Mehrfachwerte mit `|`, das Saarland mit `;` und eingestreuten Tabulatoren.
+4. Deutsche Bindestrich-Ellipsen: „Grund- und Oberschule“ meint beide Schularten, nennt die
+   erste aber nur verkürzt. Ohne Auflösung geht der erste Bestandteil verloren.
+
+**Zwei Entscheidungen aus der Umsetzung**, die vom Plan abweichen:
+
+- **Eine Schule bekommt mehrere Schularten**, kein einzelnes Enum. „Grund- und Oberschule“ ist
+  beides, und ein Filter „alle Grundschulen“ muss sie finden. Das Datenmodell führt deshalb
+  `schularten` als Liste statt `school_type` als Einzelwert.
+- **Taxonomie und Anzeigename werden getrennt.** Eine Schleswig-Holsteiner
+  „Gemeinschaftsschule“ wird als Gesamtschule gefiltert, heißt auf ihrem Profil aber
+  weiterhin Gemeinschaftsschule. Sonst müssten wir Schulen umbenennen, was weder ihnen noch
+  den Suchenden hilft.
+
+**Nachgeocodierung ist keine Kür, sondern Voraussetzung.** Ohne Koordinaten funktionieren
+weder die 150-km-Prüfung noch die Karte noch die Umkreissuche — und Niedersachsen fehlt
+vollständig. Für 5.048 Schulen bei Nominatims Ratelimit von einer Anfrage je Sekunde sind das
+rund 85 Minuten reine Laufzeit; das ist unkritisch, muss aber als eigener Job mit
+Zwischenstand laufen, nicht als Teil des Imports.
 - AP 1.4 Slug-Erzeugung mit Umlautbehandlung (`gymnasium-am-muehlenweg-hamburg`)
 - AP 1.5 Suche: `pg_trgm` + `unaccent`, Autocomplete-Endpunkt, Ratelimit
 - AP 1.6 Suchseite `/schulen` mit Filtern (Bundesland, Schulart, Ort) auf Deutsch

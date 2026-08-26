@@ -20,12 +20,20 @@ abhängt und bei dem Korrektheit am meisten zählt:
 |---|---|
 | `src/domain/fragebogen.ts` | Alle 61 Fragen, sechs Kategorien, drei Antwortskalen, Gewichtungen, Du-/Sie-Varianten |
 | `src/domain/scoring.ts` | Kategoriescores, 70/30-Aufteilung der Kategorie A, Gesamtscore, Aggressionsindex, Ampelstufen |
+| `src/import/schulart.ts` | Normalisierung der 232 Schulartbezeichnungen aus jedeschule.codefor.de auf die Taxonomie des Portals |
 
 ```bash
 npm install
-npm test        # 44 Tests
+npm test        # 62 Tests
 npm run typecheck
+
+# Messung der Schulart-Normalisierung am echten Bestand (34.094 Datensätze):
+SCHULEN_JSON=/pfad/zu/schulen.json npx vitest run scripts/analyse-schularten.test.ts
 ```
+
+Der Rohbestand liegt bewusst nicht im Repository (rund 12 MB). Er wird von
+`https://jedeschule.codefor.de/schools/` geladen; ohne die Datei überspringt der
+Messlauf sich selbst.
 
 Die Tests halten insbesondere die Stellen fest, an denen die Spezifikation rechnerisch nicht
 aufging: die Ampelgrenzen des Aggressionsindex ließen zwei Wertebereiche undefiniert, und der
