@@ -103,3 +103,39 @@ describe.skipIf(!vorhanden)("Geokodierte Koordinaten", () => {
     }
   });
 });
+
+describe.skipIf(!vorhanden)("Entfernungsrechnung", () => {
+  it("stimmt mit der Datenbank überein", async () => {
+    // Zwei Wege rechnen dieselbe Entfernung: Haversine in TypeScript bei der
+    // Abgabe einer Bewertung (beide Punkte liegen ohnehin vor, ein
+    // Datenbankbesuch wäre reine Latenz) und earth_distance in Postgres bei
+    // der Umkreissuche. Laufen sie auseinander, prüft die Anwendung anders als
+    // die Datenbank — dieser Test hält beide zusammen.
+    const { entfernungKm } = await import("../src/domain/geopruefung.js");
+    const sql = postgres(URL, { onnotice: () => {} });
+    try {
+      const paare = await sql<{ alat: number; alon: number; blat: number; blon: number }[]>`
+        select a.lat as alat, a.lon as alon, b.lat as blat, b.lon as blon
+        from schulen a, schulen b
+        where a.lat is not null and b.lat is not null and a.id < b.id
+        limit 200
+      `;
+      let groesserFehler = 0;
+      for (const p of paare) {
+        const [zeile] = await sql<{ km: number }[]>`
+          select earth_distance(ll_to_earth(${p.alat}, ${p.alon}),
+                                ll_to_earth(${p.blat}, ${p.blon})) / 1000 as km
+        `;
+        const eigen = entfernungKm({ lat: p.alat, lon: p.alon }, { lat: p.blat, lon: p.blon });
+        const abweichung = Math.abs(eigen - (zeile?.km ?? 0));
+        groesserFehler = Math.max(groesserFehler, abweichung);
+      }
+      console.log(`  größte Abweichung über ${paare.length} Paare: ${(groesserFehler * 1000).toFixed(0)} m`);
+      // Beide Wege nutzen denselben Erdradius; übrig bleibt nur
+      // Gleitkomma-Rauschen. Alles über einem Meter wäre ein echter Fehler.
+      expect(groesserFehler).toBeLessThan(0.001);
+    } finally {
+      await sql.end();
+    }
+  });
+});
