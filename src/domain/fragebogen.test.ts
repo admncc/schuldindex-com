@@ -79,23 +79,19 @@ describe("Fragebogen — Sprache", () => {
     }
   });
 
-  it("hinterlegt eine Du-Variante genau dort, wo die Sie-Form direkt anspricht", () => {
+  it("siezt an keiner Stelle — das Portal duzt durchgehend", () => {
+    // Entscheidung vom 26.08.2026. Der Test greift auch dann, wenn jemand
+    // später eine Frage in der Sie-Form nachträgt.
     for (const frage of FRAGEN) {
-      const sprichtAn = /\b(Sie|Ihnen|Ihre[rnms]?)\b/.test(frage.text);
       expect(
-        frage.textDu !== undefined,
-        `${frage.id}: Anrede ${sprichtAn ? "vorhanden" : "fehlt"}, Du-Variante ${
-          frage.textDu ? "gesetzt" : "fehlt"
-        }`,
-      ).toBe(sprichtAn);
+        /\b(Sie|Ihnen|Ihre[rnms]?)\b/.test(frage.text),
+        `${frage.id} siezt: „${frage.text}“`,
+      ).toBe(false);
     }
   });
 
-  it("siezt in der Sie-Form und duzt in der Du-Variante", () => {
-    for (const frage of FRAGEN) {
-      if (frage.textDu === undefined) continue;
-      expect(/\b(du|dich|dir|deine)\b/i.test(frage.textDu), `${frage.id}`).toBe(true);
-      expect(/\bSie\b/.test(frage.textDu), `${frage.id} siezt in der Du-Variante`).toBe(false);
-    }
+  it("duzt dort, wo die Frage überhaupt jemanden anspricht", () => {
+    const mitAnrede = FRAGEN.filter((f) => /\b(du|dich|dir|deine[rnms]?)\b/i.test(f.text));
+    expect(mitAnrede.length).toBeGreaterThanOrEqual(12);
   });
 });

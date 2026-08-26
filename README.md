@@ -23,22 +23,30 @@ abhängt und bei dem Korrektheit am meisten zählt:
 
 ```bash
 npm install
-npm test        # 39 Tests
+npm test        # 44 Tests
 npm run typecheck
 ```
 
-Die Tests halten insbesondere die beiden Stellen fest, an denen die Spezifikation
-rechnerisch nicht aufging: der Gesamtscore reicht von 20 bis 100 statt von 0 bis 100,
-und die Ampelgrenzen des Aggressionsindex ließen zwei Wertebereiche undefiniert.
+Die Tests halten insbesondere die Stellen fest, an denen die Spezifikation rechnerisch nicht
+aufging: die Ampelgrenzen des Aggressionsindex ließen zwei Wertebereiche undefiniert, und der
+Faktor 20 hätte eine tote Zone zwischen 0 und 20 erzeugt — die Skala wird deshalb normalisiert
+statt multipliziert.
 
-## Offene Entscheidungen
+## Entschieden am 26.08.2026
 
-Vierzehn Punkte warten auf eine Freigabe des Auftraggebers und blockieren teilweise den
-Start — siehe Abschnitt 15 des Entwicklungsplans. Die dringendsten:
+Alle vierzehn zuvor offenen Punkte sind entschieden — das Protokoll steht in Abschnitt 15
+des Entwicklungsplans. Die wichtigsten:
 
-1. **Name und Domain** — „Schuldindex" bedeutet auf Deutsch „Index der Schulden"; korrekt wäre „Schulindex".
-2. **Profil ja oder nein** — ein Profil erfordert dauerhafte Kontaktspeicherung und widerspricht der Developer Specification.
-3. **Unter 16-Jährige** — Umfang der Datenspeicherung bei minderjährigen Bewertenden.
+- **SCHULINDEX auf schulindex.com**, Name korrigiert
+- **Konten für alle Altersgruppen**, Anmeldung per Magic Link — die Developer Specification muss an dieser Stelle geändert werden
+- **Telefonnummer als primärer Kontaktweg** (WhatsApp, dann SMS), E-Mail nur als Rückfall
+- **Score auf einer Skala von 0 bis 10**, Farbgrenzen an den Antwortstufen: ab 7,5 grün, ab 5,0 gelb
+- **Ab 10 Bewertungen** wird ein Schulprofil ausgewertet, ab 20 erscheint die Schule in Ranglisten
+- **Durchgehend du**, auch gegenüber Eltern und Lehrkräften
+- **Verlosung schon im MVP** — Launch damit bei 13 Sprints statt elf
+
+Drei Punkte stehen ausdrücklich zur Abnahme durch die Kanzlei: Elterneinwilligung per
+Checkbox, Haftung für die selbst verfassten KI-Zusammenfassungen, Verlosung für Minderjährige.
 
 ## Grundsatz zum KI-Einsatz
 

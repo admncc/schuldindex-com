@@ -2,8 +2,9 @@
  * Scoring-Engine.
  *
  * Quelle: Safety Scoring & Public Display Specification, umgesetzt mit den
- * Korrekturen E7 (Wertebereich 20–100) und E8 (lückenlose Ampelgrenzen) sowie
- * der Erweiterung E16 (Kategorie F) aus docs/dev-plan.md.
+ * Entscheidungen aus docs/dev-plan.md: E8 (lückenlose Ampelgrenzen), E16
+ * (Kategorie F) und den Festlegungen vom 26.08.2026: Anzeige auf einer Skala
+ * von 0 bis 10, Farbgrenzen an den Antwortstufen des Fragebogens.
  *
  * Leitsatz aus Entscheidung E18: Zahlen entstehen hier — deterministisch,
  * getestet und Zeile für Zeile herleitbar. Kein Modellaufruf berührt diese Datei.
@@ -25,12 +26,20 @@ export type Antworten = Readonly<Record<string, Antwort>>;
 
 export interface KategorieErgebnis {
   readonly kategorie: KategorieId;
-  /** Mittelwert auf der Skala 1–5, oder null wenn die Kategorie unbeantwortet blieb. */
+  /**
+   * Interner Mittelwert auf der Antwortskala 1–5, oder null wenn die Kategorie
+   * unbeantwortet blieb. Für die Anzeige `anzeige` verwenden, nicht diesen Wert.
+   */
   readonly score: number | null;
+  /** Derselbe Wert auf der Anzeigeskala 0–10. */
+  readonly anzeige: number | null;
   readonly gewichtung: number;
   /** Zahl der Fragen, die in den Mittelwert eingegangen sind. */
   readonly beantwortet: number;
 }
+
+/** Farbstufe des Gesamtscores. Nicht zu verwechseln mit der Aggressionsampel. */
+export type Scorestufe = "gut" | "mittel" | "schlecht";
 
 export type Ampelstufe = "gering" | "mittel" | "hoch";
 
@@ -41,8 +50,10 @@ export interface Aggressionsergebnis {
 }
 
 export interface Bewertungsergebnis {
-  /** Gesamtscore auf der Skala 20–100 (siehe E7). */
+  /** Gewichteter Gesamtscore auf der Anzeigeskala 0–10. */
   readonly gesamtscore: number;
+  /** Farbstufe des Gesamtscores für die öffentliche Anzeige. */
+  readonly stufe: Scorestufe;
   readonly kategorien: readonly KategorieErgebnis[];
   /** null, wenn beide Aggressionsfragen unbeantwortet blieben. */
   readonly aggression: Aggressionsergebnis | null;
@@ -112,6 +123,7 @@ function scoreKategorieA(antworten: Antworten): KategorieErgebnis {
   return {
     kategorie: "A",
     score,
+    anzeige: score === null ? null : aufZehnerskala(score),
     gewichtung: 3,
     beantwortet: klima.length + aggression.length,
   };
@@ -124,9 +136,11 @@ export function scoreKategorie(kategorie: KategorieId, antworten: Antworten): Ka
   if (!definition) throw new Error(`Unbekannte Kategorie: ${kategorie}`);
 
   const werte = punktwerteFuer(fragenDerKategorie(kategorie), antworten);
+  const score = mittelwert(werte);
   return {
     kategorie,
-    score: mittelwert(werte),
+    score,
+    anzeige: score === null ? null : aufZehnerskala(score),
     gewichtung: definition.gewichtung,
     beantwortet: werte.length,
   };
@@ -159,13 +173,47 @@ export function ampelstufe(index: number): Ampelstufe {
 }
 
 /**
+ * Rechnet einen Antwortmittelwert (1–5) auf die Anzeigeskala 0–10 um.
+ *
+ *   (Ø − 1) ÷ 4 × 10
+ *
+ * Bewusst normalisiert statt einfach multipliziert: `Ø × 2` ergäbe den Bereich
+ * 2–10 und damit dieselbe tote Zone am unteren Ende, die der Faktor 20 aus der
+ * Spec erzeugt hätte. So entspricht 0 der schlechtestmöglichen und 10 der
+ * bestmöglichen Bewertung.
+ *
+ * Die Antwortstufen liegen damit auf: Sehr schlecht 0 · Schlecht 2,5 ·
+ * Befriedigend 5 · Gut 7,5 · Sehr gut 10.
+ */
+export function aufZehnerskala(mittelwert: number): number {
+  return ((mittelwert - 1) / 4) * 10;
+}
+
+/**
+ * Farbstufe des Gesamtscores, verankert an den Antwortstufen statt an
+ * rechnerischen Dritteln (Entscheidung vom 26.08.2026):
+ *
+ *   ≥ 7,5  grün    — im Schnitt mindestens „Gut“
+ *   ≥ 5,0  gelb    — zwischen „Befriedigend“ und „Gut“
+ *   < 5,0  rot     — schlechter als „Befriedigend“
+ *
+ * Gleiche Drittel wären hier irreführend: Bewertungsverteilungen liegen im
+ * oberen Bereich, Rot käme praktisch nie vor und die Farbe sagte nichts aus.
+ * So ist jede Farbe einer Schule gegenüber begründbar.
+ */
+export function scorestufe(score: number): Scorestufe {
+  if (score >= 7.5) return "gut";
+  if (score >= 5.0) return "mittel";
+  return "schlecht";
+}
+
+/**
  * Gesamtscore.
  *
- *   (A×3 + B×2 + C×2 + D×2* + E×1* + F×1*) ÷ Σ(aktive Gewichte) × 20
+ *   (A×3 + B×2 + C×2 + D×2* + E×1* + F×1*) ÷ Σ(aktive Gewichte)
  *   * optionale Kategorien zählen nur, wenn beantwortet
  *
- * Der Wertebereich ist damit 20–100, nicht 0–100 (E7): der niedrigstmögliche
- * Kategoriemittelwert ist 1, und 1 × 20 = 20. Das ist im UI zu kommunizieren.
+ * Das Ergebnis wird auf die Anzeigeskala 0–10 umgerechnet.
  */
 export function bewerte(antworten: Antworten): Bewertungsergebnis {
   const kategorien = KATEGORIEN.map((k) => scoreKategorie(k.id, antworten));
@@ -183,8 +231,11 @@ export function bewerte(antworten: Antworten): Bewertungsergebnis {
     gewichtssumme += ergebnis.gewichtung;
   }
 
+  const gesamtscore = aufZehnerskala(summe / gewichtssumme);
+
   return {
-    gesamtscore: (summe / gewichtssumme) * 20,
+    gesamtscore,
+    stufe: scorestufe(gesamtscore),
     kategorien,
     aggression: aggressionsindex(antworten),
   };
@@ -202,10 +253,21 @@ const ZAHL_DE = new Intl.NumberFormat("de-DE", {
   maximumFractionDigits: 1,
 });
 
-/** Gesamtscore für die Anzeige: „87,4“. */
+/** Score für die Anzeige: „8,4“. */
 export function formatiereScore(score: number): string {
   return ZAHL_DE.format(score);
 }
+
+/** Vollständige Anzeigeform: „8,4 von 10“. */
+export function formatiereScoreMitSkala(score: number): string {
+  return `${ZAHL_DE.format(score)} von 10`;
+}
+
+export const SCORESTUFE_LABEL: Readonly<Record<Scorestufe, string>> = {
+  gut: "Gut bewertet",
+  mittel: "Durchschnittlich bewertet",
+  schlecht: "Unterdurchschnittlich bewertet",
+};
 
 export const AMPEL_LABEL: Readonly<Record<Ampelstufe, string>> = {
   gering: "Geringe Häufigkeit",

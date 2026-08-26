@@ -11,10 +11,13 @@ import {
   UnvollstaendigeBewertung,
   aggressionsindex,
   ampelstufe,
+  aufZehnerskala,
   bewerte,
   formatiereScore,
+  formatiereScoreMitSkala,
   punktwert,
   scoreKategorie,
+  scorestufe,
   unbekannteFragen,
   type Antworten,
 } from "./scoring.js";
@@ -67,35 +70,67 @@ describe("Punktwert", () => {
   });
 });
 
-// ---- Wertebereich (Entscheidung E7) ----
+// ---- Wertebereich ----
 
 describe("Wertebereich des Gesamtscores", () => {
-  it("erreicht bei durchweg bester Bewertung genau 100", () => {
-    expect(bewerte(besteBewertung()).gesamtscore).toBeCloseTo(100, 10);
+  it("erreicht bei durchweg bester Bewertung genau 10", () => {
+    expect(bewerte(besteBewertung()).gesamtscore).toBeCloseTo(10, 10);
   });
 
-  it("fällt bei durchweg schlechtester Bewertung auf 20, nicht auf 0", () => {
-    // Dokumentiert E7: der niedrigste Kategoriemittelwert ist 1, und 1 × 20 = 20.
-    // Der Wertebereich ist damit 20–100. Das muss im UI kommuniziert werden.
-    expect(bewerte(schlechtesteBewertung()).gesamtscore).toBeCloseTo(20, 10);
+  it("fällt bei durchweg schlechtester Bewertung auf 0, nicht auf 2", () => {
+    // Die Skala wird normalisiert, nicht multipliziert: Ø × 2 ergäbe 2–10 und
+    // damit dieselbe tote Zone am unteren Ende wie der Faktor 20 aus der Spec.
+    expect(bewerte(schlechtesteBewertung()).gesamtscore).toBeCloseTo(0, 10);
   });
 
-  it("bleibt für jede zulässige Antwortkombination innerhalb von 20 bis 100", () => {
+  it("bleibt für jede zulässige Antwortkombination innerhalb von 0 bis 10", () => {
     for (const wert of [1, 2, 3, 4, 5] as const) {
       const score = bewerte(roh({ A: wert, B: wert, C: wert, D: wert, E: wert, F: wert }))
         .gesamtscore;
-      expect(score).toBeGreaterThanOrEqual(20);
-      expect(score).toBeLessThanOrEqual(100);
+      expect(score).toBeGreaterThanOrEqual(0);
+      expect(score).toBeLessThanOrEqual(10);
     }
   });
 
-  it("ergibt bei durchweg Rohwert 5 nicht 100, weil die Aggressionsfragen invertiert werden", () => {
+  it("ergibt bei durchweg Rohwert 5 nicht 10, weil die Aggressionsfragen invertiert werden", () => {
     // Rohwert 5 heißt bei A2/A3 „Sehr häufig“ — das ist das Gegenteil von gut.
     // Score_A = 0,7 × 5 + 0,3 × 1 = 3,8
-    // Gesamt  = (3,8×3 + 5×2 + 5×2 + 5×2 + 5×1 + 5×1) ÷ 11 × 20 = 93,4545…
+    // Gesamt  = (3,8×3 + 5×2 + 5×2 + 5×2 + 5×1 + 5×1) ÷ 11 = 4,6727… → 9,1818
     const score = bewerte(roh({ A: 5, B: 5, C: 5, D: 5, E: 5, F: 5 })).gesamtscore;
-    expect(score).toBeCloseTo(93.4545, 3);
-    expect(score).not.toBeCloseTo(100, 1);
+    expect(score).toBeCloseTo(9.1818, 3);
+    expect(score).not.toBeCloseTo(10, 1);
+  });
+
+  it("bildet die Antwortstufen auf runde Werte ab", () => {
+    expect(aufZehnerskala(1)).toBeCloseTo(0, 10);   // Sehr schlecht
+    expect(aufZehnerskala(2)).toBeCloseTo(2.5, 10); // Schlecht
+    expect(aufZehnerskala(3)).toBeCloseTo(5, 10);   // Befriedigend
+    expect(aufZehnerskala(4)).toBeCloseTo(7.5, 10); // Gut
+    expect(aufZehnerskala(5)).toBeCloseTo(10, 10);  // Sehr gut
+  });
+});
+
+describe("Farbstufen des Scores", () => {
+  it("färbt ab „Gut“ grün und ab „Befriedigend“ gelb", () => {
+    expect(scorestufe(10)).toBe("gut");
+    expect(scorestufe(7.5)).toBe("gut");
+    expect(scorestufe(7.49)).toBe("mittel");
+    expect(scorestufe(5.0)).toBe("mittel");
+    expect(scorestufe(4.99)).toBe("schlecht");
+    expect(scorestufe(0)).toBe("schlecht");
+  });
+
+  it("deckt jeden erreichbaren Score lückenlos ab", () => {
+    for (let i = 0; i <= 1000; i++) {
+      expect(["gut", "mittel", "schlecht"]).toContain(scorestufe(i / 100));
+    }
+  });
+
+  it("färbt eine durchweg mit „Befriedigend“ bewertete Schule gelb, nicht rot", () => {
+    // Grenzfall, der bei gleichen Dritteln (Grenze 3,33) rot geworden wäre.
+    const ergebnis = bewerte(roh({ A: 3, B: 3, C: 3 }));
+    expect(ergebnis.gesamtscore).toBeCloseTo(5, 1);
+    expect(ergebnis.stufe).toBe("mittel");
   });
 });
 
@@ -135,25 +170,25 @@ describe("Kategorie A", () => {
 describe("Optionale Kategorien", () => {
   it("zählt D, E und F nicht mit, solange sie unbeantwortet sind", () => {
     // A = 4 (Klima 4, Aggression roh 2 → invertiert 4), B = 3, C = 5
-    // (4×3 + 3×2 + 5×2) ÷ 7 × 20 = 28 ÷ 7 × 20 = 80
+    // (4×3 + 3×2 + 5×2) ÷ 7 = 28 ÷ 7 = 4,0 → auf der Zehnerskala 7,5
     const antworten: Record<string, Antwort> = { ...roh({ B: 3, C: 5 }) };
     for (const f of fragenDerKategorie("A")) {
       antworten[f.id] = f.teilbereich === "aggression" ? 2 : 4;
     }
     const ergebnis = bewerte(antworten);
-    expect(ergebnis.gesamtscore).toBeCloseTo(80, 10);
+    expect(ergebnis.gesamtscore).toBeCloseTo(7.5, 10);
     for (const id of ["D", "E", "F"] as const) {
       expect(ergebnis.kategorien.find((k) => k.kategorie === id)?.score).toBeNull();
     }
   });
 
   it("nimmt eine optionale Kategorie samt Gewicht auf, sobald sie beantwortet ist", () => {
-    // wie oben, zusätzlich D = 2:  (28 + 2×2) ÷ 9 × 20 = 32 ÷ 9 × 20 = 71,111…
+    // wie oben, zusätzlich D = 2:  (28 + 2×2) ÷ 9 = 32 ÷ 9 = 3,5556… → 6,3889
     const antworten: Record<string, Antwort> = { ...roh({ B: 3, C: 5, D: 2 }) };
     for (const f of fragenDerKategorie("A")) {
       antworten[f.id] = f.teilbereich === "aggression" ? 2 : 4;
     }
-    expect(bewerte(antworten).gesamtscore).toBeCloseTo(71.1111, 3);
+    expect(bewerte(antworten).gesamtscore).toBeCloseTo(6.3889, 3);
   });
 
   it("verlangt A, B und C — eine fehlende Pflichtkategorie ist ein Fehler", () => {
@@ -255,7 +290,11 @@ describe("Verlässlichkeit", () => {
 
 describe("Anzeige", () => {
   it("formatiert Scores mit deutschem Dezimalkomma", () => {
-    expect(formatiereScore(93.4545)).toBe("93,5");
-    expect(formatiereScore(80)).toBe("80,0");
+    expect(formatiereScore(9.1818)).toBe("9,2");
+    expect(formatiereScore(7.5)).toBe("7,5");
+  });
+
+  it("nennt die Skala mit, damit die Zahl allein nicht missverstanden wird", () => {
+    expect(formatiereScoreMitSkala(8.4)).toBe("8,4 von 10");
   });
 });

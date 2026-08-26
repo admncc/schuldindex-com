@@ -123,28 +123,26 @@ export interface Frage {
   readonly wertung: Wertung;
   /** Nur in Kategorie A gesetzt. */
   readonly teilbereich?: TeilbereichA;
-  /** Sie-Form (kanonisch). */
+  /**
+   * Fragetext in der Du-Form. Das Portal duzt durchgehend, auch gegenüber
+   * Eltern und Lehrkräften (Entscheidung vom 26.08.2026).
+   */
   readonly text: string;
-  /** Nur gesetzt, wenn die Frage eine direkte Anrede enthält. */
-  readonly textDu?: string;
 }
 
 export const FRAGEN: readonly Frage[] = [
   // ---- A — Sicherheit & Schulklima (11 Fragen) ----
   {
     id: "A1", kategorie: "A", skala: "sicherheit", wertung: "direkt", teilbereich: "klima",
-    text: "Wie sicher fühlen Sie sich generell auf dem Schulgelände (Klassenräume, Flure, Schulhof)?",
-    textDu: "Wie sicher fühlst du dich generell auf dem Schulgelände (Klassenräume, Flure, Schulhof)?",
+    text: "Wie sicher fühlst du dich generell auf dem Schulgelände (Klassenräume, Flure, Schulhof)?",
   },
   {
     id: "A2", kategorie: "A", skala: "haeufigkeit", wertung: "invertiert", teilbereich: "aggression",
-    text: "Wie häufig erleben Sie Mobbing, Drohungen oder aggressives Verhalten unter Schülerinnen und Schülern?",
-    textDu: "Wie häufig erlebst du Mobbing, Drohungen oder aggressives Verhalten unter Schülerinnen und Schülern?",
+    text: "Wie häufig erlebst du Mobbing, Drohungen oder aggressives Verhalten unter Schülerinnen und Schülern?",
   },
   {
     id: "A3", kategorie: "A", skala: "haeufigkeit", wertung: "invertiert", teilbereich: "aggression",
-    text: "Wie häufig erleben Sie Mobbing, Drohungen oder aggressives Verhalten gegenüber Lehrkräften?",
-    textDu: "Wie häufig erlebst du Mobbing, Drohungen oder aggressives Verhalten gegenüber Lehrkräften?",
+    text: "Wie häufig erlebst du Mobbing, Drohungen oder aggressives Verhalten gegenüber Lehrkräften?",
   },
   {
     id: "A4", kategorie: "A", skala: "qualitaet", wertung: "direkt", teilbereich: "klima",
@@ -160,8 +158,7 @@ export const FRAGEN: readonly Frage[] = [
   },
   {
     id: "A7", kategorie: "A", skala: "sicherheit", wertung: "direkt", teilbereich: "klima",
-    text: "Wie sicher fühlen Sie sich vor Belästigung oder Einschüchterung im schulischen Umfeld (auch online)?",
-    textDu: "Wie sicher fühlst du dich vor Belästigung oder Einschüchterung im schulischen Umfeld (auch online)?",
+    text: "Wie sicher fühlst du dich vor Belästigung oder Einschüchterung im schulischen Umfeld (auch online)?",
   },
   {
     id: "A8", kategorie: "A", skala: "qualitaet", wertung: "direkt", teilbereich: "klima",
@@ -177,8 +174,7 @@ export const FRAGEN: readonly Frage[] = [
   },
   {
     id: "A11", kategorie: "A", skala: "qualitaet", wertung: "direkt", teilbereich: "klima",
-    text: "Wie bewerten Sie insgesamt die Sicherheit und das soziale Klima der Schule?",
-    textDu: "Wie bewertest du insgesamt die Sicherheit und das soziale Klima der Schule?",
+    text: "Wie bewertest du insgesamt die Sicherheit und das soziale Klima der Schule?",
   },
 
   // ---- B — Unterrichts- & Lernqualität (10 Fragen) ----
@@ -201,13 +197,11 @@ export const FRAGEN: readonly Frage[] = [
   { id: "B9", kategorie: "B", skala: "qualitaet", wertung: "direkt",
     text: "Wie gut bereitet der Unterricht auf Prüfungen oder den nächsten Bildungsabschnitt vor?" },
   { id: "B10", kategorie: "B", skala: "qualitaet", wertung: "direkt",
-    text: "Wie bewerten Sie insgesamt die Unterrichts- und Lernqualität an dieser Schule?",
-    textDu: "Wie bewertest du insgesamt die Unterrichts- und Lernqualität an dieser Schule?" },
+    text: "Wie bewertest du insgesamt die Unterrichts- und Lernqualität an dieser Schule?" },
 
   // ---- C — Ausstattung & Lernmittel (10 Fragen) ----
   { id: "C1", kategorie: "C", skala: "qualitaet", wertung: "direkt",
-    text: "Wie bewerten Sie den Zustand der Klassenräume (Mobiliar, Beleuchtung, Belüftung)?",
-    textDu: "Wie bewertest du den Zustand der Klassenräume (Mobiliar, Beleuchtung, Belüftung)?" },
+    text: "Wie bewertest du den Zustand der Klassenräume (Mobiliar, Beleuchtung, Belüftung)?" },
   { id: "C2", kategorie: "C", skala: "qualitaet", wertung: "direkt",
     text: "Wie ausreichend und aktuell sind Schulbücher und Lernmaterialien?" },
   { id: "C3", kategorie: "C", skala: "qualitaet", wertung: "direkt",
@@ -225,8 +219,7 @@ export const FRAGEN: readonly Frage[] = [
   { id: "C9", kategorie: "C", skala: "qualitaet", wertung: "direkt",
     text: "Wie ausreichend stehen digitale Endgeräte (Computer, Tablets) zur Verfügung?" },
   { id: "C10", kategorie: "C", skala: "qualitaet", wertung: "direkt",
-    text: "Wie bewerten Sie insgesamt die Ausstattung und die Lernmittel der Schule?",
-    textDu: "Wie bewertest du insgesamt die Ausstattung und die Lernmittel der Schule?" },
+    text: "Wie bewertest du insgesamt die Ausstattung und die Lernmittel der Schule?" },
 
   // ---- D — Schulleitung, Kommunikation & Verwaltung (10 Fragen, optional) ----
   { id: "D1", kategorie: "D", skala: "qualitaet", wertung: "direkt",
@@ -240,8 +233,7 @@ export const FRAGEN: readonly Frage[] = [
   { id: "D5", kategorie: "D", skala: "qualitaet", wertung: "direkt",
     text: "Wie unterstützend ist die Schulleitung gegenüber Lehrkräften und Personal?" },
   { id: "D6", kategorie: "D", skala: "qualitaet", wertung: "direkt",
-    text: "Wie leicht erreichen Sie die zuständige Ansprechperson in der Verwaltung?",
-    textDu: "Wie leicht erreichst du die zuständige Ansprechperson in der Verwaltung?" },
+    text: "Wie leicht erreichst du die zuständige Ansprechperson in der Verwaltung?" },
   { id: "D7", kategorie: "D", skala: "qualitaet", wertung: "direkt",
     text: "Wie gut arbeitet die Schule mit Eltern und Erziehungsberechtigten zusammen?" },
   { id: "D8", kategorie: "D", skala: "qualitaet", wertung: "direkt",
@@ -249,8 +241,7 @@ export const FRAGEN: readonly Frage[] = [
   { id: "D9", kategorie: "D", skala: "qualitaet", wertung: "direkt",
     text: "Wie fair und einheitlich sind Verwaltungsabläufe, die Schülerinnen und Schüler betreffen?" },
   { id: "D10", kategorie: "D", skala: "qualitaet", wertung: "direkt",
-    text: "Wie bewerten Sie insgesamt die Schulleitung und die Verwaltung?",
-    textDu: "Wie bewertest du insgesamt die Schulleitung und die Verwaltung?" },
+    text: "Wie bewertest du insgesamt die Schulleitung und die Verwaltung?" },
 
   // ---- E — Umwelt & Nachhaltigkeit (10 Fragen, optional) ----
   { id: "E1", kategorie: "E", skala: "qualitaet", wertung: "direkt",
@@ -272,8 +263,7 @@ export const FRAGEN: readonly Frage[] = [
   { id: "E9", kategorie: "E", skala: "qualitaet", wertung: "direkt",
     text: "Wie gut fördert die Schule umweltbewusstes Verhalten bei Schülerinnen, Schülern und Personal?" },
   { id: "E10", kategorie: "E", skala: "qualitaet", wertung: "direkt",
-    text: "Wie bewerten Sie insgesamt das Engagement der Schule für Umwelt und Nachhaltigkeit?",
-    textDu: "Wie bewertest du insgesamt das Engagement der Schule für Umwelt und Nachhaltigkeit?" },
+    text: "Wie bewertest du insgesamt das Engagement der Schule für Umwelt und Nachhaltigkeit?" },
 
   // ---- F — Außerunterrichtliches Angebot & Schulleben (10 Fragen, optional) ----
   { id: "F1", kategorie: "F", skala: "qualitaet", wertung: "direkt",
@@ -295,8 +285,7 @@ export const FRAGEN: readonly Frage[] = [
   { id: "F9", kategorie: "F", skala: "qualitaet", wertung: "direkt",
     text: "Wie gut unterstützt die Schule Eigeninitiative (Schülervertretung, Schülerzeitung, eigene Projekte)?" },
   { id: "F10", kategorie: "F", skala: "qualitaet", wertung: "direkt",
-    text: "Wie bewerten Sie insgesamt das außerunterrichtliche Angebot und das Schulleben?",
-    textDu: "Wie bewertest du insgesamt das außerunterrichtliche Angebot und das Schulleben?" },
+    text: "Wie bewertest du insgesamt das außerunterrichtliche Angebot und das Schulleben?" },
 ] as const;
 
 // ---- Abgeleitete Nachschlagewerte ----
