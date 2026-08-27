@@ -442,3 +442,9 @@ mark.fehlt {
 .knopf.gefahr { background: var(--schlecht); border-color: var(--schlecht); color: #fff; }
 .knopf.gefahr:disabled { opacity: 0.5; cursor: not-allowed; }
 .zufallswert { font-size: 0.78rem; word-break: break-all; color: var(--schrift-3); }
+
+/* Die Kategoriebalken tragen die Farbe ihrer Wertung — sonst sind sechs blaue
+   Balken zu vergleichen, ohne dass die Farbe etwas sagt. */
+.balken span.gut { background: var(--gut); }
+.balken span.mittel { background: var(--mittel); }
+.balken span.schlecht { background: var(--schlecht); }

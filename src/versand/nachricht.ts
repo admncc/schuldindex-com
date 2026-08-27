@@ -11,6 +11,7 @@
 
 import type { Kontaktart } from "../domain/kontakt";
 import { ANMELDELINK_STUNDEN } from "../domain/kontozugang";
+import { ZUGANGSLINK_STUNDEN } from "../domain/schulzugang";
 
 export interface Nachricht {
   readonly empfaenger: string;
@@ -87,6 +88,31 @@ export function baueAnmeldelink(basisUrl: string, token: string, art: Kontaktart
     text:
       `SCHULINDEX: dein Anmeldelink: ${link} (${ANMELDELINK_STUNDEN} Std. gültig). ` +
       `Nicht angefordert? Dann ignorieren und niemandem weitergeben.`,
+  };
+}
+
+/**
+ * Zugangslink für die Rolle „Schulsupport“.
+ *
+ * Geht immer per E-Mail: die Adresse stammt aus dem Schulverzeichnis oder liegt
+ * an der Domäne der Schule. Der Text nennt die Schule ausdrücklich — wer ihn
+ * versehentlich bekommt, soll sofort sehen, worum es geht.
+ */
+export function baueSchulzugang(basisUrl: string, token: string, schulname: string): Nachricht {
+  const link = `${basisUrl}/schulsupport/eintreten?token=${token}`;
+  return {
+    empfaenger: "",
+    betreff: `Zugang zu den Bewertungen von ${schulname}`,
+    text:
+      `Guten Tag,\n\n` +
+      `jemand hat für ${schulname} den Zugang zu den Auswertungen bei SCHULINDEX angefordert.\n\n` +
+      `Zugang einrichten:\n${link}\n\n` +
+      `Der Link ist ${ZUGANGSLINK_STUNDEN} Stunden gültig und lässt sich einmal benutzen. Über ` +
+      `den Zugang sind die Gesamtwertung, die Kategoriewerte und die Zusammenfassung einsehbar — ` +
+      `einzelne Bewertungen nicht.\n\n` +
+      `Wurde der Zugang nicht von Ihrer Schule angefordert, ignorieren Sie diese Nachricht. ` +
+      `Ohne den Link geschieht nichts.\n\n` +
+      `— SCHULINDEX`,
   };
 }
 

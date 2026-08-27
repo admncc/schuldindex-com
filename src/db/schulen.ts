@@ -26,6 +26,17 @@ export interface Schulprofil {
   anzahl: number;
   anzahl_mit_freitext: number;
   letzte_bewertung_am: Date | null;
+  /** Kategoriewerte auf der Antwortskala 1–5, für die Auswertung der Schule. */
+  score_a: string | null;
+  score_b: string | null;
+  score_c: string | null;
+  score_d: string | null;
+  score_e: string | null;
+  score_f: string | null;
+  /** Vergleichsstand für den Sechs-Monats-Trend. */
+  gesamtscore_vor_6m: string | null;
+  anzahl_vor_6m: number;
+  anzahl_je_rolle: Record<string, number>;
 }
 
 export async function holeSchule(slug: string): Promise<Schulprofil | null> {
@@ -36,7 +47,10 @@ export async function holeSchule(slug: string): Promise<Schulprofil | null> {
            a.gesamtscore, a.aggressionsindex,
            coalesce(a.anzahl, 0) as anzahl,
            coalesce(a.anzahl_mit_freitext, 0) as anzahl_mit_freitext,
-           a.letzte_bewertung_am
+           a.letzte_bewertung_am,
+           a.score_a, a.score_b, a.score_c, a.score_d, a.score_e, a.score_f,
+           a.gesamtscore_vor_6m, coalesce(a.anzahl_vor_6m, 0) as anzahl_vor_6m,
+           coalesce(a.anzahl_je_rolle, '{}'::jsonb) as anzahl_je_rolle
     from schulen s
     left join schul_aggregate a on a.schule_id = s.id
     where s.slug = ${slug} and s.ist_aktiv

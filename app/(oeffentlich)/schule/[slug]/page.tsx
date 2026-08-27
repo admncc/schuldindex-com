@@ -64,8 +64,12 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
           ))}
         </div>
 
-        <div>
+        <div className="schrittleiste">
           <a className="knopf" href={`/bewerten/${schule.slug}`}>{t("schule.bewertenKnopf")}</a>
+          {/* Schulen finden den Weg zu ihren eigenen Zahlen sonst nicht. */}
+          <a className="knopf zweitrangig" href={`/schulsupport/anfordern?schule=${schule.slug}`}>
+            Ich spreche für diese Schule
+          </a>
         </div>
       </section>
 

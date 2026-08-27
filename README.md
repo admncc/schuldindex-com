@@ -61,6 +61,8 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/db/konto.ts` | Eigene Bewertungen, Sitzungen, Löschung samt Neuberechnung |
 | `src/domain/verlosung.ts` | Lose, Ziehung und ihre Nachrechenbarkeit |
 | `src/db/verlosung.ts` | Teilnahmen, Ziehung, Nachweis |
+| `src/domain/schulzugang.ts` | Nachweis für die Rolle „Schulsupport“ — und warum die Domäne allein nichts belegt |
+| `src/db/schulzugang.ts` | Anfrage, Einlösung, Sitzung, Handprüfung |
 | `src/dienste/umgebung.ts` | Anbindung des Abgabedienstes an Postgres — das einzige SQL außerhalb der Abfrageschicht |
 | `messages/de.json` | Alle Oberflächentexte |
 | `db/migrations/` | Datenbankschema |
@@ -76,7 +78,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 
 ```bash
 npm install
-npm test        # 481 Tests (24 davon gegen die eingespielten Echtdaten)
+npm test        # 499 Tests (24 davon gegen die eingespielten Echtdaten)
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000

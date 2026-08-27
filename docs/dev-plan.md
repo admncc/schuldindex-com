@@ -768,6 +768,50 @@ Produktfrage, keine technische: was verlost wird, steht nirgends fest.
 
 ---
 
+### 10.6 Rolle „Schulsupport“ — umgesetzt
+
+Schulen sehen unter `/schulsupport` ihre eigenen Werte: Gesamtwertung, Kategorien, Verlauf,
+Rollenverteilung, Zusammenfassung. **Keine Einzelbewertungen** — auch nicht auf Nachfrage, und
+das steht auch so auf der Seite. An einer kleinen Schule genügt „Bewertung einer Achtklässlerin
+von gestern“, um den Kreis auf wenige Personen einzugrenzen.
+
+**Der Nachweis war die eigentliche Arbeit.** Der naheliegende Weg — „eine Adresse an der Domäne
+der Schule genügt“ — scheitert am echten Datenbestand. Ausgezählt:
+
+| Host | Schulen |
+| --- | --- |
+| `schule.nrw.de` | 5.447 |
+| `schulen.brandenburg.de` | 966 |
+| `schule.landsh.de` | 863 |
+| `t-online.de` | 805 |
+| `gmx.de` | 148 |
+
+Wer bei „gleiche Domäne genügt“ landet, gibt jedem T-Online-Kunden Zugriff auf 805 Schulen und
+jedem mit einer `schule.nrw.de`-Adresse auf fünftausend. Deshalb drei Wege, in dieser Reihenfolge:
+
+1. **Die hinterlegte Adresse.** Der Link geht an die Adresse aus dem Schulverzeichnis — die
+   anfragende Person wählt sie nicht aus, sie muss nur Zugriff darauf haben. Geteilte Landesdomänen
+   spielen hier keine Rolle, weil wir hinschicken, statt uns die Adresse nennen zu lassen. Auch
+   eine im Formular angegebene Adresse verdrängt sie nicht.
+2. **Eine Adresse an einem Host, der genau einer Schule gehört.** Die Zahl dazu kommt aus der
+   Sicht `schulhosts`, die nach jedem Import wieder stimmt.
+3. **Prüfung durch Menschen** für alles andere: die Anfrage geht in eine Warteschlange, es
+   entsteht kein Link, und die Redaktion ruft unter der Nummer aus dem Schulverzeichnis an —
+   nicht unter der aus der Anfrage.
+
+Gemessen am Bestand vom 27.08.2026: **22.643 Schulen** (71,3 %) über Weg 1, **2.108** (6,6 %)
+über Weg 2, **7.019** (22,1 %) über Weg 3. Gut drei Viertel gehen also ohne Handarbeit.
+
+Im Durchlauf geprüft: alle drei Wege, die Nichtverdrängung der hinterlegten Adresse durch eine
+selbst angegebene, die Einmaligkeit des Links und die Freigabe einer Handprüfung aus der
+Moderation heraus.
+
+**Noch offen:** Der Zugang läuft nach 180 Tagen ab und muss dann neu belegt werden — die
+Erinnerung davor braucht wieder den Versandweg. Und ob Schulen auf Bewertungen öffentlich
+antworten dürfen, ist eine Produktfrage, die noch niemand entschieden hat.
+
+---
+
 ## 11. Arbeitspakete
 
 Sprintlänge 2 Wochen. „AP“ = Arbeitspaket.
