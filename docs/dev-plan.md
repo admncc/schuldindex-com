@@ -847,8 +847,38 @@ brachten.
 dass über jede Ablehnung ein Mensch entschied, Art. 20 DSA) und die Ziehungen der Verlosung
 (ohne sie ließe sich keine Ziehung mehr nachrechnen). Das steht so auch auf der Seite.
 
-**Noch offen:** der Lauf gehört in einen Zeitplan. Vor der ersten Ausführung in der Produktion
-gehört ein `--trocken`-Lauf davor — was gelöscht ist, ist weg.
+**Nachtrag vom 27.08.2026 — keine automatische Löschung.** Vorgabe des Auftraggebers. Der Lauf
+gehört damit *nicht* in einen Zeitplan: Ohne `--loeschen` zählt er nur, und der übliche Weg ist
+`/moderation/aufbewahrung`, wo jede Frist einzeln ausgelöst wird — mit der Zahl der betroffenen
+Datensätze in der Rückfrage und einem Eintrag im Moderationsprotokoll danach.
+
+Ganz ohne Löschmöglichkeit ginge es nicht: Art. 5 Abs. 1 lit. e DSGVO verlangt, dass Daten nicht
+länger liegen als nötig, und unsere eigene Datenschutzerklärung nennt Fristen. Was sich ändert,
+ist allein, **wer auslöst** — ein Mensch statt eines Zeitplans. Die Datenschutzerklärung sagt das
+jetzt auch so; sie darf keinen Automatismus versprechen, den es nicht gibt.
+
+---
+
+### 10.8 Sammelaktionen in der Moderation — umgesetzt
+
+Eine Spam-Welle hat eine typische Form: ein Konto, viele Schulen, wenige Minuten. Sie einzeln
+abzulehnen ist Fleißarbeit, die niemand macht — also bleibt sie liegen.
+
+In der Warteschlange lassen sich jetzt mehrere Bewertungen auswählen und mit einer Begründung
+ablehnen. Drei Festlegungen:
+
+1. **Nur Ablehnungen, keine Sammelfreigabe.** Wer hundert Bewertungen auf einmal freigibt, hat
+   keine davon angesehen — und die Freigabe ist die Entscheidung, die niemandem auffällt, wenn
+   sie falsch war.
+2. **Höchstens 100 auf einmal.** Nicht aus technischen Gründen. Es ist die einzige Stelle im
+   Portal, an der ein Klick hunderte Menschen trifft; wer mehr will, tut es zweimal und sieht
+   dazwischen, was er getan hat. Die Leiste nennt vorher, an wie viele Personen die Begründung
+   geht.
+3. **Jede Bewertung bekommt ihre eigene Protokollzeile.** Eine Sammelzeile wäre kürzer und
+   wertlos: die Begründung geht an je eine Person, und bei einer Beschwerde zählt der einzelne
+   Vorgang. Was inzwischen von jemand anderem entschieden wurde, wird übersprungen und in der
+   Rückmeldung genannt — sonst liefe die Sammelaktion unbemerkt an einer anderen Entscheidung
+   vorbei.
 
 ---
 

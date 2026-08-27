@@ -8,11 +8,12 @@ import { melde } from "@/dienste/moderationsanmeldung";
 import {
   beendeSitzung,
   entscheide,
+  entscheideMehrere,
   holeVorgang,
   kontaktEinsehen,
   zugang,
 } from "@/db/moderation";
-import { pruefeEntscheidung, type Aktion, AKTIONEN } from "@/domain/moderation";
+import { pruefeEntscheidung, pruefeSammelaktion, type Aktion, AKTIONEN } from "@/domain/moderation";
 import type { Zustand } from "@/domain/bewertungsstatus";
 import { holeAngemeldete, verlangeAnmeldung } from "./sitzung";
 
@@ -140,4 +141,55 @@ export async function kontaktZeigen(bewertungId: string): Promise<string | null>
   if (moderatorin === null) return null;
   const ergebnis = await kontaktEinsehen(bewertungId, moderatorin.id);
   return ergebnis?.klartext ?? null;
+}
+
+export interface Sammelzustand {
+  readonly meldung?: string;
+  readonly erfolg?: string;
+  readonly versuch?: number;
+}
+
+/**
+ * Lehnt die ausgewählten Bewertungen ab.
+ *
+ * Nur Ablehnungen — eine Sammelfreigabe gibt es nicht. Wer hundert Bewertungen
+ * auf einmal freigibt, hat keine davon angesehen, und die Freigabe ist die
+ * Entscheidung, die niemandem auffällt, wenn sie falsch war.
+ */
+export async function sammelAblehnen(
+  vorher: Sammelzustand,
+  formular: FormData,
+): Promise<Sammelzustand> {
+  const moderatorin = await verlangeAnmeldung();
+  const versuch = (vorher.versuch ?? 0) + 1;
+
+  const geprueft = pruefeSammelaktion({
+    ids: formular.getAll("auswahl").map(String),
+    grundId: String(formular.get("grund") ?? ""),
+    zusatz: (formular.get("zusatz") as string | null) ?? undefined,
+  });
+  if (!geprueft.ok) return { meldung: geprueft.meldung, versuch };
+
+  const ergebnis = await entscheideMehrere(
+    geprueft.ids,
+    moderatorin.id,
+    String(formular.get("grund")),
+    geprueft.begruendung,
+  );
+
+  revalidatePath("/moderation");
+
+  // Die übersprungenen ausdrücklich nennen: sonst bliebe unbemerkt, dass die
+  // Sammelaktion an einer anderen Entscheidung vorbeigelaufen ist.
+  const uebersprungen =
+    ergebnis.uebersprungen === 0
+      ? ""
+      : ` ${ergebnis.uebersprungen} war${ergebnis.uebersprungen === 1 ? "" : "en"} inzwischen entschieden und blieb${
+          ergebnis.uebersprungen === 1 ? "" : "en"
+        } unberührt.`;
+
+  return {
+    erfolg: `${ergebnis.abgelehnt} Bewertung${ergebnis.abgelehnt === 1 ? "" : "en"} abgelehnt.${uebersprungen}`,
+    versuch,
+  };
 }

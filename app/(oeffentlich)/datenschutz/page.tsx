@@ -185,11 +185,15 @@ export default function Datenschutzseite() {
         </tbody>
       </table>
       <p>
+        Die Löschung stößt eine Person aus unserer Redaktion an, kein Automatismus; sie wird
+        protokolliert. Willst du deine Daten früher entfernen, geht das jederzeit selbst unter{" "}
+        <a href="/konto">Deine Bewertungen</a> — dann wirkt es sofort und ohne Nachfrage.
+      </p>
+      <p>
         Veröffentlichte Bewertungen bleiben, solange sie veröffentlicht sind. Wird dein Konto
         nach {fristtext(REGELN[0]!.tage)} ohne Nutzung stillgelegt, löschen wir deinen Kontakt —
         deine Bewertungen bleiben anonym bestehen, und auch wir können sie dir danach nicht mehr
-        zuordnen. Willst du sie vorher entfernen, geht das jederzeit selbst unter{" "}
-        <a href="/konto">Deine Bewertungen</a>.
+        zuordnen.
       </p>
       <p>
         Das Protokoll der Moderation — wer wann was entschieden hat — bewahren wir länger auf:

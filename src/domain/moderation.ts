@@ -163,6 +163,55 @@ export function pruefeEntscheidung(zustand: Zustand, e: Entscheidung, jetzt = ne
   };
 }
 
+/**
+ * Wie viele Bewertungen eine Sammelaktion höchstens umfasst.
+ *
+ * Nicht aus technischen Gründen — die Datenbank schafft auch tausend. Die
+ * Grenze ist da, weil eine Sammelablehnung die einzige Stelle im ganzen Portal
+ * ist, an der ein einzelner Klick hunderte Menschen trifft. Wer mehr ablehnen
+ * will, muss es zweimal tun und sieht dazwischen, was er getan hat.
+ */
+export const MAX_SAMMELAKTION = 100;
+
+export interface Sammelaktion {
+  readonly ids: readonly string[];
+  readonly grundId: string;
+  readonly zusatz?: string | undefined;
+}
+
+export type Sammelpruefung =
+  | { readonly ok: true; readonly ids: readonly string[]; readonly begruendung: string }
+  | { readonly ok: false; readonly meldung: string };
+
+/**
+ * Prüft eine Sammelablehnung.
+ *
+ * Nur Ablehnungen: eine Sammelfreigabe gibt es nicht. Wer hundert Bewertungen
+ * auf einmal freigibt, hat keine davon angesehen — und die Freigabe ist die
+ * Entscheidung, die niemand zurücknimmt, weil sie niemandem auffällt.
+ */
+export function pruefeSammelaktion(a: Sammelaktion): Sammelpruefung {
+  const ids = [...new Set(a.ids.filter((id) => id !== ""))];
+
+  if (ids.length === 0) return { ok: false, meldung: "Es ist nichts ausgewählt." };
+  if (ids.length > MAX_SAMMELAKTION) {
+    return {
+      ok: false,
+      meldung: `Höchstens ${MAX_SAMMELAKTION} auf einmal. Ausgewählt sind ${ids.length}.`,
+    };
+  }
+
+  const vorlage = ablehnungsgrund(a.grundId);
+  if (vorlage === null) return { ok: false, meldung: "Wähle einen Ablehnungsgrund aus." };
+
+  const zusatz = (a.zusatz ?? "").trim();
+  return {
+    ok: true,
+    ids,
+    begruendung: zusatz === "" ? vorlage.text : `${vorlage.text}\n\n${zusatz}`,
+  };
+}
+
 /** Zusage an die Nutzenden: innerhalb von 48 Stunden ist entschieden. */
 export const ZIEL_REAKTION_STUNDEN = 48;
 

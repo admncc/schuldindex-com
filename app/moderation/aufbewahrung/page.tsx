@@ -2,17 +2,15 @@ import type { Metadata } from "next";
 import { letzteLaeufe, raeumeAuf } from "@/db/aufraeumen";
 import { fristtext, laufbericht, REGELN, regel } from "@/domain/aufbewahrung";
 import { verlangeAnmeldung } from "../sitzung";
+import Regelzeile from "./regelzeile";
 
 export const metadata: Metadata = { title: "Aufbewahrung", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 const ZEIT = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium", timeStyle: "short" });
 
-/** Ab wann ein ausbleibender Lauf ein Betriebsvorfall ist. */
-const ALARM_STUNDEN = 48;
-
 export default async function Aufbewahrungsseite() {
-  await verlangeAnmeldung();
+  const moderatorin = await verlangeAnmeldung();
 
   // Ein trockener Lauf: er zeigt, was fällig wäre, und ändert nichts. Der
   // löschende Lauf gehört in den Zeitplan, nicht in eine Seite, die jemand
@@ -33,20 +31,24 @@ export default async function Aufbewahrungsseite() {
         Frist, die dort steht und hier nicht ausgeführt wird, gäbe es nicht.
       </p>
 
-      {stundenHer === null ? (
-        <div className="alarm" role="alert">
-          <strong>Es lief noch nie ein Aufräumlauf.</strong>
-          <p>
-            Solange keiner läuft, sind die Fristen in der Datenschutzerklärung eine Zusage ohne
-            Deckung. Einrichten: <code>npx tsx scripts/aufraeumen.ts</code> täglich.
+      {/* Kein Alarm mehr über ausbleibende Läufe: Es gibt keinen Zeitplan, der
+          laufen könnte. Stattdessen steht hier, was liegt — und wer es löschen
+          will, tut es unten einzeln. */}
+      <div className="karte">
+        <span className="beschriftung">Keine automatische Löschung</span>
+        <p>
+          Gelöscht wird nur, wenn eine Person es hier auslöst — Vorgabe des Auftraggebers vom
+          27.08.2026. Die Fristen der Datenschutzerklärung gelten weiter; was sich ändert, ist,
+          wer sie ausführt. Jede Ausführung steht danach im Moderationsprotokoll.
+        </p>
+        {stundenHer !== null ? (
+          <p className="fussnote">
+            Zuletzt gelöscht vor {Math.floor(stundenHer)} Stunden.
           </p>
-        </div>
-      ) : stundenHer > ALARM_STUNDEN ? (
-        <div className="alarm" role="alert">
-          <strong>Der letzte Lauf ist {Math.floor(stundenHer)} Stunden her.</strong>
-          <p>Vorgesehen ist täglich. Sieh nach, ob der Zeitplan noch greift.</p>
-        </div>
-      ) : null}
+        ) : (
+          <p className="fussnote">Bisher wurde nichts gelöscht.</p>
+        )}
+      </div>
 
       <h2>Was gerade fällig wäre</h2>
       <table className="tabelle">
@@ -55,6 +57,7 @@ export default async function Aufbewahrungsseite() {
             <th scope="col">Daten</th>
             <th scope="col">Frist</th>
             <th scope="col">Fällig</th>
+            <th scope="col">Aktion</th>
           </tr>
         </thead>
         <tbody>
@@ -67,14 +70,21 @@ export default async function Aufbewahrungsseite() {
                   {fristtext(r.tage)} ab {r.ab}
                 </td>
                 <td>{b.betroffen.toLocaleString("de-DE")}</td>
+                <td>
+                  <Regelzeile
+                    art={b.art}
+                    gegenstand={r.gegenstand}
+                    betroffen={b.betroffen}
+                    darfLoeschen={moderatorin.rolle === "leitung"}
+                  />
+                </td>
               </tr>
             );
           })}
         </tbody>
       </table>
       <p className="fussnote">
-        Diese Zahlen stammen aus einem trockenen Lauf — sie ändern nichts. Gelöscht wird nur vom
-        Zeitplan aus.
+        Diese Zahlen stammen aus einem Zähllauf — er ändert nichts.
       </p>
 
       <h2>Bisherige Läufe</h2>

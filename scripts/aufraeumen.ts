@@ -1,19 +1,22 @@
 /**
- * Setzt die Aufbewahrungsfristen um (Datenschutzerklärung, Abschnitt 6).
+ * Zeigt, was nach den Aufbewahrungsfristen fällig wäre.
  *
  * Aufruf:
- *   npx tsx scripts/aufraeumen.ts --trocken    # zählt nur
- *   npx tsx scripts/aufraeumen.ts              # löscht
+ *   npx tsx scripts/aufraeumen.ts              # zählt nur
+ *   npx tsx scripts/aufraeumen.ts --loeschen   # löscht wirklich
+ *   npx tsx scripts/aufraeumen.ts --verlauf    # bisherige Läufe
  *
- * Gedacht als täglicher Lauf. Der trockene Lauf gehört vor die erste
- * Ausführung in der Produktion: Was hier gelöscht wird, ist weg.
+ * **Keine automatische Löschung** (Vorgabe vom 27.08.2026): Dieses Skript
+ * gehört nicht in einen Zeitplan. Ohne `--loeschen` zählt es nur, und der
+ * übliche Weg ist ohnehin die Moderationsoberfläche, wo jede Frist einzeln
+ * ausgelöst und protokolliert wird.
  */
 
 import { sql } from "../src/db/verbindung";
 import { raeumeAuf, letzteLaeufe } from "../src/db/aufraeumen";
 import { fristtext, laufbericht, regel } from "../src/domain/aufbewahrung";
 
-const trocken = process.argv.includes("--trocken");
+const trocken = !process.argv.includes("--loeschen");
 
 try {
   if (process.argv.includes("--verlauf")) {
@@ -25,7 +28,11 @@ try {
   } else {
     const ergebnis = await raeumeAuf(trocken);
 
-    console.log(trocken ? "Trockenlauf — es wurde nichts gelöscht.\n" : "Aufräumlauf\n");
+    console.log(
+      trocken
+        ? "Nur gezählt — es wurde nichts gelöscht. Zum Löschen: --loeschen\n"
+        : "Es wurde gelöscht.\n",
+    );
     for (const b of ergebnis.bilanzen) {
       const r = regel(b.art);
       const zahl = b.betroffen.toLocaleString("de-DE").padStart(7);

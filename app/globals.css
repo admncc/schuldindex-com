@@ -448,3 +448,18 @@ mark.fehlt {
 .balken span.gut { background: var(--gut); }
 .balken span.mittel { background: var(--mittel); }
 .balken span.schlecht { background: var(--schlecht); }
+
+/* ---------- Sammelaktion ---------- */
+.tabelle tr.gewaehlt { background: var(--akzent-sanft); }
+.sammelleiste {
+  position: sticky; bottom: 0; display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center;
+  border: 1px solid var(--linie-stark); border-radius: var(--radius); background: var(--flaeche);
+  padding: 0.9rem 1rem; box-shadow: var(--schatten); margin-top: 0.8rem;
+}
+.sammelleiste select, .sammelleiste input[type="text"], .sammelleiste input:not([type]) {
+  padding: 0.5rem 0.7rem; font: inherit; font-size: 0.92rem;
+  border: 1px solid var(--linie-stark); border-radius: var(--radius);
+  background: var(--flaeche); color: var(--schrift);
+}
+.sammelleiste input:not([type]) { min-width: 18rem; flex: 1; }
+.sammelleiste .fussnote { flex-basis: 100%; margin: 0; }

@@ -374,3 +374,88 @@ export async function entscheide(auftrag: Entscheidungsauftrag): Promise<boolean
     return true;
   });
 }
+
+export interface Sammelergebnis {
+  /** Wie viele tatsächlich abgelehnt wurden. */
+  readonly abgelehnt: number;
+  /** Wie viele inzwischen von jemand anderem entschieden waren. */
+  readonly uebersprungen: number;
+}
+
+/**
+ * Lehnt mehrere Bewertungen auf einmal ab.
+ *
+ * Drei Festlegungen, die den Unterschied zu einer Schleife über `entscheide`
+ * ausmachen:
+ *
+ *  - **Jede Bewertung bekommt ihre eigene Protokollzeile.** Eine Sammelzeile
+ *    wäre kürzer und wertlos: die Begründung geht an je eine Person, und bei
+ *    einer Beschwerde zählt der einzelne Vorgang.
+ *  - **Wer inzwischen entschieden ist, wird übersprungen**, nicht überschrieben.
+ *    Die Zahl steht in der Rückmeldung — sonst bliebe unbemerkt, dass die
+ *    Sammelaktion an einer anderen Entscheidung vorbeigelaufen ist.
+ *  - **Je betroffener Schule wird das Aggregat einmal neu gerechnet**, nicht je
+ *    Bewertung. Bei hundert Bewertungen derselben Schule ist das der Unterschied
+ *    zwischen einer Neuberechnung und hundert.
+ */
+export async function entscheideMehrere(
+  ids: readonly string[],
+  moderatorId: string,
+  grundId: string,
+  begruendung: string,
+): Promise<Sammelergebnis> {
+  return sql.begin(async (tx: postgres.TransactionSql) => {
+    const zeilen = await tx<{ id: string; schule_id: string; status: Zustand }[]>`
+      select id, schule_id, status::text as status
+      from bewertungen
+      where id = any(${ids as string[]})
+        and status in ('in_pruefung_geo', 'in_pruefung_betrug', 'freigegeben')
+      for update
+    `;
+
+    for (const zeile of zeilen) {
+      await tx`
+        update bewertungen
+        set status = 'abgelehnt', ablehnungsgrund = ${begruendung}, ablehnungsgrund_id = ${grundId},
+            moderiert_von = ${moderatorId}, moderiert_am = now(), aktualisiert_am = now()
+        where id = ${zeile.id}
+      `;
+      await tx`
+        insert into moderationsprotokoll
+          (aktion, moderator_id, bewertung_id, schule_id, von_status, nach_status, grund_id, begruendung)
+        values ('ablehnen', ${moderatorId}, ${zeile.id}, ${zeile.schule_id},
+                ${zeile.status}::bewertungsstatus, 'abgelehnt', ${grundId}, ${begruendung})
+      `;
+    }
+
+    for (const schuleId of new Set(zeilen.map((z) => z.schule_id))) {
+      await aktualisiereAggregat(schuleId, tx);
+    }
+
+    return { abgelehnt: zeilen.length, uebersprungen: ids.length - zeilen.length };
+  });
+}
+
+export interface Verwandt {
+  id: string;
+  schule_name: string;
+  status: Zustand;
+}
+
+/**
+ * Die übrigen wartenden Bewertungen desselben Kontos.
+ *
+ * Das ist die Form, die eine Spam-Welle tatsächlich hat: ein Konto, viele
+ * Schulen, wenige Minuten. Die Auswahl von Hand zusammenzuklicken wäre die
+ * Arbeit, die diese Abfrage abnimmt.
+ */
+export async function wartendeDesKontos(bewertungId: string): Promise<Verwandt[]> {
+  return sql<Verwandt[]>`
+    select b.id, s.name as schule_name, b.status::text as status
+    from bewertungen b
+    join schulen s on s.id = b.schule_id
+    where b.konto_id = (select konto_id from bewertungen where id = ${bewertungId})
+      and b.status in ('in_pruefung_geo', 'in_pruefung_betrug')
+    order by b.erstellt_am asc
+  `;
+}

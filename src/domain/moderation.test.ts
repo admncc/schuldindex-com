@@ -5,7 +5,9 @@ import {
   ALARM_LAENGE,
   ablehnungsgrund,
   dringlichkeit,
+  MAX_SAMMELAKTION,
   pruefeEntscheidung,
+  pruefeSammelaktion,
   warteschlangenalarm,
   ZIEL_REAKTION_STUNDEN,
 } from "./moderation";
@@ -158,5 +160,51 @@ describe("warteschlangenalarm", () => {
 
   it("schweigt bei leerer Warteschlange", () => {
     expect(warteschlangenalarm({ laenge: 0, aeltesterEintragAm: null }, JETZT)).toEqual([]);
+  });
+});
+
+describe("pruefeSammelaktion", () => {
+  const ids = ["a", "b", "c"];
+
+  it("nimmt eine Auswahl mit Grund an", () => {
+    const e = pruefeSammelaktion({ ids, grundId: "spam" });
+    expect(e.ok).toBe(true);
+    expect(e.ok && e.ids).toEqual(ids);
+    expect(e.ok && e.begruendung).toBe(ablehnungsgrund("spam")!.text);
+  });
+
+  it("weist eine leere Auswahl ab", () => {
+    expect(pruefeSammelaktion({ ids: [], grundId: "spam" }).ok).toBe(false);
+    expect(pruefeSammelaktion({ ids: ["", ""], grundId: "spam" }).ok).toBe(false);
+  });
+
+  it("entfernt Doppelte", () => {
+    const e = pruefeSammelaktion({ ids: ["a", "a", "b"], grundId: "spam" });
+    expect(e.ok && e.ids).toEqual(["a", "b"]);
+  });
+
+  it("verlangt einen Grund", () => {
+    expect(pruefeSammelaktion({ ids, grundId: "" }).ok).toBe(false);
+    expect(pruefeSammelaktion({ ids, grundId: "erfunden" }).ok).toBe(false);
+  });
+
+  it("begrenzt die Zahl", () => {
+    // Die einzige Stelle im Portal, an der ein Klick hunderte Menschen trifft.
+    const viele = Array.from({ length: MAX_SAMMELAKTION + 1 }, (_, i) => `id-${i}`);
+    const e = pruefeSammelaktion({ ids: viele, grundId: "spam" });
+    expect(e.ok).toBe(false);
+    expect(e.ok === false && e.meldung).toContain(String(MAX_SAMMELAKTION));
+  });
+
+  it("lässt genau die Höchstzahl zu", () => {
+    const genau = Array.from({ length: MAX_SAMMELAKTION }, (_, i) => `id-${i}`);
+    expect(pruefeSammelaktion({ ids: genau, grundId: "spam" }).ok).toBe(true);
+  });
+
+  it("hängt einen Zusatz an die Vorlage an", () => {
+    const e = pruefeSammelaktion({ ids, grundId: "spam", zusatz: "Welle vom 27.08., gleiche Muster." });
+    expect(e.ok && e.begruendung).toBe(
+      `${ablehnungsgrund("spam")!.text}\n\nWelle vom 27.08., gleiche Muster.`,
+    );
   });
 });

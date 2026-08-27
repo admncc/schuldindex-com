@@ -10,7 +10,7 @@
 
 import type postgres from "postgres";
 import { sql } from "./verbindung";
-import { stichtag, type Aufbewahrungsart, type Aufraeumbilanz } from "../domain/aufbewahrung";
+import { regel, stichtag, type Aufbewahrungsart, type Aufraeumbilanz } from "../domain/aufbewahrung";
 
 type Ausfuehrer = postgres.Sql | postgres.TransactionSql;
 
@@ -154,13 +154,17 @@ export interface Laufergebnis {
 }
 
 /**
- * Räumt auf.
+ * Räumt auf — trocken, sofern nicht ausdrücklich anders verlangt.
+ *
+ * Die Vorgabe lautet: **keine automatische Löschung** (27.08.2026). Deshalb ist
+ * `trocken` die Voreinstellung und nicht der Ausnahmefall. Ein Aufruf, der
+ * vergisst, sich zu entscheiden, zählt — er löscht nicht.
  *
  * Nicht in einer einzigen Transaktion: die Regeln hängen nicht voneinander ab,
  * und ein Fehler in der letzten soll die ersten fünf nicht zurücknehmen. Was
  * gelöscht ist, bleibt gelöscht.
  */
-export async function raeumeAuf(trocken = false, jetzt = new Date()): Promise<Laufergebnis> {
+export async function raeumeAuf(trocken = true, jetzt = new Date()): Promise<Laufergebnis> {
   const begonnen = Date.now();
   const bilanzen: Aufraeumbilanz[] = [];
 
@@ -190,4 +194,32 @@ export async function letzteLaeufe(grenze = 10): Promise<Aufraeumlauf[]> {
     select id, bilanz, trocken, gelaufen_am, dauer_ms
     from aufraeumlaeufe order by gelaufen_am desc limit ${grenze}
   `;
+}
+
+/**
+ * Führt **eine** Regel aus, auf ausdrückliche Entscheidung einer Person.
+ *
+ * Der Weg, den es statt des Zeitplans gibt: in der Moderation steht, was fällig
+ * wäre; wer löschen will, klickt es einzeln an. Der Eintrag im
+ * Moderationsprotokoll hält fest, wer wann welche Frist ausgeführt hat — bei
+ * einer Löschung ist das die einzige Spur, die danach noch existiert.
+ */
+export async function fuehreRegelAus(
+  art: Aufbewahrungsart,
+  moderatorId: string,
+  jetzt = new Date(),
+): Promise<number> {
+  const betroffen = await LAEUFE[art](sql, jetzt, false);
+
+  await sql`
+    insert into moderationsprotokoll (aktion, moderator_id, begruendung)
+    values ('aufbewahrung_ausgefuehrt', ${moderatorId},
+            ${`${regel(art).gegenstand}: ${betroffen} Datensätze gelöscht`})
+  `;
+  await sql`
+    insert into aufraeumlaeufe (bilanz, trocken, dauer_ms)
+    values (${sql.json([{ art, betroffen }] as never)}, false, null)
+  `;
+
+  return betroffen;
 }
