@@ -86,6 +86,22 @@ export function entschluessele(daten: Buffer): string {
 }
 
 /**
+ * Entschlüsselt, wenn es geht — sonst `null`.
+ *
+ * Gebraucht überall dort, wo ein einzelner unlesbarer Datensatz nicht die ganze
+ * Seite mitreißen darf. Unlesbar wird ein Kontakt vor allem nach einem Wechsel
+ * des Chiffrierschlüssels; dann sollen sich Konto und Moderation weiter
+ * bedienen lassen, nur eben ohne diesen einen Wert.
+ */
+export function entschluesseleWennMoeglich(daten: Buffer): string | null {
+  try {
+    return entschluessele(daten);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Verschleiert einen Kontakt für die Anzeige: `a***a@beispiel.de`,
  * `+49 170 ****567`.
  *

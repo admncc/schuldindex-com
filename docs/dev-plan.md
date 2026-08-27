@@ -726,6 +726,48 @@ Bestätigungsnachricht — und der braucht Zugangsdaten.
 
 ---
 
+### 10.5 Verlosung — umgesetzt
+
+Die Verlosung aus Entscheidung E9 lief bisher ins Leere: Das Ankreuzfeld stand im Formular,
+die Eingabeprüfung ließ es nur für Schülerrollen zu — und dann wurde der Wert weggeworfen,
+weil es die Spalte nicht gab. Ein Versprechen ohne Empfänger.
+
+Jetzt: Spalte, Ziehung, öffentliche Bedingungen, Ansicht in der Moderation.
+
+**Ein Los je Konto und Monat, nicht je Bewertung.** Das ist die Entscheidung, an der alles
+hängt. Ein Los je Bewertung würde genau das belohnen, wogegen der gesamte Rest des Portals
+arbeitet — möglichst viele Abgaben in kurzer Zeit. Die Betrugserkennung müsste dann gegen einen
+Anreiz anlaufen, den wir selbst gesetzt haben.
+
+**Die Ziehung ist nachrechenbar.** Gespeichert werden der Zufallswert und die Losliste; daraus
+ergibt sich derselbe Gewinner. `scripts/verlosung-ziehen.ts --pruefen` rechnet eine gespeicherte
+Ziehung nach und schlägt an, wenn der eingetragene Gewinner nicht zur Liste passt (im Test
+geprüft: nach einem Eingriff in die Datenbank meldet der Lauf den Widerspruch). Bei einer
+Verlosung mit minderjährigen Teilnehmenden ist „vertraut uns“ keine ausreichende Auskunft.
+
+Weiteres, das die Umsetzung festlegt:
+
+- **Gezogen wird nur für abgeschlossene Monate**, sonst kämen während der Ziehung Lose hinzu.
+- **Nur veröffentlichte Bewertungen** und nur bestätigte Konten nehmen teil.
+- **Zwei Ziehungen je Monat sind ausgeschlossen** — durch eine Sperre in der Transaktion und
+  eine eindeutige Bedingung in der Tabelle.
+- **Auch ein Monat ohne Teilnahmen wird vermerkt.** Sonst ließe sich später nicht unterscheiden
+  zwischen „niemand hat mitgemacht“ und „es hat niemand gezogen“.
+- **Die öffentliche Liste nennt nichts zur gewinnenden Person** — keinen Namen, keine verkürzte
+  Nummer, nicht einmal die Schule.
+
+Beim Bauen fiel eine allgemeine Schwäche auf: `entschluessele` warf bei unbrauchbaren Daten,
+und ein einziger nicht lesbarer Kontakt hätte die ganze Seite mitgerissen. Nach einem Wechsel
+des Chiffrierschlüssels wäre das der Normalfall gewesen. Alle Aufrufstellen benutzen jetzt
+`entschluesseleWennMoeglich`; die Kontoseite zeigt dann „nicht lesbar“, statt niemanden mehr
+hineinzulassen.
+
+**Noch offen:** die Benachrichtigung der gewinnenden Person geht von Hand hinaus und wird in der
+Moderation vermerkt — der Versandweg fehlt weiterhin. Und der Gewinn selbst ist eine
+Produktfrage, keine technische: was verlost wird, steht nirgends fest.
+
+---
+
 ## 11. Arbeitspakete
 
 Sprintlänge 2 Wochen. „AP“ = Arbeitspaket.

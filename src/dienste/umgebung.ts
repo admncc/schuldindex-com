@@ -97,13 +97,14 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
           insert into bewertungen (
             schule_id, konto_id, rolle, klassenstufe, abgangsjahr, status,
             datenschutz_einwilligung_am, eltern_einwilligung_am, einwilligung_fassung,
-            geo_entfernung_km, geo_unbekannt
+            geo_entfernung_km, geo_unbekannt, verlosung_teilnahme
           ) values (
             ${daten.schuleId}, ${daten.kontoId}, ${daten.eingabe.rolle!}::rolle,
             ${daten.eingabe.klassenstufe}, ${daten.eingabe.abgangsjahr},
             ${daten.status}::bewertungsstatus,
             now(), ${daten.eingabe.elternEinwilligung ? sql`now()` : null}, 'v1',
-            ${daten.geoEntfernungKm}, ${daten.geoUnbekannt}
+            ${daten.geoEntfernungKm}, ${daten.geoUnbekannt},
+            ${daten.eingabe.verlosungTeilnahme}
           ) returning id
         `;
 

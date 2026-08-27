@@ -12,7 +12,7 @@ import type { Bundesland } from "../domain/bundesland";
 import type { Zustand } from "../domain/bewertungsstatus";
 import type { Antwort } from "../domain/fragebogen";
 import type { Moderatorkonto, Zugang } from "../dienste/moderationsanmeldung";
-import { entschluessele, verschleiere, type Kontaktart } from "../domain/kontakt";
+import { entschluesseleWennMoeglich, verschleiere, type Kontaktart } from "../domain/kontakt";
 import { hasheSitzung } from "../domain/anmeldung";
 import type { Aktion } from "../domain/moderation";
 import { aktualisiereAggregat } from "./aggregate";
@@ -302,7 +302,8 @@ export async function kontaktEinsehen(
   `;
   if (!zeile) return null;
 
-  const klartext = entschluessele(Buffer.from(zeile.kontakt_chiffre));
+  const klartext = entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
+  if (klartext === null) return null;
   await sql`
     insert into moderationsprotokoll (aktion, moderator_id, bewertung_id, schule_id, begruendung)
     values ('einsicht_kontakt', ${moderatorId}, ${bewertungId}, ${zeile.schule_id},

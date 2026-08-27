@@ -347,7 +347,11 @@ export function Bewertungsformular({
               {rolle !== null && istSchueler(rolle) && (
                 <label className="ankreuzfeld">
                   <input type="checkbox" checked={verlosung} onChange={(e) => setVerlosung(e.target.checked)} />
-                  <span>Ich möchte an der monatlichen Verlosung teilnehmen.</span>
+                  <span>
+                    Ich möchte an der monatlichen Verlosung teilnehmen und habe die{" "}
+                    <a href="/verlosung" target="_blank" rel="noopener">Teilnahmebedingungen</a>{" "}
+                    gelesen. Ein Los je Konto und Monat.
+                  </span>
                 </label>
               )}
             </fieldset>

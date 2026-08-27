@@ -4,7 +4,7 @@
 
 import { sql } from "./verbindung";
 import { deuteAdresse, type Meldegrund } from "../domain/meldung";
-import { kontaktHash, verschluessele, entschluessele } from "../domain/kontakt";
+import { kontaktHash, verschluessele, entschluesseleWennMoeglich } from "../domain/kontakt";
 import type { Meldestatus } from "../domain/meldungsstatus";
 
 export interface NeueMeldung {
@@ -117,5 +117,5 @@ export async function melderadresse(id: string): Promise<string | null> {
     select melder_chiffre from meldungen where id = ${id}
   `;
   if (!zeile?.melder_chiffre) return null;
-  return entschluessele(Buffer.from(zeile.melder_chiffre));
+  return entschluesseleWennMoeglich(Buffer.from(zeile.melder_chiffre));
 }

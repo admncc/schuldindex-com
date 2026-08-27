@@ -12,7 +12,7 @@ import { sql } from "./verbindung";
 import { aktualisiereAggregat } from "./aggregate";
 import { hasheKontotoken, type Zugangstoken } from "../domain/kontozugang";
 import type { Kontaktart } from "../domain/kontakt";
-import { entschluessele, verschleiere } from "../domain/kontakt";
+import { entschluesseleWennMoeglich, verschleiere } from "../domain/kontakt";
 import type { Zustand } from "../domain/bewertungsstatus";
 import type { Rolle } from "../domain/bewertungseingabe";
 import type { Antwort, KategorieId } from "../domain/fragebogen";
@@ -51,7 +51,11 @@ export function kontoumgebung(basisUrl: string): Kontoumgebung {
       `;
       if (!zeile) return false;
 
-      const empfaenger = entschluessele(Buffer.from(zeile.kontakt_chiffre));
+      // Lässt sich der Kontakt nicht lesen, gibt es nichts zu senden. Der
+      // Aufrufer meldet trotzdem den immer gleichen Text nach außen.
+      const empfaenger = entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
+      if (empfaenger === null) return false;
+
       const nachricht = baueAnmeldelink(basisUrl, klartext, zeile.kontaktart);
       const ergebnis = await sende(versandkette(), empfaenger, zeile.kontaktart, nachricht);
       return ergebnis.ok;
@@ -111,8 +115,16 @@ export async function holeKontositzung(klartext: string): Promise<AngemeldetesKo
 
   // Nur die verkürzte Fassung wandert weiter. Der Klartext wird für die Anzeige
   // nicht gebraucht, und was nicht gebraucht wird, soll nicht herumliegen.
-  const klar = entschluessele(Buffer.from(zeile.kontakt_chiffre));
-  return { id: zeile.id, kontaktart: zeile.kontaktart, verschleiert: verschleiere(klar, zeile.kontaktart) };
+  //
+  // Ein unlesbarer Kontakt sperrt niemanden aus: die Sitzung gilt, angezeigt
+  // wird dann eben nichts. Anders herum stünde jemand nach einem
+  // Schlüsselwechsel vor seinen eigenen Bewertungen und käme nicht heran.
+  const klar = entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
+  return {
+    id: zeile.id,
+    kontaktart: zeile.kontaktart,
+    verschleiert: klar === null ? "nicht lesbar" : verschleiere(klar, zeile.kontaktart),
+  };
 }
 
 export async function beendeKontositzung(klartext: string): Promise<void> {

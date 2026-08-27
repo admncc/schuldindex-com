@@ -441,3 +441,4 @@ mark.fehlt {
 }
 .knopf.gefahr { background: var(--schlecht); border-color: var(--schlecht); color: #fff; }
 .knopf.gefahr:disabled { opacity: 0.5; cursor: not-allowed; }
+.zufallswert { font-size: 0.78rem; word-break: break-all; color: var(--schrift-3); }

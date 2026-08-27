@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { randomBytes } from "node:crypto";
 import {
   entschluessele,
+  entschluesseleWennMoeglich,
   hashGleich,
   kontaktHash,
   normalisiereKontakt,
@@ -130,5 +131,30 @@ describe("Hashvergleich", () => {
 
   it("kommt mit verschieden langen Eingaben zurecht", () => {
     expect(hashGleich("kurz", "deutlich laenger")).toBe(false);
+  });
+});
+
+describe("entschluesseleWennMoeglich", () => {
+  it("liest, was sich lesen lässt", () => {
+    expect(entschluesseleWennMoeglich(verschluessele("+491701234567"))).toBe("+491701234567");
+  });
+
+  it("gibt bei unbrauchbaren Daten null zurück, statt zu werfen", () => {
+    // Der Fall aus dem Betrieb: nach einem Schlüsselwechsel sind alte Werte
+    // nicht mehr lesbar. Ein einzelner davon darf keine ganze Seite mitreißen.
+    for (const müll of [Buffer.alloc(0), Buffer.alloc(8), Buffer.alloc(40), verschluessele("x").subarray(1)]) {
+      expect(entschluesseleWennMoeglich(müll)).toBeNull();
+    }
+  });
+
+  it("gibt bei fremdem Schlüssel null zurück", () => {
+    const chiffre = verschluessele("+491701234567");
+    const alt = process.env["KONTAKT_CHIFFRE_SCHLUESSEL"];
+    process.env["KONTAKT_CHIFFRE_SCHLUESSEL"] = Buffer.alloc(32, 42).toString("base64");
+    try {
+      expect(entschluesseleWennMoeglich(chiffre)).toBeNull();
+    } finally {
+      process.env["KONTAKT_CHIFFRE_SCHLUESSEL"] = alt;
+    }
   });
 });

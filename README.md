@@ -59,6 +59,8 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/dienste/kontozugang.ts` | Anmeldelink anfordern — mit immer gleicher Antwort |
 | `src/dienste/bewertungAendern.ts` | Änderung einer eigenen Bewertung, als neue Fassung |
 | `src/db/konto.ts` | Eigene Bewertungen, Sitzungen, Löschung samt Neuberechnung |
+| `src/domain/verlosung.ts` | Lose, Ziehung und ihre Nachrechenbarkeit |
+| `src/db/verlosung.ts` | Teilnahmen, Ziehung, Nachweis |
 | `src/dienste/umgebung.ts` | Anbindung des Abgabedienstes an Postgres — das einzige SQL außerhalb der Abfrageschicht |
 | `messages/de.json` | Alle Oberflächentexte |
 | `db/migrations/` | Datenbankschema |
@@ -70,10 +72,11 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `scripts/durchstich.test.ts` | Durchstich: echte Schulen, Bewertungen, Aggregation |
 | `scripts/moderator-anlegen.ts` | Legt ein Moderationskonto an, gibt Kennwort und App-URL einmalig aus |
 | `scripts/zusammenfassen.ts` | Erzeugt die Freitext-Zusammenfassungen der fälligen Schulen |
+| `scripts/verlosung-ziehen.ts` | Zieht die monatliche Verlosung, `--pruefen` rechnet sie nach |
 
 ```bash
 npm install
-npm test        # 454 Tests (24 davon gegen die eingespielten Echtdaten)
+npm test        # 481 Tests (24 davon gegen die eingespielten Echtdaten)
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000
