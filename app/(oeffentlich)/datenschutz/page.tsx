@@ -3,7 +3,7 @@ import { betreiber } from "@/recht/betreiber";
 import { GUELTIG_STUNDEN } from "@/domain/verifizierung";
 import { SCHWELLE_KM } from "@/domain/geopruefung";
 import { MINDESTZAHL_FREITEXTE } from "@/ki/pruefung";
-import { fristtext, REGELN } from "@/domain/aufbewahrung";
+import { fristtext, regel, REGELN } from "@/domain/aufbewahrung";
 import { Angabe, Fehlt } from "../rechtsteile";
 
 export const metadata: Metadata = { title: "Datenschutz" };
@@ -94,6 +94,14 @@ export default function Datenschutzseite() {
             <td>Art. 6 Abs. 1 lit. f DSGVO</td>
           </tr>
           <tr>
+            <td>
+              Die <strong>Zeitabstände zwischen deinen Antwortklicks</strong>, in Millisekunden
+              und in der Reihenfolge deiner Klicks (Abschnitt 3.2)
+            </td>
+            <td>Erkennung automatisierter Abgaben, Kalibrierung dieser Erkennung</td>
+            <td>Art. 6 Abs. 1 lit. f DSGVO</td>
+          </tr>
+          <tr>
             <td>Zeitpunkt und Fassung deiner Einwilligungen</td>
             <td>Nachweispflicht</td>
             <td>Art. 7 Abs. 1 DSGVO</td>
@@ -105,13 +113,28 @@ export default function Datenschutzseite() {
       <p>
         Damit gekaufte und massenhaft erzeugte Bewertungen auffallen, messen wir beim Ausfüllen
         zwei Dinge: wie lange das Formular offenstand und wie viel Zeit zwischen zwei Antworten
-        verging — letzteres auf die Millisekunde genau. Gespeichert wird davon <strong>nicht der
-        Ablauf deiner Klicks</strong>, sondern nur, was sich daraus ergibt: wie viele Abstände es
-        waren, wie groß der mittlere Abstand war und wie stark die Abstände schwankten. Welche
-        Frage du wie lange bedacht hast, wird nirgends festgehalten.
+        verging — letzteres auf die Millisekunde genau.
       </p>
       <p>
-        Diese Kennzahlen entscheiden nichts. Fallen sie auf — etwa weil alle Abstände auf die
+        <strong>Diese Zeitabstände speichern wir vollständig</strong>, in der Reihenfolge deiner
+        Klicks, zusammen mit deiner Bewertung. Der Grund ist die Kalibrierung: Woran sich ein
+        Skript von einem Menschen unterscheidet, lässt sich nur an echten Verläufen lernen, und
+        aus zusammengefassten Zahlen lässt es sich nicht mehr lernen. Wir sagen dir das so
+        deutlich, weil daraus mehr folgt, als es zunächst klingt: Die Fragen erscheinen in fester
+        Reihenfolge — aus dem Verlauf lässt sich also ablesen, vor welcher Frage du gezögert hast,
+        auch vor den Fragen zu Mobbing und Gewalt.
+      </p>
+      <p>
+        Wer diese Daten sieht: die Moderation, wenn sie eine angehaltene Bewertung prüft, und
+        zwar eingeklappt und nicht neben deinen Antworten. Wie lange sie bleiben:{" "}
+        {fristtext(regel("klickfolgen_loeschen").tage)} nach der Abgabe wird der Verlauf geleert,
+        deine Bewertung bleibt davon unberührt. Was aus den Abständen berechnet wurde — Anzahl,
+        mittlerer Abstand, Schwankung — bleibt darüber hinaus stehen. Willst du den Verlauf
+        früher los, schreib uns; wir löschen ihn ohne Rückfrage (Art. 17 DSGVO), und du kannst der
+        Verarbeitung nach Art. 21 DSGVO auch insgesamt widersprechen.
+      </p>
+      <p>
+        Diese Messungen entscheiden nichts. Fallen sie auf — etwa weil alle Abstände auf die
         Millisekunde gleich sind, was bei Menschen nicht vorkommt —, wird deine Bewertung einem
         Menschen aus unserer Redaktion vorgelegt, statt automatisch veröffentlicht oder abgelehnt
         zu werden. Rechtsgrundlage ist unser berechtigtes Interesse an belastbaren Bewertungen
@@ -126,10 +149,6 @@ export default function Datenschutzseite() {
           zur Schule berechnet ({SCHWELLE_KM} Kilometer sind die Schwelle für eine Prüfung durch
           Menschen); danach wird sie verworfen. In der Datenbank steht die Zahl der Kilometer,
           nicht die Adresse.
-        </li>
-        <li>
-          <strong>Den Ablauf deiner Klicks.</strong> Aus den Abständen zwischen deinen Antworten
-          entstehen drei Kennzahlen (siehe 3.2); die Folge selbst verlässt deinen Browser nicht.
         </li>
         <li>
           <strong>Deinen Namen.</strong> Wir fragen ihn nicht ab. Bewertungen erscheinen ohne

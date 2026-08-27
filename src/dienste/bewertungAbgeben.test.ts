@@ -99,13 +99,36 @@ describe("Erfolgreiche Abgabe", () => {
 describe("Klickverhalten", () => {
   const gleichmaessig = Array.from({ length: 30 }, () => 200);
 
-  it("speichert die Kennzahlen, aber nie die Klickfolge", async () => {
+  it("speichert Kennzahlen und die vollständige Folge", async () => {
     const u = umgebung();
     await bewertungAbgeben(eingabe({ klickabstaende: gleichmaessig, dauerSekunden: 30 }), u);
     const gespeichert = (u.speichere as ReturnType<typeof vi.fn>).mock.calls[0]![0];
     expect(gespeichert.klick).toEqual({ anzahl: 30, medianMs: 200, streuung: 0 });
-    // Die Folge selbst ist ein Verhaltensprotokoll und darf nirgends landen.
-    expect(JSON.stringify(gespeichert)).not.toContain("klickabstaende");
+    expect(gespeichert.klickfolge).toEqual(gleichmaessig);
+    // Die Folge steht als eigenes Feld da und nicht in der Eingabe: An der
+    // Einfügestelle soll sichtbar sein, dass sie aufbewahrt wird.
+    expect(gespeichert.eingabe).not.toHaveProperty("klickabstaende");
+  });
+
+  it("bewahrt auch eine unglaubwürdige Folge auf, wertet sie aber nicht aus", async () => {
+    // Behauptet: 30 mal acht Sekunden. Der signierte Stempel sagt: fünf Sekunden.
+    // Gerade diese Reihe ist ein Befund und darf deshalb nicht verworfen werden.
+    const erfunden = Array.from({ length: 30 }, () => 8000);
+    const u = umgebung();
+    await bewertungAbgeben(eingabe({ klickabstaende: erfunden, dauerSekunden: 5 }), u);
+    const gespeichert = (u.speichere as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+    expect(gespeichert.klickfolge).toEqual(erfunden);
+    expect(gespeichert.klick).toBeNull();
+  });
+
+  it("nimmt keinen Unsinn entgegen", async () => {
+    const u = umgebung();
+    await bewertungAbgeben(
+      { ...eingabe(), klickabstaende: [200, Number.NaN, -1, 300] } as never,
+      u,
+    );
+    const gespeichert = (u.speichere as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+    expect(gespeichert.klickfolge).toEqual([200, 300]);
   });
 
   it("hält eine Bewertung mit Skriptmuster zur Prüfung an", async () => {
@@ -120,6 +143,7 @@ describe("Klickverhalten", () => {
     await bewertungAbgeben(eingabe(), u);
     const gespeichert = (u.speichere as ReturnType<typeof vi.fn>).mock.calls[0]![0];
     expect(gespeichert.klick).toBeNull();
+    expect(gespeichert.klickfolge).toBeNull();
     expect(gespeichert.status).toBe("wartet_auf_verifizierung");
   });
 });

@@ -99,7 +99,7 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
             schule_id, konto_id, rolle, klassenstufe, abgangsjahr, status,
             datenschutz_einwilligung_am, eltern_einwilligung_am, einwilligung_fassung,
             geo_entfernung_km, geo_unbekannt, verlosung_teilnahme, signale, signalpunkte,
-            klickmuster
+            klickmuster, klickfolge
           ) values (
             ${daten.schuleId}, ${daten.kontoId}, ${daten.eingabe.rolle!}::rolle,
             ${daten.eingabe.klassenstufe}, ${daten.eingabe.abgangsjahr},
@@ -108,7 +108,8 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
             ${daten.geoEntfernungKm}, ${daten.geoUnbekannt},
             ${daten.eingabe.verlosungTeilnahme},
             ${sql.json(daten.signale as never)}, ${daten.signalpunkte},
-            ${daten.klick === null ? null : sql.json(daten.klick as never)}
+            ${daten.klick === null ? null : sql.json(daten.klick as never)},
+            ${daten.klickfolge === null ? null : sql.json(daten.klickfolge as never)}
           ) returning id
         `;
 

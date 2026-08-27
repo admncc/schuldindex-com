@@ -193,6 +193,8 @@ export interface Vorgang {
   signalpunkte: number | null;
   /** Kennzahlen des Klickverhaltens; `null` bei allem, was vor der Messung liegt. */
   klickmuster: { anzahl: number; medianMs: number; streuung: number } | null;
+  /** Die vollständige Klickfolge; `null`, wenn nie erfasst oder nach Frist geleert. */
+  klickfolge: number[] | null;
 
   schule_id: string;
   schule_name: string;
@@ -226,7 +228,7 @@ export async function holeVorgang(id: string): Promise<Vorgang | null> {
     select b.id, b.status::text as status, b.rolle::text as rolle, b.klassenstufe, b.abgangsjahr,
            b.erstellt_am, b.zuletzt_bearbeitet_am, b.eltern_einwilligung_am,
            b.geo_entfernung_km, b.geo_unbekannt, b.ablehnungsgrund,
-           b.signale, b.signalpunkte, b.klickmuster,
+           b.signale, b.signalpunkte, b.klickmuster, b.klickfolge,
            s.id as schule_id, s.name as schule_name, s.slug as schule_slug,
            s.strasse as schule_strasse, s.plz as schule_plz, s.ort as schule_ort, s.bundesland,
            k.id as konto_id, k.kontaktart, k.kontakt_chiffre,

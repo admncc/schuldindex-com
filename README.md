@@ -68,7 +68,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/domain/einstellungen.ts` | Der Katalog der einstellbaren Grenzwerte — Vorgaben, Grenzen, Prüfung |
 | `src/db/einstellungen.ts` | Gespeicherte Abweichungen von den Vorgaben, mit Änderungsverlauf |
 | `src/domain/formularstempel.ts` | Signierter Zeitstempel: warum die Dauer vom Server kommt und nicht aus dem Browser |
-| `src/domain/klickmuster.ts` | Auswertung des Klickverhaltens — und was davon ausdrücklich nicht gespeichert wird |
+| `src/domain/klickmuster.ts` | Auswertung des Klickverhaltens, millisekundengenau — und was die Aufbewahrung der Folge bedeutet |
 | `app/moderation/einstellungen/` | Panel der Leitung: Grenzwerte der Betrugserkennung nachziehen |
 | `src/dienste/umgebung.ts` | Anbindung des Abgabedienstes an Postgres — das einzige SQL außerhalb der Abfrageschicht |
 | `messages/de.json` | Alle Oberflächentexte |
@@ -87,7 +87,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 
 ```bash
 npm install
-npm test        # 608 Tests (33 davon gegen die eingespielten Echtdaten)
+npm test        # 611 Tests (34 davon gegen die eingespielten Echtdaten)
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000
@@ -136,8 +136,10 @@ des Entwicklungsplans. Die wichtigsten:
 - **Durchgehend du**, auch gegenüber Eltern und Lehrkräften
 - **Verlosung schon im MVP** — Launch damit bei 13 Sprints statt elf
 
-Drei Punkte stehen ausdrücklich zur Abnahme durch die Kanzlei: Elterneinwilligung per
-Checkbox, Haftung für die selbst verfassten KI-Zusammenfassungen, Verlosung für Minderjährige.
+Vier Punkte stehen ausdrücklich zur Abnahme durch die Kanzlei: Elterneinwilligung per
+Checkbox, Haftung für die selbst verfassten KI-Zusammenfassungen, Verlosung für Minderjährige
+und — seit dem 27.08. — die Aufbewahrung der vollständigen Klickfolgen (Abschnitt 7.2 des
+Entwicklungsplans).
 
 ## Grundsatz zum KI-Einsatz
 

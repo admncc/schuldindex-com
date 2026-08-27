@@ -22,7 +22,8 @@ export type Aufbewahrungsart =
   | "sitzungen_loeschen"
   | "abgelehnte_loeschen"
   | "meldungen_loeschen"
-  | "zugaenge_loeschen";
+  | "zugaenge_loeschen"
+  | "klickfolgen_loeschen";
 
 export interface Aufbewahrungsregel {
   readonly art: Aufbewahrungsart;
@@ -80,6 +81,14 @@ export const REGELN: readonly Aufbewahrungsregel[] = [
     tage: 6 * MONAT,
     ab: "der Entscheidung oder dem Ablauf",
     begruendung: "Aktive Zugänge bleiben unberührt, solange sie gelten.",
+  },
+  {
+    art: "klickfolgen_loeschen",
+    gegenstand: "Klickfolgen der Bewertungen",
+    tage: 12 * MONAT,
+    ab: "der Abgabe",
+    begruendung:
+      "Die Bewertung selbst bleibt vollständig erhalten; geleert wird nur die Folge der Klickabstände. Sie wird für die Kalibrierung der Betrugserkennung aufbewahrt, und dafür genügt ein Jahr — danach ist sie eine Verhaltensspur ohne Zweck.",
   },
 ];
 

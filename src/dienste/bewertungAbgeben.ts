@@ -18,7 +18,7 @@ import { erzeugeToken, type Token } from "../domain/verifizierung";
 import { kontaktHash, normalisiereKontakt, verschleiere, verschluessele } from "../domain/kontakt";
 import type { KategorieId } from "../domain/fragebogen";
 import type { Einstellungen } from "../domain/einstellungen";
-import type { Klickauswertung } from "../domain/klickmuster";
+import { bereinige, type Klickauswertung } from "../domain/klickmuster";
 
 export interface Schulbezug {
   readonly id: string;
@@ -66,8 +66,18 @@ export interface Gespeicherte {
   /** Befund der Betrugsprüfung, wie er zum Zeitpunkt der Abgabe ausfiel. */
   readonly signale: Pruefergebnis["signale"];
   readonly signalpunkte: number;
-  /** Kennzahlen des Klickverhaltens — ohne die Klickfolge selbst. */
+  /** Kennzahlen des Klickverhaltens; `null`, wenn nichts Auswertbares vorlag. */
   readonly klick: Klickauswertung | null;
+  /**
+   * Die vollständige Klickfolge in Millisekunden, in Klickreihenfolge.
+   *
+   * Aufbewahrt für die Kalibrierung der Schwellen und den Vergleich ganzer
+   * Verläufe untereinander (Entscheidung vom 27.08.2026). Auch dann gespeichert,
+   * wenn die Folge nicht zur vom Server gemessenen Zeit passt — eine erfundene
+   * Reihe ist selbst ein Befund. Personenbezogene Verhaltensspur; was daraus
+   * folgt, steht in `domain/klickmuster.ts`.
+   */
+  readonly klickfolge: readonly number[] | null;
   readonly token: Token;
 }
 
@@ -163,11 +173,11 @@ export async function bewertungAbgeben(
 
   const token = erzeugeToken(jetzt);
 
-  // Die Klickfolge wird hier abgeschnitten, nicht erst in der Speicherschicht.
-  // Was von ihr bleiben soll, steht in `klick`; sie weiterzureichen hieße, dass
-  // die nächste Änderung am Einfügen sie versehentlich mitschreibt — und ein
-  // Verhaltensprotokoll ist genau das, was nicht entstehen soll.
-  const { klickabstaende: _folge, ...ohneKlickfolge } = eingabe;
+  // Die Folge geht als eigenes Feld in die Speicherung, nicht im Huckepack der
+  // Eingabe: So steht an der Einfügestelle ausdrücklich, was aufbewahrt wird,
+  // statt dass es als Nebeneffekt mitläuft.
+  const { klickabstaende, ...ohneKlickfolge } = eingabe;
+  const folge = klickabstaende ? bereinige(klickabstaende) : [];
 
   const { bewertungId } = await umgebung.speichere({
     schuleId: schule.id,
@@ -180,6 +190,7 @@ export async function bewertungAbgeben(
     signale: betrug.signale,
     signalpunkte: betrug.punkte,
     klick: betrug.klick,
+    klickfolge: folge.length > 0 ? folge : null,
     token,
   });
 

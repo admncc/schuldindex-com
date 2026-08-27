@@ -136,6 +136,31 @@ async function loescheZugaenge(tx: Ausfuehrer, jetzt: Date, trocken: boolean): P
   return ergebnis.count;
 }
 
+/**
+ * Leert die Klickfolgen, ohne die Bewertungen anzutasten.
+ *
+ * Der einzige Lauf, der nicht löscht, sondern eine Spalte auf `null` setzt: Die
+ * Bewertung soll bleiben, die Verhaltensspur nicht. Die drei Kennzahlen in
+ * `klickmuster` bleiben ebenfalls stehen — sie tragen die Aussage über die
+ * einzelne Frage nicht, und die Moderation muss den Befund von damals weiter
+ * sehen können.
+ */
+async function loescheKlickfolgen(tx: Ausfuehrer, jetzt: Date, trocken: boolean): Promise<number> {
+  const grenze = stichtag("klickfolgen_loeschen", jetzt);
+  if (trocken) {
+    const [z] = await tx<{ n: number }[]>`
+      select count(*)::int as n from bewertungen
+      where klickfolge is not null and erstellt_am < ${grenze}
+    `;
+    return z?.n ?? 0;
+  }
+  const ergebnis = await tx`
+    update bewertungen set klickfolge = null
+    where klickfolge is not null and erstellt_am < ${grenze}
+  `;
+  return ergebnis.count;
+}
+
 const LAEUFE: Readonly<
   Record<Aufbewahrungsart, (tx: Ausfuehrer, jetzt: Date, trocken: boolean) => Promise<number>>
 > = {
@@ -145,6 +170,7 @@ const LAEUFE: Readonly<
   abgelehnte_loeschen: loescheAbgelehnte,
   meldungen_loeschen: loescheMeldungen,
   zugaenge_loeschen: loescheZugaenge,
+  klickfolgen_loeschen: loescheKlickfolgen,
 };
 
 export interface Laufergebnis {

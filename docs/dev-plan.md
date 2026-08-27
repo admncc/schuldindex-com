@@ -419,16 +419,35 @@ und die **Streuung** der Abstände. Die Streuung ist der eigentlich verräterisc
 Mensch braucht für die eine Frage zwei Sekunden und für die nächste zehn, ein Skript klickt
 alle 300 Millisekunden. Auch ein *langsames* Skript fällt darüber auf.
 
-Gespeichert wird davon **nicht die Klickfolge**, sondern nur, was aus ihr folgt: Anzahl,
-mittlerer Abstand, Streuung (`db/migrations/0016_klickmuster.sql`). Die Folge selbst wäre ein
-Verhaltensprotokoll — wie lange jemand bei der Frage nach Mobbing gezögert hat, ließe sich
-daraus ablesen; das geht niemanden etwas an, uns eingeschlossen. Der Dienst schneidet sie
-deshalb schon vor dem Aufruf der Speicherschicht ab, damit die nächste Änderung am Einfügen
-sie nicht versehentlich mitschreibt.
+Gespeichert werden **die drei Kennzahlen und die vollständige Klickfolge**
+(`0016_klickmuster.sql`, `0017_klickfolge.sql`). Die Folge kam am 27.08. auf ausdrückliche
+Entscheidung des Auftraggebers dazu, gegen den hier zunächst umgesetzten Entwurf. Das Argument
+dafür wiegt schwer: Ob 400 ms und 15 % die richtigen Schwellen sind, weiß vor dem Betrieb
+niemand, ein Detektor lässt sich nicht an bereits zusammengefassten Zahlen verbessern, und der
+Vergleich ganzer Verläufe untereinander — dieselbe Handschrift über viele Abgaben — geht nur
+mit der Folge.
+
+Das Argument dagegen bleibt bestehen und ist hier festgehalten, damit es niemand später neu
+entdecken muss: **Die Folge ist eine personenbezogene Verhaltensspur.** Die Fragen erscheinen
+in fester Reihenfolge, also lässt sich aus dem n-ten Abstand ablesen, wie lange jemand vor der
+n-ten Frage gezögert hat — auch vor den Fragen zu Mobbing, Gewalt und Angst, und die
+Betroffenen sind überwiegend minderjährig. Daraus folgt dreierlei, alles umgesetzt:
+
+1. Die Datenschutzerklärung nennt sie beim Namen (Abschnitt 3.2): was gemessen wird, was sich
+   daraus ableiten lässt, wer es sieht, wie lange es bleibt und wie man es löschen lässt.
+2. Eine eigene Aufbewahrungsregel `klickfolgen_loeschen` leert die Spalte zwölf Monate nach der
+   Abgabe, ohne die Bewertung anzutasten. Ausgeführt wird sie wie jede Regel von Hand
+   (keine automatische Löschung, Entscheidung vom 27.08.).
+3. Der Punkt steht auf der Liste für die Kanzlei (Abschnitt 15.1) — mit den Fragen nach
+   Art. 35 DSGVO (Folgenabschätzung) und Art. 9 DSGVO (Ableitbarkeit auf sensible Fragen).
+
+In der Moderation steht die Folge eingeklappt und nicht neben den Antworten: Für die
+Entscheidung reichen die Kennzahlen, und wer den Verlauf aufklappt, soll das bewusst tun.
 
 Die Abstände kommen aus dem Browser und sind damit fälschbar. Sie werden gegen die vom Server
 gemessene Dauer plausibilisiert: Wer behauptet, acht Minuten geklickt zu haben, während der
 signierte Stempel zwanzig Sekunden sagt, wird nicht geglaubt — dann entfällt die Auswertung.
+Aufbewahrt wird die Folge trotzdem, denn eine erfundene Reihe ist selbst ein Befund.
 
 Alle vier Signale entscheiden nichts. Sie erhöhen die Punktsumme, und ab der eingestellten
 Halteschwelle sieht ein Mensch die Bewertung an. Der Befund von der Abgabe wird mitgespeichert
@@ -1316,9 +1335,15 @@ Keine Produktentscheidungen mehr — aber drei Dinge, die den Zeitplan bestimmen
 1. **Meta-Business-Verifizierung für WhatsApp beantragen.** Ein bis drei Wochen Vorlauf, und
    seit Entscheidung 11 gibt es keinen gleichwertigen Ausweichweg mehr. Muss in Sprint 1 los,
    noch bevor der zugehörige Code entsteht.
-2. **Kanzlei mandatieren.** Mit den drei Punkten, die ausdrücklich zur Abnahme anstehen:
+2. **Kanzlei mandatieren.** Mit den vier Punkten, die ausdrücklich zur Abnahme anstehen:
    Elterneinwilligung per Checkbox (Entscheidung 3), Haftung für die selbst verfassten
-   KI-Zusammenfassungen (Abschnitt 10.2), Verlosung für Minderjährige (Entscheidung 7).
+   KI-Zusammenfassungen (Abschnitt 10.2), Verlosung für Minderjährige (Entscheidung 7) und die
+   Aufbewahrung der vollständigen Klickfolgen (Abschnitt 7.2, entschieden am 27.08.). Der
+   vierte Punkt ist der dringlichste: Er betrifft eine Verhaltensspur, die sich über die feste
+   Fragereihenfolge auf einzelne Fragen beziehen lässt — auch auf die zu Mobbing und Gewalt —,
+   und die Betroffenen sind überwiegend minderjährig. Zu klären sind die Zulässigkeit der
+   Aufbewahrung insgesamt, die Frist von zwölf Monaten, die Frage einer Folgenabschätzung nach
+   Art. 35 DSGVO und ob die Ableitbarkeit auf einzelne Fragen an Art. 9 DSGVO rührt.
 3. **Zeitplan nachziehen.** Verlosung im MVP und die Kontoverwaltung aus dem Userflow waren in
    der ursprünglichen Schätzung von elf Sprints nicht enthalten. Realistisch sind jetzt
    **13 Sprints bis Launch**.

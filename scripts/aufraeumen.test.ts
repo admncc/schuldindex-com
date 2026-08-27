@@ -178,6 +178,31 @@ describe.skipIf(!vorhanden)("Aufräumlauf an der Datenbank", () => {
     expect(zeile?.n).toBe(1);
   }, 60_000);
 
+  it("leert alte Klickfolgen, ohne die Bewertung anzutasten", async () => {
+    // Die Klickfolge ist die einzige Spalte, die für sich allein geleert wird.
+    // Ginge dabei die Bewertung mit, wäre der Schaden erheblich und fiele erst
+    // beim ersten scharfen Lauf auf.
+    const alt = await legeAn("klickfolge-alt", 400);
+    const jung = await legeAn("klickfolge-jung", 30);
+    await sql`
+      update bewertungen set klickfolge = ${sql.json([200, 300, 400] as never)}
+      where id in (${alt.bewertungId}, ${jung.bewertungId})
+    `;
+
+    const { raeumeAuf } = await import("../src/db/aufraeumen");
+    await raeumeAuf(false);
+
+    const [a] = await sql<{ klickfolge: number[] | null; status: string }[]>`
+      select klickfolge, status::text as status from bewertungen where id = ${alt.bewertungId}
+    `;
+    const [j] = await sql<{ klickfolge: number[] | null }[]>`
+      select klickfolge from bewertungen where id = ${jung.bewertungId}
+    `;
+    expect(a?.klickfolge).toBeNull();
+    expect(a?.status).toBe("freigegeben");
+    expect(j?.klickfolge).toEqual([200, 300, 400]);
+  }, 60_000);
+
   it("zählt im Trockenlauf, ohne zu löschen", async () => {
     const { bewertungId } = await legeAn("trocken", 200, "abgelehnt");
     const { raeumeAuf } = await import("../src/db/aufraeumen");

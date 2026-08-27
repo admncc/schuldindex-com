@@ -6,6 +6,7 @@ import { FRAGE_NACH_ID, KATEGORIEN, KEINE_ANGABE, LABEL_KEINE_ANGABE, SKALEN, fr
 import { pruefeAntwortmuster } from "@/domain/betrugspruefung";
 import { SCHWELLE_KM } from "@/domain/geopruefung";
 import { alterInStunden, dringlichkeit, DRINGLICHKEIT_LABEL } from "@/domain/moderation";
+import { fristtext, regel } from "@/domain/aufbewahrung";
 import { holeVorgang, protokollZurBewertung, weitereBewertungenDesKontos } from "@/db/moderation";
 import Entscheidungsfeld from "./entscheidung";
 import Kontaktfeld from "./kontakt";
@@ -123,14 +124,26 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
               <strong>Antwortmuster:</strong>{" "}
               {muster.length === 0 ? "unauffällig" : muster.map((s) => s.erlaeuterung).join("; ")}
             </li>
-            {/* Was vom Klickverhalten übrig bleibt: drei Zahlen. Die Klickfolge
-                selbst wird nicht gespeichert — welche Frage jemand wie lange
-                bedacht hat, steht hier bewusst nicht. */}
             <li>
               <strong>Klickverhalten:</strong>{" "}
               {vorgang.klickmuster === null
                 ? "nicht gemessen"
                 : `${vorgang.klickmuster.anzahl} Abstände, im Mittel ${Math.round(vorgang.klickmuster.medianMs)} ms, Streuung ${Math.round(vorgang.klickmuster.streuung * 100)} %`}
+              {/* Die Folge steht eingeklappt da, nicht offen: Für die Entscheidung
+                  reichen die Kennzahlen. Wer den Verlauf wirklich braucht — bei
+                  Verdacht auf eine Kampagne —, klappt ihn auf, und dass er das
+                  getan hat, ist ihm dann bewusst. */}
+              {vorgang.klickfolge !== null && vorgang.klickfolge.length > 0 ? (
+                <details className="klickfolge">
+                  <summary>Vollständige Folge ({vorgang.klickfolge.length} Abstände)</summary>
+                  <p className="hinweis">
+                    Die Fragen erscheinen in fester Reihenfolge — der n-te Wert ist die Zeit vor
+                    der n-ten Antwort. Wird {fristtext(regel("klickfolgen_loeschen").tage)} nach
+                    der Abgabe geleert.
+                  </p>
+                  <code>{vorgang.klickfolge.join(" · ")}</code>
+                </details>
+              ) : null}
             </li>
             <li>
               <strong>Konto:</strong> {vorgang.kontaktart}

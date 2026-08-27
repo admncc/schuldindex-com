@@ -12,15 +12,27 @@
  *    und für die nächste zehn; ein Skript klickt alle 300 Millisekunden. Sogar
  *    ein *langsames* Skript fällt darüber auf, ein schnelles Lesen dagegen nicht.
  *
- * **Was nicht gespeichert wird: die Klickfolge selbst.** Sie ist ein
- * Verhaltensprotokoll — wie lange jemand bei „Wie häufig erlebst du Mobbing?“
- * gezögert hat, geht niemanden etwas an, uns eingeschlossen. Gespeichert werden
- * nur die drei abgeleiteten Kennzahlen und das, was daraus folgte.
+ * **Gespeichert wird die vollständige Klickfolge** (Entscheidung vom 27.08.2026,
+ * „maximale Auswertbarkeit“). Der Grund ist die Kalibrierung: Ob 400 ms und 15 %
+ * die richtigen Schwellen sind, weiß vor dem Betrieb niemand, und ein Detektor
+ * lässt sich nicht an Kennzahlen verbessern, die man schon zusammengefasst hat.
+ * Auch der Vergleich ganzer Verläufe untereinander — dieselbe Handschrift über
+ * viele Abgaben — geht nur mit der Folge.
+ *
+ * Was das bedeutet, steht ausdrücklich hier, damit es niemand übersieht: Die
+ * Fragen erscheinen in fester Reihenfolge, also lässt sich aus dem n-ten Abstand
+ * ablesen, wie lange jemand vor der n-ten Frage gezögert hat — auch vor den
+ * Fragen zu Mobbing und Gewalt. Die Folge ist damit eine personenbezogene
+ * Verhaltensspur und **kein bloßes Messrauschen**. Sie gehört in die
+ * Datenschutzerklärung (Abschnitt 3.2), unterliegt einer eigenen
+ * Aufbewahrungsregel (`domain/aufbewahrung.ts`, `klickfolgen_loeschen`) und
+ * steht auf der Liste für die Kanzlei.
  *
  * Die Abstände kommen aus dem Browser und sind damit nicht fälschungssicher.
  * Deshalb werden sie gegen die vom Server gemessene Gesamtdauer geprüft
  * (`plausibel`): Wer behauptet, acht Minuten geklickt zu haben, während der
- * signierte Stempel zwanzig Sekunden sagt, wird nicht geglaubt.
+ * signierte Stempel zwanzig Sekunden sagt, wird nicht geglaubt. Gespeichert wird
+ * die Folge trotzdem — gerade eine erfundene Reihe ist ein Befund.
  */
 
 import { VORGABEN, zahl, type Einstellungen } from "./einstellungen";
@@ -38,6 +50,17 @@ export interface Klickauswertung {
    * 0 heißt: exakt gleiche Abstände. Menschen liegen erfahrungsgemäß über 0,5.
    */
   readonly streuung: number;
+}
+
+/**
+ * Die Folge, wie sie gespeichert wird: nur das, was eine Zahlenreihe ist.
+ *
+ * Anders als bei der Auswertung wird hier **nicht gekappt**. Die 60-Sekunden-
+ * Grenze ist eine Rechenhilfe gegen Ausreißer; für die spätere Analyse ist
+ * gerade die lange Pause eine Information.
+ */
+export function bereinige(abstaendeMs: readonly number[]): number[] {
+  return abstaendeMs.filter((a) => Number.isFinite(a) && a >= 0).slice(0, MAX_ABSTAENDE);
 }
 
 function median(werte: readonly number[]): number {
