@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   FRAGEN,
   KATEGORIEN,
@@ -22,6 +22,7 @@ import {
   type Kontaktart,
   type Rolle,
 } from "@/domain/bewertungseingabe";
+import { MAX_ABSTAENDE } from "@/domain/klickmuster";
 
 const PFLICHT: KategorieId[] = ["A", "B", "C"];
 const FREIWILLIG: KategorieId[] = ["D", "E", "F"];
@@ -48,10 +49,13 @@ export function Bewertungsformular({
   schulSlug,
   schulname,
   aenderung,
+  stempel,
 }: {
   schulSlug: string;
   schulname: string;
   aenderung?: Aenderung | undefined;
+  /** Signierter Zeitstempel des Servers; geht unverändert zurück. */
+  stempel?: string | undefined;
 }) {
   const [rolle, setRolle] = useState<Rolle | null>(aenderung?.rolle ?? null);
   const [klassenstufe, setKlassenstufe] = useState<number | null>(aenderung?.klassenstufe ?? null);
@@ -78,6 +82,28 @@ export function Bewertungsformular({
   const [sendet, setSendet] = useState(false);
   const [gesendet, setGesendet] = useState<{ kontaktAnzeige: string } | null>(null);
   const [serverfehler, setServerfehler] = useState<string[]>([]);
+
+  /**
+   * Zeitpunkt des letzten Antwortklicks, auf die Millisekunde genau, und die
+   * Abstände dazwischen.
+   *
+   * Als Ref und nicht als State: Jeder Klick soll das Formular nicht neu
+   * rendern, und die Werte gehen ohnehin nur einmal mit, beim Absenden. Was
+   * hier entsteht, ist eine Zahlenreihe ohne Bezug zu einzelnen Fragen — welche
+   * Frage jemand wie lange bedacht hat, wird nicht festgehalten und verlässt
+   * den Browser nie.
+   */
+  const letzterKlick = useRef<number | null>(null);
+  const abstaende = useRef<number[]>([]);
+
+  function merkeKlick() {
+    const jetzt = Date.now();
+    const vorher = letzterKlick.current;
+    letzterKlick.current = jetzt;
+    if (vorher !== null && abstaende.current.length < MAX_ABSTAENDE) {
+      abstaende.current.push(jetzt - vorher);
+    }
+  }
 
   const schritte: Schritt[] = useMemo(
     () => [
@@ -138,7 +164,7 @@ export function Bewertungsformular({
         {
           method: aenderung === undefined ? "POST" : "PATCH",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify(eingabe),
+          body: JSON.stringify({ ...eingabe, stempel, klickabstaende: abstaende.current }),
         },
       );
       const ergebnis = (await antwort.json()) as
@@ -266,7 +292,10 @@ export function Bewertungsformular({
         <Kategorieschritt
           id={schritt.id}
           antworten={antworten}
-          setAntwort={(id, wert) => setAntworten((a) => ({ ...a, [id]: wert }))}
+          setAntwort={(id, wert) => {
+            merkeKlick();
+            setAntworten((a) => ({ ...a, [id]: wert }));
+          }}
           freitext={freitexte[schritt.id] ?? ""}
           setFreitext={(text) => setFreitexte((f) => ({ ...f, [schritt.id]: text }))}
           fehler={fehlerZu(`kategorie.${schritt.id}`)}

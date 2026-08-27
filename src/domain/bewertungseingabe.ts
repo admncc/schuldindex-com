@@ -50,6 +50,20 @@ export interface Bewertungseingabe {
   readonly datenschutzEinwilligung: boolean;
   readonly elternEinwilligung: boolean;
   readonly verlosungTeilnahme: boolean;
+  /**
+   * Wie lange das Formular offenstand, in Sekunden — **vom Server** aus dem
+   * signierten Stempel errechnet, nicht vom Browser gemeldet
+   * (`domain/formularstempel.ts`). Fehlt der Stempel oder ist er ungültig,
+   * bleibt das Feld leer, und das Tempo-Signal entfällt.
+   */
+  readonly dauerSekunden?: number | null | undefined;
+  /**
+   * Abstände zwischen zwei Antwortklicks in Millisekunden, in der Reihenfolge
+   * der Klicks. Kommen aus dem Browser und werden gegen `dauerSekunden`
+   * plausibilisiert; gespeichert werden nur die drei Kennzahlen daraus
+   * (`domain/klickmuster.ts`), nie die Folge selbst.
+   */
+  readonly klickabstaende?: readonly number[] | null | undefined;
 }
 
 /** Fehler mit dem Feld, zu dem er gehört — das Formular kann ihn dort anzeigen. */

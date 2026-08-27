@@ -13,10 +13,12 @@
 import { bewerte } from "../domain/scoring";
 import { pruefeEingabe, type Bewertungseingabe } from "../domain/bewertungseingabe";
 import { pruefeEinreichung, type Punkt } from "../domain/geopruefung";
-import { pruefe as pruefeBetrug, type Pruefkontext } from "../domain/betrugspruefung";
+import { pruefe as pruefeBetrug, type Pruefergebnis, type Pruefkontext } from "../domain/betrugspruefung";
 import { erzeugeToken, type Token } from "../domain/verifizierung";
 import { kontaktHash, normalisiereKontakt, verschleiere, verschluessele } from "../domain/kontakt";
 import type { KategorieId } from "../domain/fragebogen";
+import type { Einstellungen } from "../domain/einstellungen";
+import type { Klickauswertung } from "../domain/klickmuster";
 
 export interface Schulbezug {
   readonly id: string;
@@ -42,6 +44,13 @@ export interface Umgebung {
   >;
   ortungDesAbsenders(): Promise<Punkt | null>;
   pruefeFreitext(texte: readonly string[]): Promise<boolean>;
+  /**
+   * Die geltenden Grenzwerte. Kommen aus der Datenbank, damit eine Änderung im
+   * Panel sofort wirkt und nicht erst nach dem nächsten Neustart.
+   */
+  holeEinstellungen(): Promise<Einstellungen>;
+  /** Bisheriger Stand der Schule — Grundlage des Abweichungssignals. */
+  holeSchulmittel(schuleId: string): Promise<{ mittel: number | null; anzahl: number }>;
   speichere(daten: Gespeicherte): Promise<{ bewertungId: string }>;
   sendeBestaetigung(empfaenger: string, art: string, token: Token): Promise<boolean>;
 }
@@ -54,6 +63,11 @@ export interface Gespeicherte {
   readonly geoEntfernungKm: number | null;
   readonly geoUnbekannt: boolean;
   readonly scores: ReturnType<typeof bewerte>;
+  /** Befund der Betrugsprüfung, wie er zum Zeitpunkt der Abgabe ausfiel. */
+  readonly signale: Pruefergebnis["signale"];
+  readonly signalpunkte: number;
+  /** Kennzahlen des Klickverhaltens — ohne die Klickfolge selbst. */
+  readonly klick: Klickauswertung | null;
   readonly token: Token;
 }
 
@@ -108,15 +122,34 @@ export async function bewertungAbgeben(
   });
 
   const freitexte = Object.values(eingabe.freitexte).filter((t): t is string => !!t && t.trim() !== "");
-  const zaehler = await umgebung.holeZaehler(konto.id, schule.id);
+  // Einmal gerechnet statt zweimal: die Abweichungsprüfung braucht den Score
+  // schon vor dem Speichern.
+  const scores = bewerte(eingabe.antworten);
 
-  const betrug = pruefeBetrug({
-    geo,
-    antworten: eingabe.antworten,
-    freitextAuffaellig: freitexte.length > 0 && (await umgebung.pruefeFreitext(freitexte)),
-    kontoPerEmail: art === "email",
-    ...zaehler,
-  });
+  const zaehler = await umgebung.holeZaehler(konto.id, schule.id);
+  const einstellungen = await umgebung.holeEinstellungen();
+  const schulstand = await umgebung.holeSchulmittel(schule.id);
+
+  const betrug = pruefeBetrug(
+    {
+      geo,
+      antworten: eingabe.antworten,
+      freitextAuffaellig: freitexte.length > 0 && (await umgebung.pruefeFreitext(freitexte)),
+      kontoPerEmail: art === "email",
+      // Vom Server gemessen, nicht vom Browser gemeldet — siehe
+      // `domain/formularstempel.ts`. Ohne gültigen Stempel bleibt es leer,
+      // und das Tempo-Signal entfällt, statt zu raten.
+      dauerSekunden: eingabe.dauerSekunden ?? null,
+      // Die Abstände selbst verlassen diese Funktion nicht: Was gespeichert
+      // wird, sind die drei Kennzahlen aus `betrug.klick`, nicht die Folge.
+      klickabstaende: eingabe.klickabstaende ?? null,
+      eigenerScore: scores.gesamtscore,
+      schulmittel: schulstand.mittel,
+      schulAnzahl: schulstand.anzahl,
+      ...zaehler,
+    },
+    einstellungen,
+  );
 
   // Reihenfolge: Wer noch nicht verifiziert ist, wartet zuerst darauf. Die
   // Betrugssignale bleiben gespeichert und greifen, sobald bestätigt wurde.
@@ -129,14 +162,24 @@ export async function bewertungAbgeben(
       : "wartet_auf_verifizierung";
 
   const token = erzeugeToken(jetzt);
+
+  // Die Klickfolge wird hier abgeschnitten, nicht erst in der Speicherschicht.
+  // Was von ihr bleiben soll, steht in `klick`; sie weiterzureichen hieße, dass
+  // die nächste Änderung am Einfügen sie versehentlich mitschreibt — und ein
+  // Verhaltensprotokoll ist genau das, was nicht entstehen soll.
+  const { klickabstaende: _folge, ...ohneKlickfolge } = eingabe;
+
   const { bewertungId } = await umgebung.speichere({
     schuleId: schule.id,
     kontoId: konto.id,
-    eingabe,
+    eingabe: ohneKlickfolge,
     status,
     geoEntfernungKm: geo.entfernungKm,
     geoUnbekannt: geo.unbekannt,
-    scores: bewerte(eingabe.antworten),
+    scores,
+    signale: betrug.signale,
+    signalpunkte: betrug.punkte,
+    klick: betrug.klick,
     token,
   });
 

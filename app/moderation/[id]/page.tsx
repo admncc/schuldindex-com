@@ -82,6 +82,34 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
       <div className="vorgangsraster">
         <div>
           <h2>Prüfhinweise</h2>
+
+          {/* Der Befund von der Abgabe, nicht neu gerechnet: die Grenzwerte sind
+              einstellbar, und was gestern angeschlagen hat, täte es heute
+              vielleicht nicht mehr. Die Moderation muss sehen, warum die
+              Bewertung damals angehalten wurde. */}
+          {vorgang.signale.length > 0 ? (
+            <ul className="signale">
+              {vorgang.signale.map((s, i) => (
+                <li key={`${s.art}-${i}`}>
+                  <span className={`plakette ${s.gewicht >= 3 ? "schlecht" : s.gewicht === 2 ? "mittel" : "gut"}`}>
+                    {s.gewicht}
+                  </span>
+                  <span>{s.erlaeuterung}</span>
+                </li>
+              ))}
+              {vorgang.signalpunkte !== null ? (
+                <li className="gedaempft">
+                  Summe {vorgang.signalpunkte} — angehalten ab der eingestellten Halteschwelle
+                </li>
+              ) : null}
+            </ul>
+          ) : (
+            <p className="gedaempft">
+              Kein Signal gespeichert. Diese Bewertung stammt aus der Zeit vor der Aufzeichnung
+              oder wurde ohne Befund angehalten.
+            </p>
+          )}
+
           <ul className="hinweisliste">
             <li>
               <strong>Ort:</strong>{" "}
@@ -94,6 +122,15 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
             <li>
               <strong>Antwortmuster:</strong>{" "}
               {muster.length === 0 ? "unauffällig" : muster.map((s) => s.erlaeuterung).join("; ")}
+            </li>
+            {/* Was vom Klickverhalten übrig bleibt: drei Zahlen. Die Klickfolge
+                selbst wird nicht gespeichert — welche Frage jemand wie lange
+                bedacht hat, steht hier bewusst nicht. */}
+            <li>
+              <strong>Klickverhalten:</strong>{" "}
+              {vorgang.klickmuster === null
+                ? "nicht gemessen"
+                : `${vorgang.klickmuster.anzahl} Abstände, im Mittel ${Math.round(vorgang.klickmuster.medianMs)} ms, Streuung ${Math.round(vorgang.klickmuster.streuung * 100)} %`}
             </li>
             <li>
               <strong>Konto:</strong> {vorgang.kontaktart}

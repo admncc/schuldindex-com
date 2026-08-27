@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import { randomBytes } from "node:crypto";
 import { FRAGEN, type Antwort } from "../domain/fragebogen";
 import type { Bewertungseingabe } from "../domain/bewertungseingabe";
+import { VORGABEN } from "../domain/einstellungen";
 import { bewertungAbgeben, freitexteAlsObjekt, type Umgebung } from "./bewertungAbgeben";
 
 beforeAll(() => {
@@ -48,6 +49,10 @@ function umgebung(teil: Partial<Umgebung> = {}): Umgebung {
       bewertungenDieserSchuleLetzteStunde: 2,
     })),
     ortungDesAbsenders: vi.fn(async () => HAMBURG),
+    holeEinstellungen: vi.fn(async () => VORGABEN),
+    // Ohne Vergleichswert entfällt das Abweichungssignal — der Normalfall für
+    // eine Schule, die noch kaum bewertet ist.
+    holeSchulmittel: vi.fn(async () => ({ mittel: null, anzahl: 0 })),
     pruefeFreitext: vi.fn(async () => false),
     speichere: vi.fn(async () => ({ bewertungId: "b1" })),
     sendeBestaetigung: vi.fn(async () => true),
@@ -88,6 +93,34 @@ describe("Erfolgreiche Abgabe", () => {
     // Gespeichert wird der Hash, verschickt der Klartext.
     expect(gespeichert.token.hash).not.toBe(gespeichert.token.klartext);
     expect(versandt.klartext).toBe(gespeichert.token.klartext);
+  });
+});
+
+describe("Klickverhalten", () => {
+  const gleichmaessig = Array.from({ length: 30 }, () => 200);
+
+  it("speichert die Kennzahlen, aber nie die Klickfolge", async () => {
+    const u = umgebung();
+    await bewertungAbgeben(eingabe({ klickabstaende: gleichmaessig, dauerSekunden: 30 }), u);
+    const gespeichert = (u.speichere as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+    expect(gespeichert.klick).toEqual({ anzahl: 30, medianMs: 200, streuung: 0 });
+    // Die Folge selbst ist ein Verhaltensprotokoll und darf nirgends landen.
+    expect(JSON.stringify(gespeichert)).not.toContain("klickabstaende");
+  });
+
+  it("hält eine Bewertung mit Skriptmuster zur Prüfung an", async () => {
+    const u = umgebung({ findeKonto: vi.fn(async () => ({ id: "k9", verifiziertAm: new Date() })) });
+    await bewertungAbgeben(eingabe({ klickabstaende: gleichmaessig, dauerSekunden: 30 }), u);
+    const gespeichert = (u.speichere as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+    expect(gespeichert.status).toBe("in_pruefung_betrug");
+  });
+
+  it("lässt ohne Messung alles beim Alten", async () => {
+    const u = umgebung({ findeKonto: vi.fn(async () => ({ id: "k9", verifiziertAm: new Date() })) });
+    await bewertungAbgeben(eingabe(), u);
+    const gespeichert = (u.speichere as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+    expect(gespeichert.klick).toBeNull();
+    expect(gespeichert.status).toBe("wartet_auf_verifizierung");
   });
 });
 

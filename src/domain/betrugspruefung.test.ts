@@ -2,7 +2,16 @@ import { describe, expect, it } from "vitest";
 import { FRAGEN, KEINE_ANGABE, type Antwort, type Skalenwert } from "./fragebogen";
 import type { Antworten } from "./scoring";
 import type { Geobefund } from "./geopruefung";
-import { GRENZEN, HALTESCHWELLE, pruefe, pruefeAntwortmuster, type Pruefkontext } from "./betrugspruefung";
+import {
+  GRENZEN,
+  HALTESCHWELLE,
+  pruefe,
+  pruefeAbweichung,
+  pruefeAntwortmuster,
+  pruefeTempo,
+  type Pruefkontext,
+} from "./betrugspruefung";
+import { mitVorgaben } from "./einstellungen";
 
 const GEO_OK: Geobefund = {
   entfernungKm: 12,
@@ -158,5 +167,130 @@ describe("Gesamtprüfung", () => {
     const e = pruefe({ ...RUHIG, bewertungenDieserSchuleLetzteStunde: 20 });
     expect(e.punkte).toBe(2);
     expect(e.halten).toBe(false);
+  });
+});
+
+
+describe("pruefeTempo", () => {
+  const alle = Object.fromEntries(FRAGEN.map((f) => [f.id, 3 as const]));
+
+  it("schlägt an, wenn zu schnell geklickt wurde", () => {
+    // 61 Fragen in 30 Sekunden: eine halbe Sekunde je Frage.
+    const signale = pruefeTempo(30, alle);
+    expect(signale).toHaveLength(1);
+    expect(signale[0]?.art).toBe("zu_schnell");
+    expect(signale[0]?.erlaeuterung).toContain("0.5 je Frage");
+  });
+
+  it("schweigt bei ruhigem Ausfüllen", () => {
+    expect(pruefeTempo(300, alle)).toEqual([]);
+  });
+
+  it("urteilt nicht über wenige Fragen", () => {
+    // Wer drei Fragen in vier Sekunden beantwortet, kann sie gelesen haben.
+    const wenige = { A1: 3, A2: 3, A3: 3 } as never;
+    expect(pruefeTempo(4, wenige)).toEqual([]);
+  });
+
+  it("schweigt ohne Messung", () => {
+    // Ohne gültigen Stempel wird nicht geraten.
+    expect(pruefeTempo(null, alle)).toEqual([]);
+    expect(pruefeTempo(undefined, alle)).toEqual([]);
+  });
+
+  it("folgt der eingestellten Grenze", () => {
+    const streng = mitVorgaben({ tempo_sekunden_je_frage: 10 });
+    expect(pruefeTempo(300, alle, streng)).toHaveLength(1);
+
+    const locker = mitVorgaben({ tempo_sekunden_je_frage: 0.2 });
+    expect(pruefeTempo(30, alle, locker)).toEqual([]);
+  });
+
+  it("folgt dem eingestellten Gewicht", () => {
+    expect(pruefeTempo(30, alle, mitVorgaben({ tempo_gewicht: 3 }))[0]?.gewicht).toBe(3);
+  });
+});
+
+describe("pruefeAbweichung", () => {
+  it("schlägt bei weit abweichender Bewertung an", () => {
+    const signale = pruefeAbweichung(9.5, 4.0, 40);
+    expect(signale).toHaveLength(1);
+    expect(signale[0]?.art).toBe("abweichung_vom_mittel");
+    expect(signale[0]?.erlaeuterung).toContain("über");
+  });
+
+  it("erkennt die Abweichung in beide Richtungen", () => {
+    expect(pruefeAbweichung(1.0, 8.0, 40)[0]?.erlaeuterung).toContain("unter");
+  });
+
+  it("schweigt bei einer gewöhnlichen Abweichung", () => {
+    expect(pruefeAbweichung(6.0, 4.5, 40)).toEqual([]);
+  });
+
+  it("vergleicht nicht mit zu wenigen Bewertungen", () => {
+    // Bei drei Bewertungen wäre die vierte automatisch verdächtig, wenn die
+    // ersten drei einer Meinung waren.
+    expect(pruefeAbweichung(9.5, 4.0, 3)).toEqual([]);
+  });
+
+  it("schweigt ohne Vergleichswert", () => {
+    expect(pruefeAbweichung(9.5, null, 40)).toEqual([]);
+    expect(pruefeAbweichung(null, 4.0, 40)).toEqual([]);
+  });
+
+  it("wiegt vorgabegemäß leicht", () => {
+    // Die abweichende Meinung ist der Normalfall, den ein Bewertungsportal
+    // aushalten muss — nicht der Verdachtsfall.
+    expect(pruefeAbweichung(9.5, 4.0, 40)[0]?.gewicht).toBe(1);
+  });
+
+  it("folgt der eingestellten Grenze", () => {
+    const streng = mitVorgaben({ abweichung_punkte: 1 });
+    expect(pruefeAbweichung(6.0, 4.5, 40, streng)).toHaveLength(1);
+  });
+});
+
+describe("pruefe mit den neuen Signalen", () => {
+  const grundlage = {
+    geo: { haltenWegenEntfernung: false, unbekannt: false, begruendung: null } as never,
+    antworten: Object.fromEntries(FRAGEN.map((f, i) => [f.id, ((i % 5) + 1) as never])),
+    abgabenLetzteZehnMinuten: 0,
+    schulenLetzte24Stunden: 0,
+    bewertungenDieserSchuleLetzteStunde: 0,
+    freitextAuffaellig: false,
+    kontoPerEmail: false,
+  };
+
+  it("hält eine schnelle, stark abweichende Bewertung an", () => {
+    const ergebnis = pruefe({
+      ...grundlage,
+      dauerSekunden: 25,
+      eigenerScore: 9.8,
+      schulmittel: 3.2,
+      schulAnzahl: 45,
+    });
+    expect(ergebnis.signale.map((s) => s.art)).toEqual(
+      expect.arrayContaining(["zu_schnell", "abweichung_vom_mittel"]),
+    );
+    expect(ergebnis.halten).toBe(true);
+    expect(ergebnis.grund).toBe("betrug");
+  });
+
+  it("lässt eine abweichende, aber in Ruhe ausgefüllte Bewertung durch", () => {
+    // Die einzelne starke Abweichung allein genügt nicht — sie wiegt 1, die
+    // Halteschwelle liegt bei 3.
+    const ergebnis = pruefe({
+      ...grundlage,
+      dauerSekunden: 420,
+      eigenerScore: 9.8,
+      schulmittel: 3.2,
+      schulAnzahl: 45,
+    });
+    expect(ergebnis.halten).toBe(false);
+  });
+
+  it("folgt der eingestellten Halteschwelle", () => {
+    const kontext = { ...grundlage, dauerSekunden: 420, eigenerScore: 9.8, schulmittel: 3.2, schulAnzahl: 45 };
+    expect(pruefe(kontext, mitVorgaben({ halteschwelle: 1 })).halten).toBe(true);
   });
 });

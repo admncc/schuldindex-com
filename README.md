@@ -65,6 +65,11 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/db/schulzugang.ts` | Anfrage, Einlösung, Sitzung, Handprüfung |
 | `src/domain/aufbewahrung.ts` | Die Fristen als Daten — Grundlage des Aufräumlaufs **und** der Datenschutzerklärung |
 | `src/db/aufraeumen.ts` | Setzt die Fristen um, trocken oder löschend, mit Spur |
+| `src/domain/einstellungen.ts` | Der Katalog der einstellbaren Grenzwerte — Vorgaben, Grenzen, Prüfung |
+| `src/db/einstellungen.ts` | Gespeicherte Abweichungen von den Vorgaben, mit Änderungsverlauf |
+| `src/domain/formularstempel.ts` | Signierter Zeitstempel: warum die Dauer vom Server kommt und nicht aus dem Browser |
+| `src/domain/klickmuster.ts` | Auswertung des Klickverhaltens — und was davon ausdrücklich nicht gespeichert wird |
+| `app/moderation/einstellungen/` | Panel der Leitung: Grenzwerte der Betrugserkennung nachziehen |
 | `src/dienste/umgebung.ts` | Anbindung des Abgabedienstes an Postgres — das einzige SQL außerhalb der Abfrageschicht |
 | `messages/de.json` | Alle Oberflächentexte |
 | `db/migrations/` | Datenbankschema |
@@ -77,12 +82,12 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `scripts/moderator-anlegen.ts` | Legt ein Moderationskonto an, gibt Kennwort und App-URL einmalig aus |
 | `scripts/zusammenfassen.ts` | Erzeugt die Freitext-Zusammenfassungen der fälligen Schulen |
 | `scripts/verlosung-ziehen.ts` | Zieht die monatliche Verlosung, `--pruefen` rechnet sie nach |
-| `scripts/aufraeumen.ts` | Täglicher Aufräumlauf, `--trocken` zählt nur |
+| `scripts/aufraeumen.ts` | Aufräumlauf nach den Fristen; zählt nur, `--loeschen` löscht wirklich |
 | `scripts/aufraeumen.test.ts` | Prüft an der Datenbank, dass keine Frist zu viel löscht |
 
 ```bash
 npm install
-npm test        # 538 Tests (31 davon gegen die eingespielten Echtdaten)
+npm test        # 608 Tests (33 davon gegen die eingespielten Echtdaten)
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000

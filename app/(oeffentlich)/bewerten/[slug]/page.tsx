@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { holeSchule } from "@/db/schulen";
 import { holeFassungZumAendern } from "@/db/konto";
 import { holeAngemeldetesKonto } from "../../konto/sitzung";
+import { erzeugeStempel, stempelText } from "@/domain/formularstempel";
 import { Bewertungsformular } from "./formular";
 
 export async function generateMetadata({
@@ -58,7 +59,15 @@ export default async function Bewertungsseite({
       </section>
 
       <section className="abschnitt">
-        <Bewertungsformular schulSlug={schule.slug} schulname={schule.name} aenderung={aenderung} />
+        {/* Der Stempel wird hier ausgestellt und beim Absenden zurückgeschickt.
+            Aus ihm rechnet der Server die Dauer — eine Angabe des Browsers wäre
+            wertlos (siehe domain/formularstempel.ts). */}
+        <Bewertungsformular
+          schulSlug={schule.slug}
+          schulname={schule.name}
+          aenderung={aenderung}
+          stempel={stempelText(erzeugeStempel())}
+        />
       </section>
     </>
   );

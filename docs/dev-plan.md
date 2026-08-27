@@ -387,6 +387,55 @@ Ergebnis des Feedbacks vom 26.08. und des Abgleichs mit `schulen.de/bewerten/…
 Die Rollenauswahl steht bewusst **an erster Stelle**: sie steuert, welche Folgefelder
 überhaupt erscheinen (Elterneinwilligung, Klassenstufe, Abgangsjahr, Verlosung).
 
+### 7.2 Einstellbare Grenzwerte (`/moderation/einstellungen`)
+
+Die Grenzwerte der Betrugserkennung stehen nicht mehr im Code, sondern in der Datenbank.
+Sechzehn Werte in fünf Gruppen — Tempo, Abweichung, Menge, Ort, Gewichtung —, änderbar
+ausschließlich durch die Leitung, mit Verlauf: wer wann was von welchem auf welchen Wert
+gesetzt hat. Gespeichert wird nur, was von der Vorgabe abweicht; ein Wert, der wieder auf die
+Vorgabe gesetzt wird, verschwindet aus der Tabelle. Gelesen wird bei jeder Abgabe, ohne
+Zwischenspeicher — eine Änderung wirkt sofort und nicht erst nach dem nächsten Neustart.
+
+Der Grund für die Verstellbarkeit ist ein praktischer: Welche Schwelle richtig ist, weiß vor
+dem Betrieb niemand. Zu streng heißt eine überlaufende Warteschlange, zu locker heißt gekaufte
+Bewertungen im Index. Wer nachjustieren will, soll das nicht über einen Deploy tun müssen.
+
+**Zwei Signale sind mit dem Panel dazugekommen:**
+
+1. **Tempo.** Wie lange stand das Formular offen, gemessen an der Zahl der beantworteten
+   Fragen? Die Dauer kommt aus einem **vom Server signierten Zeitstempel**
+   (`domain/formularstempel.ts`), nicht aus dem Browser — sonst schriebe jedes Skript, das den
+   Fragebogen in zwei Sekunden ausfüllt, einfach „acht Minuten“ in die Anfrage. Ohne gültigen
+   Stempel entfällt das Signal, statt zu raten.
+2. **Abweichung vom Schulmittel.** Weicht der Gesamtscore weit vom bisherigen Bild der Schule
+   ab, geht die Bewertung zur Handprüfung. Ausdrücklich **kein** Missbrauchsbeweis: Es kann die
+   eine Person sein, die etwas erlebt hat, das die anderen nicht sehen — genau die Bewertung,
+   für die es dieses Portal gibt. Deshalb hält das Signal an, statt abzulehnen, es wiegt
+   vorgabegemäß nur 1, und es greift erst ab einer Mindestzahl vorhandener Bewertungen.
+
+**Klickmessung.** Jeder Klick auf eine Antwort wird im Formular millisekundengenau erfasst.
+Aus den Abständen entstehen zwei weitere Signale: der mittlere Abstand (zu schnell gelesen)
+und die **Streuung** der Abstände. Die Streuung ist der eigentlich verräterische Befund — ein
+Mensch braucht für die eine Frage zwei Sekunden und für die nächste zehn, ein Skript klickt
+alle 300 Millisekunden. Auch ein *langsames* Skript fällt darüber auf.
+
+Gespeichert wird davon **nicht die Klickfolge**, sondern nur, was aus ihr folgt: Anzahl,
+mittlerer Abstand, Streuung (`db/migrations/0016_klickmuster.sql`). Die Folge selbst wäre ein
+Verhaltensprotokoll — wie lange jemand bei der Frage nach Mobbing gezögert hat, ließe sich
+daraus ablesen; das geht niemanden etwas an, uns eingeschlossen. Der Dienst schneidet sie
+deshalb schon vor dem Aufruf der Speicherschicht ab, damit die nächste Änderung am Einfügen
+sie nicht versehentlich mitschreibt.
+
+Die Abstände kommen aus dem Browser und sind damit fälschbar. Sie werden gegen die vom Server
+gemessene Dauer plausibilisiert: Wer behauptet, acht Minuten geklickt zu haben, während der
+signierte Stempel zwanzig Sekunden sagt, wird nicht geglaubt — dann entfällt die Auswertung.
+
+Alle vier Signale entscheiden nichts. Sie erhöhen die Punktsumme, und ab der eingestellten
+Halteschwelle sieht ein Mensch die Bewertung an. Der Befund von der Abgabe wird mitgespeichert
+(`db/migrations/0015_signale.sql`) und in der Moderation angezeigt, weil er sich nicht neu
+rechnen lässt: Die Grenzwerte sind verstellbar, und was gestern angeschlagen hat, täte es heute
+womöglich nicht mehr.
+
 ---
 
 ## 8. Moderation

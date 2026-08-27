@@ -463,3 +463,22 @@ mark.fehlt {
 }
 .sammelleiste input:not([type]) { min-width: 18rem; flex: 1; }
 .sammelleiste .fussnote { flex-basis: 100%; margin: 0; }
+
+/* ---------- Einstellungen der Betrugserkennung ---------- */
+.einstellungen { display: grid; gap: 1.2rem; }
+.einstellung { border-left: 2px solid var(--linie); padding-left: 0.9rem; }
+.einstellung.abweichend { border-left-color: var(--mittel); }
+.einstellung label { font-weight: 500; font-size: 0.95rem; display: block; margin-bottom: 0.35rem; }
+.einstellung .eingabe { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; font-size: 0.88rem; }
+.einstellung input {
+  width: 7rem; padding: 0.45rem 0.6rem; font: inherit; font-variant-numeric: tabular-nums;
+  border: 1px solid var(--linie-stark); border-radius: var(--radius);
+  background: var(--flaeche); color: var(--schrift);
+}
+.einstellung input:disabled { background: var(--flaeche-2); color: var(--schrift-3); }
+.einstellung .einheit { color: var(--schrift-2); }
+.einstellung .hilfe { font-size: 0.85rem; color: var(--schrift-3); margin: 0.4rem 0 0; max-width: 62ch; line-height: 1.55; }
+
+.signale { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: 0.5rem; font-size: 0.92rem; }
+.signale li { display: flex; gap: 0.6rem; align-items: baseline; }
+.signale .plakette { min-width: 2.2rem; justify-content: center; }

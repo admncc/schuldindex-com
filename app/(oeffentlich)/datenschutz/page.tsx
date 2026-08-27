@@ -101,13 +101,35 @@ export default function Datenschutzseite() {
         </tbody>
       </table>
 
-      <h3>3.2 Was wir ausdrücklich nicht speichern</h3>
+      <h3>3.2 Wie wir automatisierten Missbrauch erkennen</h3>
+      <p>
+        Damit gekaufte und massenhaft erzeugte Bewertungen auffallen, messen wir beim Ausfüllen
+        zwei Dinge: wie lange das Formular offenstand und wie viel Zeit zwischen zwei Antworten
+        verging — letzteres auf die Millisekunde genau. Gespeichert wird davon <strong>nicht der
+        Ablauf deiner Klicks</strong>, sondern nur, was sich daraus ergibt: wie viele Abstände es
+        waren, wie groß der mittlere Abstand war und wie stark die Abstände schwankten. Welche
+        Frage du wie lange bedacht hast, wird nirgends festgehalten.
+      </p>
+      <p>
+        Diese Kennzahlen entscheiden nichts. Fallen sie auf — etwa weil alle Abstände auf die
+        Millisekunde gleich sind, was bei Menschen nicht vorkommt —, wird deine Bewertung einem
+        Menschen aus unserer Redaktion vorgelegt, statt automatisch veröffentlicht oder abgelehnt
+        zu werden. Rechtsgrundlage ist unser berechtigtes Interesse an belastbaren Bewertungen
+        (Art. 6 Abs. 1 lit. f DSGVO). Eine automatisierte Entscheidung im Sinne von Art. 22 DSGVO
+        findet nicht statt.
+      </p>
+
+      <h3>3.3 Was wir ausdrücklich nicht speichern</h3>
       <ul>
         <li>
           <strong>Deine IP-Adresse bei der Abgabe.</strong> Aus ihr wird einmalig die Entfernung
           zur Schule berechnet ({SCHWELLE_KM} Kilometer sind die Schwelle für eine Prüfung durch
           Menschen); danach wird sie verworfen. In der Datenbank steht die Zahl der Kilometer,
           nicht die Adresse.
+        </li>
+        <li>
+          <strong>Den Ablauf deiner Klicks.</strong> Aus den Abständen zwischen deinen Antworten
+          entstehen drei Kennzahlen (siehe 3.2); die Folge selbst verlässt deinen Browser nicht.
         </li>
         <li>
           <strong>Deinen Namen.</strong> Wir fragen ihn nicht ab. Bewertungen erscheinen ohne
@@ -120,7 +142,7 @@ export default function Datenschutzseite() {
         </li>
       </ul>
 
-      <h3>3.3 Wenn du unter 16 Jahre alt bist</h3>
+      <h3>3.4 Wenn du unter 16 Jahre alt bist</h3>
       <p>
         Nach Art. 8 DSGVO ist die Einwilligung Minderjähriger unter 16 Jahren nur mit Zustimmung
         der Sorgeberechtigten wirksam. Deshalb musst du beim Bewerten bestätigen, dass deine

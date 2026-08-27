@@ -2,6 +2,27 @@ import { NextResponse } from "next/server";
 import { bewertungAbgeben } from "@/dienste/bewertungAbgeben";
 import { umgebungMitDatenbank } from "@/dienste/umgebung";
 import type { Bewertungseingabe } from "@/domain/bewertungseingabe";
+import { pruefeStempel } from "@/domain/formularstempel";
+import { MAX_ABSTAENDE } from "@/domain/klickmuster";
+
+type Anfragekoerper = Bewertungseingabe & { stempel?: string; klickabstaende?: unknown };
+
+/**
+ * Nimmt die gemeldeten Klickabstände entgegen — und nur das, was auch eine
+ * Zahlenreihe ist.
+ *
+ * Alles hier kommt aus dem Browser und ist damit beliebig fälschbar. Geprüft
+ * wird deshalb nur die Form; ob die Reihe zur Wirklichkeit passt, entscheidet
+ * später der Vergleich mit der vom Server gemessenen Dauer
+ * (`domain/klickmuster.ts`).
+ */
+function klickabstaende(wert: unknown): number[] | null {
+  if (!Array.isArray(wert)) return null;
+  const zahlen = wert
+    .slice(0, MAX_ABSTAENDE)
+    .filter((a): a is number => typeof a === "number" && Number.isFinite(a) && a >= 0);
+  return zahlen.length > 0 ? zahlen : null;
+}
 
 /**
  * Nimmt eine Bewertung entgegen.
@@ -10,9 +31,9 @@ import type { Bewertungseingabe } from "@/domain/bewertungseingabe";
  * zur Anbindung gehört: Anfrage lesen, Umgebung bauen, Antwort formen.
  */
 export async function POST(anfrage: Request): Promise<NextResponse> {
-  let eingabe: Bewertungseingabe;
+  let eingabe: Anfragekoerper;
   try {
-    eingabe = (await anfrage.json()) as Bewertungseingabe;
+    eingabe = (await anfrage.json()) as Anfragekoerper;
   } catch {
     return NextResponse.json(
       { ok: false, fehler: [{ feld: "", meldung: "Die Anfrage war nicht lesbar." }] },
@@ -27,8 +48,17 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
   // dann in die Moderation, statt ungeprüft durchzugehen.
   const ortung = async () => null;
 
+  // Die Dauer rechnet der Server aus seinem eigenen Stempel — nicht aus einer
+  // Zahl, die die Anfrage mitbringt. Ohne gültigen Stempel bleibt sie leer, und
+  // das Tempo-Signal entfällt; abgewiesen wird deswegen niemand.
+  const stempel = typeof eingabe.stempel === "string" ? pruefeStempel(eingabe.stempel) : null;
+  const dauerSekunden = stempel?.ok ? stempel.dauerSekunden : null;
+
   try {
-    const ergebnis = await bewertungAbgeben(eingabe, umgebungMitDatenbank(basis, ortung));
+    const ergebnis = await bewertungAbgeben(
+      { ...eingabe, dauerSekunden, klickabstaende: klickabstaende(eingabe.klickabstaende) },
+      umgebungMitDatenbank(basis, ortung),
+    );
     return NextResponse.json(ergebnis, { status: ergebnis.ok ? 201 : 422 });
   } catch (fehler) {
     console.error("Bewertung konnte nicht angenommen werden:", fehler);

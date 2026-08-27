@@ -12,10 +12,16 @@
 
 import type { Antworten } from "./scoring";
 import { FRAGEN, KEINE_ANGABE } from "./fragebogen";
+import { VORGABEN, zahl, type Einstellungen } from "./einstellungen";
+import { pruefeKlickmuster, type Klickauswertung } from "./klickmuster";
 import type { Geobefund } from "./geopruefung";
 
 export type Signalart =
   | "entfernung"
+  | "zu_schnell"
+  | "zu_schnell_geklickt"
+  | "gleichmaessige_klicks"
+  | "abweichung_vom_mittel"
   | "ort_unbekannt"
   | "zu_viele_von_einer_quelle"
   | "kontakt_mehrfach"
@@ -32,12 +38,38 @@ export interface Signal {
   readonly erlaeuterung: string;
 }
 
-/** Ab dieser Summe geht die Bewertung in die Moderation. */
+/**
+ * Ab dieser Summe geht die Bewertung in die Moderation.
+ *
+ * Der Vorgabewert; im Betrieb kommt die Zahl aus den Einstellungen
+ * (`/moderation/einstellungen`). Er bleibt hier, weil die Tests und jede
+ * Aufrufstelle ohne Datenbank damit auskommen müssen.
+ */
 export const HALTESCHWELLE = 3;
 
 export interface Pruefkontext {
   readonly geo: Geobefund;
   readonly antworten: Antworten;
+  /**
+   * Wie lange das Formular offenstand — vom Server gemessen, nicht vom Browser
+   * gemeldet (`domain/formularstempel.ts`). `null`, wenn kein gültiger Stempel
+   * vorlag; dann entfällt das Signal, statt zu raten.
+   */
+  readonly dauerSekunden?: number | null | undefined;
+  /**
+   * Der Gesamtscore dieser Bewertung und der bisherige Stand der Schule, beide
+   * auf der Anzeigeskala 0–10. Ohne genug Bewertungen hat die Schule kein
+   * Mittel, von dem jemand abweichen könnte.
+   */
+  readonly eigenerScore?: number | null | undefined;
+  readonly schulmittel?: number | null | undefined;
+  readonly schulAnzahl?: number | undefined;
+  /**
+   * Abstände zwischen den Antwortklicks in Millisekunden, aus dem Browser.
+   * Werden gegen die vom Server gemessene Dauer plausibilisiert; die Klickfolge
+   * selbst wird nirgends gespeichert (`domain/klickmuster.ts`).
+   */
+  readonly klickabstaende?: readonly number[] | null | undefined;
   /** Bewertungen von derselben Quelle in den letzten zehn Minuten. */
   readonly abgabenLetzteZehnMinuten: number;
   /** Verschiedene Schulen, die dieser Kontakt in den letzten 24 Stunden bewertet hat. */
@@ -56,9 +88,20 @@ export interface Pruefergebnis {
   readonly halten: boolean;
   /** Welcher Haltezustand — Geo hat Vorrang, weil er die klarste Begründung trägt. */
   readonly grund: "geo" | "betrug" | null;
+  /**
+   * Die drei Kennzahlen aus dem Klickverhalten — das einzige, was davon
+   * aufbewahrt wird. `null`, wenn nichts gemessen wurde oder die gemeldeten
+   * Abstände nicht zur Serverzeit passten (`domain/klickmuster.ts`).
+   */
+  readonly klick: Klickauswertung | null;
 }
 
-/** Grenzwerte, im Betrieb nachziehbar. */
+/**
+ * Grenzwerte als Vorgabe.
+ *
+ * Nachziehbar über `/moderation/einstellungen`; diese Werte gelten, solange dort
+ * nichts anderes steht (siehe `domain/einstellungen.ts`).
+ */
 export const GRENZEN = {
   abgabenJeZehnMinuten: 5,
   schulenJeTag: 3,
@@ -105,7 +148,80 @@ export function pruefeAntwortmuster(antworten: Antworten): Signal[] {
   return signale;
 }
 
-export function pruefe(k: Pruefkontext): Pruefergebnis {
+/**
+ * Zählt die tatsächlich beantworteten Fragen.
+ *
+ * „Kann ich nicht beurteilen“ zählt mit: Es ist ein Klick wie jeder andere, und
+ * für das Tempo geht es genau darum, wie viele Klicks in welcher Zeit fielen.
+ */
+function beantworteteFragen(antworten: Antworten): number {
+  return FRAGEN.filter((f) => antworten[f.id] !== undefined).length;
+}
+
+/**
+ * Zu schnell durchgeklickt.
+ *
+ * Die Dauer kommt vom Server (signierter Stempel), nicht aus dem Browser — sonst
+ * schriebe jedes Skript, das den Fragebogen in zwei Sekunden ausfüllt, einfach
+ * „acht Minuten“ in die Anfrage.
+ */
+export function pruefeTempo(
+  dauerSekunden: number | null | undefined,
+  antworten: Antworten,
+  e: Einstellungen = VORGABEN,
+): Signal[] {
+  if (dauerSekunden === null || dauerSekunden === undefined) return [];
+
+  const fragen = beantworteteFragen(antworten);
+  if (fragen < zahl(e, "tempo_mindestfragen")) return [];
+
+  const jeFrage = dauerSekunden / fragen;
+  if (jeFrage >= zahl(e, "tempo_sekunden_je_frage")) return [];
+
+  const gewicht = Math.min(3, Math.max(1, Math.round(zahl(e, "tempo_gewicht")))) as 1 | 2 | 3;
+  return [
+    {
+      art: "zu_schnell",
+      gewicht,
+      erlaeuterung: `${fragen} Fragen in ${Math.round(dauerSekunden)} Sekunden — ${jeFrage.toFixed(1)} je Frage`,
+    },
+  ];
+}
+
+/**
+ * Weit weg vom bisherigen Bild der Schule.
+ *
+ * Ausdrücklich **kein** Beweis für Missbrauch: Es kann die eine Person sein, die
+ * etwas erlebt hat, das die anderen nicht sehen — genau die Bewertung, für die
+ * es ein solches Portal gibt. Deshalb hält das Signal die Bewertung an, statt
+ * sie abzulehnen, und deshalb wiegt es vorgabegemäß nur 1.
+ */
+export function pruefeAbweichung(
+  eigenerScore: number | null | undefined,
+  schulmittel: number | null | undefined,
+  schulAnzahl: number,
+  e: Einstellungen = VORGABEN,
+): Signal[] {
+  if (eigenerScore == null || schulmittel == null) return [];
+  if (schulAnzahl < zahl(e, "abweichung_mindestbewertungen")) return [];
+
+  const abstand = Math.abs(eigenerScore - schulmittel);
+  if (abstand < zahl(e, "abweichung_punkte")) return [];
+
+  const gewicht = Math.min(3, Math.max(1, Math.round(zahl(e, "abweichung_gewicht")))) as 1 | 2 | 3;
+  const richtung = eigenerScore > schulmittel ? "über" : "unter";
+  return [
+    {
+      art: "abweichung_vom_mittel",
+      gewicht,
+      erlaeuterung:
+        `${abstand.toFixed(1)} Punkte ${richtung} dem Mittel dieser Schule ` +
+        `(${eigenerScore.toFixed(1)} gegen ${schulmittel.toFixed(1)} aus ${schulAnzahl} Bewertungen)`,
+    },
+  ];
+}
+
+export function pruefe(k: Pruefkontext, e: Einstellungen = VORGABEN): Pruefergebnis {
   const signale: Signal[] = [];
 
   if (k.geo.haltenWegenEntfernung) {
@@ -116,7 +232,7 @@ export function pruefe(k: Pruefkontext): Pruefergebnis {
     });
   }
 
-  if (k.abgabenLetzteZehnMinuten > GRENZEN.abgabenJeZehnMinuten) {
+  if (k.abgabenLetzteZehnMinuten > zahl(e, "abgaben_je_zehn_minuten")) {
     signale.push({
       art: "zu_viele_von_einer_quelle",
       gewicht: 3,
@@ -124,7 +240,7 @@ export function pruefe(k: Pruefkontext): Pruefergebnis {
     });
   }
 
-  if (k.schulenLetzte24Stunden > GRENZEN.schulenJeTag) {
+  if (k.schulenLetzte24Stunden > zahl(e, "schulen_je_tag")) {
     // Wer an einem Tag fünf verschiedene Schulen bewertet, kennt sie kaum alle.
     signale.push({
       art: "kontakt_mehrfach",
@@ -133,7 +249,7 @@ export function pruefe(k: Pruefkontext): Pruefergebnis {
     });
   }
 
-  if (k.bewertungenDieserSchuleLetzteStunde > GRENZEN.bewertungenJeSchuleUndStunde) {
+  if (k.bewertungenDieserSchuleLetzteStunde > zahl(e, "bewertungen_je_schule_und_stunde")) {
     // Kann auch eine Schulklasse im Unterricht sein — deshalb nur Gewicht 2.
     signale.push({
       art: "zeitlich_gehaeuft",
@@ -161,9 +277,13 @@ export function pruefe(k: Pruefkontext): Pruefergebnis {
   }
 
   signale.push(...pruefeAntwortmuster(k.antworten));
+  signale.push(...pruefeTempo(k.dauerSekunden, k.antworten, e));
+  const klick = pruefeKlickmuster(k.klickabstaende, k.dauerSekunden, e);
+  signale.push(...klick.signale);
+  signale.push(...pruefeAbweichung(k.eigenerScore, k.schulmittel, k.schulAnzahl ?? 0, e));
 
   const punkte = signale.reduce((summe, s) => summe + s.gewicht, 0);
-  const halten = punkte >= HALTESCHWELLE;
+  const halten = punkte >= zahl(e, "halteschwelle");
   const wegenGeo = signale.some((s) => s.art === "entfernung" || s.art === "ort_unbekannt");
 
   return {
@@ -173,5 +293,6 @@ export function pruefe(k: Pruefkontext): Pruefergebnis {
     // Geo hat Vorrang: „zu weit entfernt“ lässt sich der bewertenden Person
     // erklären, „auffälliges Muster“ nicht, ohne die Prüfung zu verraten.
     grund: !halten ? null : wegenGeo ? "geo" : "betrug",
+    klick: klick.auswertung,
   };
 }

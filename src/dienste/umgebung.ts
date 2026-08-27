@@ -14,6 +14,7 @@ import { aktualisiereAggregat } from "../db/aggregate";
 import type { Zustand } from "../domain/bewertungsstatus";
 import { baueBestaetigung, sende } from "../versand/nachricht";
 import { versandkette } from "../versand/wege";
+import { holeEinstellungen } from "../db/einstellungen";
 import type { Kontaktart } from "../domain/kontakt";
 import type { Punkt } from "../domain/geopruefung";
 
@@ -97,14 +98,17 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
           insert into bewertungen (
             schule_id, konto_id, rolle, klassenstufe, abgangsjahr, status,
             datenschutz_einwilligung_am, eltern_einwilligung_am, einwilligung_fassung,
-            geo_entfernung_km, geo_unbekannt, verlosung_teilnahme
+            geo_entfernung_km, geo_unbekannt, verlosung_teilnahme, signale, signalpunkte,
+            klickmuster
           ) values (
             ${daten.schuleId}, ${daten.kontoId}, ${daten.eingabe.rolle!}::rolle,
             ${daten.eingabe.klassenstufe}, ${daten.eingabe.abgangsjahr},
             ${daten.status}::bewertungsstatus,
             now(), ${daten.eingabe.elternEinwilligung ? sql`now()` : null}, 'v1',
             ${daten.geoEntfernungKm}, ${daten.geoUnbekannt},
-            ${daten.eingabe.verlosungTeilnahme}
+            ${daten.eingabe.verlosungTeilnahme},
+            ${sql.json(daten.signale as never)}, ${daten.signalpunkte},
+            ${daten.klick === null ? null : sql.json(daten.klick as never)}
           ) returning id
         `;
 
@@ -133,6 +137,27 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
 
         return { bewertungId: bewertung!.id };
       });
+    },
+
+    holeEinstellungen,
+
+    /**
+     * Der bisherige Stand der Schule, auf der Anzeigeskala 0–10.
+     *
+     * Aus `schul_aggregate` und damit aus den **freigegebenen** Bewertungen:
+     * Eine gehaltene oder abgelehnte Bewertung soll das Mittel nicht
+     * mitbestimmen, gegen das die nächste geprüft wird. Sonst zöge eine Welle
+     * das Mittel zu sich hin und machte die echten Bewertungen verdächtig.
+     */
+    async holeSchulmittel(schuleId) {
+      const [zeile] = await sql<{ mittel: string | null; anzahl: number }[]>`
+        select gesamtscore as mittel, coalesce(anzahl, 0) as anzahl
+        from schul_aggregate where schule_id = ${schuleId}
+      `;
+      return {
+        mittel: zeile?.mittel == null ? null : Number(zeile.mittel),
+        anzahl: zeile?.anzahl ?? 0,
+      };
     },
 
     async sendeBestaetigung(empfaenger, art, token) {
