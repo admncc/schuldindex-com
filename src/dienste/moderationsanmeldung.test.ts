@@ -19,7 +19,7 @@ beforeAll(async () => {
 interface Aufzeichnung {
   readonly protokoll: { aktion: string; moderatorId: string | null; begruendung: string }[];
   readonly fehlversuche: string[];
-  readonly anmeldungen: { id: string; schritt: number }[];
+  readonly anmeldungen: { id: string; schritt: number | null }[];
   readonly sitzungen: { id: string; hash: string }[];
 }
 
@@ -62,6 +62,48 @@ function konto(abweichung: Partial<Moderatorkonto> = {}): Moderatorkonto {
 }
 
 const richtig = () => ({ kennung: "anna", passwort: PASSWORT, code: totp(GEHEIMNIS, JETZT) });
+
+describe("Ohne zweiten Faktor", () => {
+  // Abschaltbar für den Testbetrieb (MODERATION_OHNE_2FA=1). Was dann noch
+  // greifen muss: Kennwort, Sperre, Stilllegung — und der gespeicherte
+  // TOTP-Schritt darf nicht überschrieben werden.
+  const ohne = { zweiterFaktorPflicht: false };
+
+  it("lässt mit Kennwort allein herein", async () => {
+    const { zugang, auf } = zugangMit(konto());
+    const ergebnis = await melde(zugang, { kennung: "anna", passwort: PASSWORT, code: "" }, JETZT, ohne);
+
+    expect(ergebnis.ok).toBe(true);
+    expect(auf.protokoll[0]?.begruendung).toBe("ohne zweiten Faktor");
+  }, 20_000);
+
+  it("rührt den verbrauchten Schritt nicht an", async () => {
+    // Sonst gälte ein alter Code nach dem Wiedereinschalten noch einmal.
+    const { zugang, auf } = zugangMit(konto({ totpLetzterSchritt: 42 }));
+    await melde(zugang, { kennung: "anna", passwort: PASSWORT, code: "" }, JETZT, ohne);
+    expect(auf.anmeldungen).toEqual([{ id: "m1", schritt: null }]);
+  }, 20_000);
+
+  it("weist ein falsches Kennwort weiterhin ab", async () => {
+    const { zugang, auf } = zugangMit(konto());
+    const ergebnis = await melde(zugang, { kennung: "anna", passwort: "falsch", code: "" }, JETZT, ohne);
+    expect(ergebnis.ok).toBe(false);
+    expect(auf.fehlversuche).toEqual(["m1"]);
+  }, 20_000);
+
+  it("lässt ein stillgelegtes Konto nicht herein", async () => {
+    const { zugang } = zugangMit(konto({ aktiv: false }));
+    const ergebnis = await melde(zugang, { kennung: "anna", passwort: PASSWORT, code: "" }, JETZT, ohne);
+    expect(ergebnis.ok).toBe(false);
+  }, 20_000);
+
+  it("verlangt den Code, solange nichts anderes gesagt ist", async () => {
+    // Die Vorgabe ist an: ein vergessener Eintrag schaltet nichts ab.
+    const { zugang } = zugangMit(konto());
+    const ergebnis = await melde(zugang, { kennung: "anna", passwort: PASSWORT, code: "" }, JETZT);
+    expect(ergebnis.ok).toBe(false);
+  }, 20_000);
+});
 
 describe("melde", () => {
   it("lässt mit Kennwort und Code herein", async () => {

@@ -37,12 +37,15 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/import/normalisiere.ts` | Rohdatensatz → Schule: Adresse, Koordinate samt Reparatur vertauschter Werte, Suchtext |
 | `src/import/dubletten.ts` | Zusammenführung mehrfach gelieferter Schulen, Standorte bleiben erhalten |
 | `src/db/schulsuche.ts` | Autovervollständigung, unscharfe Suche, Umkreissuche, Filter |
+| `app/(oeffentlich)/suchfeld.tsx` | Suchfeld mit Vorschlagsliste — Tastaturbedienung, funktioniert auch ohne JavaScript |
+| `src/domain/suchhervorhebung.ts` | Markiert die Fundstelle im Vorschlag — und markiert nichts, wenn es keine gibt |
 | `app/(oeffentlich)/` | Öffentliches Portal: Startseite, Suche, Schulprofil, Bewertungsformular, Bestätigung |
 | `app/moderation/` | Interne Oberfläche: Anmeldung mit zweitem Faktor, Warteschlange, Detailansicht, Entscheidungen |
 | `src/domain/totp.ts` | Zweiter Faktor nach RFC 6238, geprüft gegen die Testvektoren des RFC |
 | `src/domain/anmeldung.ts` | Kennwortabdruck (scrypt), Sitzungstoken, Sperre nach Fehlversuchen |
 | `src/domain/moderation.ts` | Was eine Entscheidung braucht: Ablehnungsgründe, Dringlichkeit, Alarme |
 | `src/dienste/moderationsanmeldung.ts` | Der Anmeldevorgang, ohne Datenbank geschrieben und dort geprüft |
+| `src/domain/zweiterfaktor.ts` | Schalter für den zweiten Faktor — an, solange nichts anderes gesetzt ist |
 | `src/db/moderation.ts` | Warteschlange, Vorgang, Entscheidung, Protokoll |
 | `src/db/aggregate.ts` | Neuberechnung der Schulaggregate bei jeder Freigabe |
 | `src/ki/vorlage.ts` | Auftrag an das Modell: Systemanweisung und abgegrenzter Bewertungsblock |
@@ -87,7 +90,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 
 ```bash
 npm install
-npm test        # 611 Tests (34 davon gegen die eingespielten Echtdaten)
+npm test        # 624 Tests (34 davon gegen die eingespielten Echtdaten)
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000

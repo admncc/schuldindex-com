@@ -387,6 +387,28 @@ Ergebnis des Feedbacks vom 26.08. und des Abgleichs mit `schulen.de/bewerten/…
 Die Rollenauswahl steht bewusst **an erster Stelle**: sie steuert, welche Folgefelder
 überhaupt erscheinen (Elterneinwilligung, Klassenstufe, Abgangsjahr, Verlosung).
 
+### 7.1.1 Suche mit Vorschlagsliste
+
+Die Suche ist der erste Kontakt mit dem Portal; wer seine Schule nicht findet, sieht den Rest
+nie. Seit dem 27.08. schlägt das Suchfeld ab dem zweiten Zeichen Schulen vor
+(`app/(oeffentlich)/suchfeld.tsx`, `app/api/schulen/vorschlaege/`), höchstens acht Stück,
+Präfixtreffer zuerst — die Abfrage dafür stand schon in `db/schulsuche.ts` und war nur an keine
+Oberfläche angeschlossen.
+
+Zwei Festlegungen sind wichtiger als sie aussehen:
+
+- **Darunter bleibt ein gewöhnliches GET-Formular auf `/schulen`.** Ohne JavaScript — nicht
+  geladen, abgeschaltet, am schlechten Mobilfunkanschluss gescheitert — sucht das Portal
+  unverändert weiter, nur ohne Vorschläge.
+- **Bedienbar mit der Tastatur** nach dem Combobox-Muster der WAI-ARIA-Praxis: Pfeiltasten
+  wandern, Enter übernimmt den markierten Vorschlag, Escape schließt, Enter ohne Markierung
+  bleibt das gewohnte Absenden.
+
+Die Markierung der Fundstelle darf nicht raten: Der Suchtext der Datenbank führt jeden Begriff
+zusätzlich umlautbereinigt, „gruenewald“ findet also „Grünewald“, obwohl der getippte Begriff
+im angezeigten Namen gar nicht vorkommt. Dann wird nichts markiert
+(`domain/suchhervorhebung.ts`).
+
 ### 7.2 Einstellbare Grenzwerte (`/moderation/einstellungen`)
 
 Die Grenzwerte der Betrugserkennung stehen nicht mehr im Code, sondern in der Datenbank.
@@ -460,6 +482,15 @@ womöglich nicht mehr.
 ## 8. Moderation
 
 Interne Oberfläche unter `/moderation`, auf Deutsch, Zugang nur mit Login + 2FA (TOTP).
+
+> **Schalter seit 27.08.2026:** Mit `MODERATION_OHNE_2FA=1` genügen Kennung und Kennwort. Der
+> Schalter ist für den Testbetrieb gedacht, wenn keine Authenticator-App zur Hand ist; die
+> Vorgabe bleibt „zweiter Faktor an“, ein vergessener Eintrag schaltet nichts ab. Solange er
+> gesetzt ist, steht auf jeder Seite der Moderation ein Hinweis darauf — abgeschaltete
+> Sicherheit soll nicht in Vergessenheit geraten. Für den Echtbetrieb ist ein Kennwort allein
+> zu wenig: Dieses Panel entschlüsselt Kontaktdaten, gibt Bewertungen frei und verstellt die
+> Schwellen der Betrugserkennung. Das TOTP-Geheimnis der Konten bleibt gespeichert, das
+> Wiedereinschalten kostet nichts.
 
 - **Warteschlange:** Filter nach Status, Zeitraum, Bundesland, Schule; Sortierung nach Alter.
 - **Detailansicht:** Schulstammdaten, Antworten je Kategorie, Freitexte, Entfernung in km,

@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { zaehleSchulen } from "@/db/schulen";
+import { Suchfeld } from "./suchfeld";
 
 export default async function Startseite() {
   const t = await getTranslations("startseite");
@@ -11,18 +12,13 @@ export default async function Startseite() {
         <h1>{t("titel")}</h1>
         <p className="einleitung">{t("untertitel")}</p>
 
-        {/* Bewusst ein einfaches Formular: die Suche muss auch dann arbeiten,
-            wenn JavaScript nicht lädt. */}
-        <form className="suchzeile" action="/schulen" method="get">
-          <input
-            type="search"
-            name="q"
-            placeholder={t("suchfeld")}
-            aria-label={t("suchfeld")}
-            autoComplete="off"
-          />
-          <button className="knopf" type="submit">{t("suchknopf")}</button>
-        </form>
+        {/* Die Vorschläge sind eine Zugabe: Darunter bleibt ein gewöhnliches
+            GET-Formular, das auch ohne JavaScript sucht. */}
+        <Suchfeld
+          platzhalter={t("suchfeld")}
+          beschriftung={t("suchfeld")}
+          knopftext={t("suchknopf")}
+        />
 
         <p className="bestandshinweis">{t("schulenImBestand", { anzahl })}</p>
       </section>

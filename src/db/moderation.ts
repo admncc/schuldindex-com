@@ -69,7 +69,11 @@ export const zugang: Zugang = {
     await sql`
       update moderatoren
       set fehlversuche = 0, letzter_fehlversuch_am = null,
-          letzte_anmeldung_am = ${jetzt}, totp_letzter_schritt = ${schritt}
+          letzte_anmeldung_am = ${jetzt},
+          -- Ohne verbrauchten Code bleibt der gespeicherte Schritt stehen: Er
+          -- verhindert, dass ein alter Code nach dem Wiedereinschalten des
+          -- zweiten Faktors noch einmal gilt.
+          totp_letzter_schritt = ${schritt === null ? sql`totp_letzter_schritt` : schritt}
       where id = ${id}
     `;
   },

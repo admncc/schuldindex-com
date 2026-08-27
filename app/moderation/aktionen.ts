@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { sitzungscookie, SITZUNGSCOOKIE_NAMEN } from "@/domain/anmeldung";
 import { melde } from "@/dienste/moderationsanmeldung";
+import { zweiterFaktorPflicht } from "@/domain/zweiterfaktor";
 import {
   beendeSitzung,
   entscheide,
@@ -32,11 +33,16 @@ export interface Anmeldezustand {
 
 export async function anmelden(_vorher: Anmeldezustand, formular: FormData): Promise<Anmeldezustand> {
   const kennung = String(formular.get("kennung") ?? "");
-  const ergebnis = await melde(zugang, {
-    kennung,
-    passwort: String(formular.get("passwort") ?? ""),
-    code: String(formular.get("code") ?? ""),
-  });
+  const ergebnis = await melde(
+    zugang,
+    {
+      kennung,
+      passwort: String(formular.get("passwort") ?? ""),
+      code: String(formular.get("code") ?? ""),
+    },
+    new Date(),
+    { zweiterFaktorPflicht: zweiterFaktorPflicht() },
+  );
 
   if (!ergebnis.ok) return { meldung: ergebnis.meldung, kennung };
 

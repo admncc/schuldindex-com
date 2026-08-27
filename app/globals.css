@@ -491,3 +491,26 @@ mark.fehlt {
   font-size: 0.8rem; line-height: 1.7; word-break: break-word;
   max-height: 12rem; overflow-y: auto;
 }
+
+/* ---------- Autovervollständigung ---------- */
+.vorschlagsfeld { position: relative; flex: 1; }
+.vorschlagsfeld input { width: 100%; }
+.vorschlaege {
+  position: absolute; top: calc(100% + 0.35rem); left: 0; right: 0; z-index: 20;
+  list-style: none; margin: 0; padding: 0.3rem;
+  background: var(--flaeche); border: 1px solid var(--linie-stark);
+  border-radius: var(--radius); box-shadow: 0 10px 30px rgb(0 0 0 / 0.12);
+  max-height: 22rem; overflow-y: auto;
+}
+.vorschlag {
+  display: grid; gap: 0.15rem; padding: 0.55rem 0.7rem;
+  border-radius: var(--radius); cursor: pointer;
+}
+.vorschlag.markiert { background: var(--flaeche-2); }
+.vorschlag .titel { font-weight: 500; }
+.vorschlag .beiwerk { font-size: 0.85rem; color: var(--schrift-3); }
+.vorschlag mark { background: transparent; color: var(--akzent); font-weight: 600; }
+.vorschlag.hinweiszeile {
+  cursor: default; font-size: 0.8rem; color: var(--schrift-3);
+  border-top: 1px solid var(--linie); border-radius: 0; margin-top: 0.2rem; padding-top: 0.5rem;
+}

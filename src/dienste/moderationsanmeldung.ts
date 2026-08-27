@@ -34,8 +34,15 @@ export interface Moderatorkonto {
 export interface Zugang {
   findeModerator(kennung: string): Promise<Moderatorkonto | null>;
   merkeFehlversuch(id: string, jetzt: Date): Promise<void>;
-  /** Setzt die Fehlversuche zurück und hält den verbrauchten TOTP-Schritt fest. */
-  merkeAnmeldung(id: string, schritt: number, jetzt: Date): Promise<void>;
+  /**
+   * Setzt die Fehlversuche zurück und hält den verbrauchten TOTP-Schritt fest.
+   *
+   * `null` heißt: Es wurde kein Code verbraucht, der gespeicherte Schritt bleibt
+   * unangetastet. Das ist der Fall bei abgeschaltetem zweitem Faktor — ihn dabei
+   * zu überschreiben hieße, einen alten Code nach dem Wiedereinschalten erneut
+   * gültig zu machen.
+   */
+  merkeAnmeldung(id: string, schritt: number | null, jetzt: Date): Promise<void>;
   legeSitzungAn(id: string, hash: string, gueltigBis: Date): Promise<void>;
   protokolliere(eintrag: {
     aktion: "anmeldung" | "anmeldung_fehlgeschlagen";
@@ -55,6 +62,20 @@ export type Anmeldeergebnis =
   | { readonly ok: true; readonly moderator: Moderatorkonto; readonly sitzung: Sitzungstoken }
   | { readonly ok: false; readonly meldung: string };
 
+export interface Anmeldeoptionen {
+  /**
+   * Ob der zweite Faktor verlangt wird.
+   *
+   * Abschaltbar über `MODERATION_OHNE_2FA=1` (Stand 27.08.2026, auf Wunsch des
+   * Auftraggebers für den Testbetrieb). Was dann bleibt, ist ein Kennwort vor
+   * einem Panel, das Klartextkontakte entschlüsselt, Bewertungen freigibt und
+   * die Betrugsschwellen verstellt. Für den Echtbetrieb ist das zu wenig;
+   * deshalb ist der Schalter kein stiller, sondern einer, der in der Oberfläche
+   * sichtbar wird (`app/moderation/layout.tsx`) und dessen Vorgabe an ist.
+   */
+  readonly zweiterFaktorPflicht?: boolean;
+}
+
 /**
  * Meldet an — oder eben nicht.
  *
@@ -70,7 +91,13 @@ export type Anmeldeergebnis =
  *    falschem Code — sonst ließe sich der sechsstellige Code mit bekanntem
  *    Kennwort ungebremst durchprobieren.
  */
-export async function melde(zugang: Zugang, daten: Anmeldedaten, jetzt = new Date()): Promise<Anmeldeergebnis> {
+export async function melde(
+  zugang: Zugang,
+  daten: Anmeldedaten,
+  jetzt = new Date(),
+  optionen: Anmeldeoptionen = {},
+): Promise<Anmeldeergebnis> {
+  const zweiterFaktorPflicht = optionen.zweiterFaktorPflicht ?? true;
   const kennung = daten.kennung.trim();
   const konto = await zugang.findeModerator(kennung);
 
@@ -104,8 +131,9 @@ export async function melde(zugang: Zugang, daten: Anmeldedaten, jetzt = new Dat
 
   // Auch ein stillgelegtes Konto und eines ohne zweiten Faktor durchlaufen die
   // Kennwortprüfung — und scheitern danach mit demselben Text wie alle anderen.
-  const codeErgebnis =
-    konto.totpGeheimnis === null
+  const codeErgebnis = !zweiterFaktorPflicht
+    ? ({ ok: true, schritt: null } as const)
+    : konto.totpGeheimnis === null
       ? ({ ok: false } as const)
       : pruefeCode(konto.totpGeheimnis, daten.code, jetzt, konto.totpLetzterSchritt);
 
@@ -127,13 +155,15 @@ export async function melde(zugang: Zugang, daten: Anmeldedaten, jetzt = new Dat
   }
 
   const sitzung = erzeugeSitzung(jetzt);
-  await zugang.merkeAnmeldung(konto.id, codeErgebnis.schritt, jetzt);
+  await zugang.merkeAnmeldung(konto.id, codeErgebnis.schritt ?? null, jetzt);
   await zugang.legeSitzungAn(konto.id, sitzung.hash, sitzung.gueltigBis);
   await zugang.protokolliere({
     aktion: "anmeldung",
     moderatorId: konto.id,
     kennungVersuch: kennung,
-    begruendung: "",
+    // Im Protokoll steht, ob der zweite Faktor an war. Sonst ließe sich später
+    // nicht mehr feststellen, wie eine Anmeldung zustande kam.
+    begruendung: zweiterFaktorPflicht ? "" : "ohne zweiten Faktor",
   });
 
   return { ok: true, moderator: konto, sitzung };

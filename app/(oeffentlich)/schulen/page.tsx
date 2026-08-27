@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { sucheSchulen } from "@/db/schulen";
 import { BUNDESLAND_LABEL } from "@/domain/bundesland";
 import { Wertungszahl } from "../teile";
+import { Suchfeld } from "../suchfeld";
 
 export const metadata: Metadata = { title: "Schulen finden" };
 
@@ -20,17 +21,12 @@ export default async function Suchseite({
     <>
       <section className="suchblock">
         <h1>{t("suche.titel")}</h1>
-        <form className="suchzeile" action="/schulen" method="get">
-          <input
-            type="search"
-            name="q"
-            defaultValue={eingabe}
-            placeholder={t("startseite.suchfeld")}
-            aria-label={t("startseite.suchfeld")}
-            autoComplete="off"
-          />
-          <button className="knopf" type="submit">{t("startseite.suchknopf")}</button>
-        </form>
+        <Suchfeld
+          vorbelegt={eingabe}
+          platzhalter={t("startseite.suchfeld")}
+          beschriftung={t("startseite.suchfeld")}
+          knopftext={t("startseite.suchknopf")}
+        />
         {eingabe.length >= 2 && (
           <p className="bestandshinweis">{t("suche.treffer", { anzahl: treffer.length })}</p>
         )}

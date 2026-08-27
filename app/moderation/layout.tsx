@@ -1,4 +1,5 @@
 import { holeAngemeldete } from "./sitzung";
+import { OHNE_2FA_HINWEIS, zweiterFaktorPflicht } from "@/domain/zweiterfaktor";
 import { abmelden } from "./aktionen";
 
 /**
@@ -31,6 +32,14 @@ export default async function Moderationslayout({ children }: { children: React.
             <button className="knopf zweitrangig klein">Abmelden</button>
           </form>
         </div>
+      ) : null}
+      {/* Der Hinweis steht auf jeder Seite und nicht nur einmal beim Anmelden:
+          Ein abgeschalteter zweiter Faktor soll niemandem entfallen, der
+          täglich hier arbeitet. */}
+      {angemeldet && !zweiterFaktorPflicht() ? (
+        <p className="alarm" role="status">
+          {OHNE_2FA_HINWEIS}
+        </p>
       ) : null}
       {children}
     </main>
