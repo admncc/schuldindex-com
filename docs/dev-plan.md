@@ -812,6 +812,46 @@ antworten dürfen, ist eine Produktfrage, die noch niemand entschieden hat.
 
 ---
 
+### 10.7 Aufbewahrungsfristen — umgesetzt
+
+Die Datenschutzerklärung nennt seit dem ersten Entwurf Fristen. Ausgeführt hat sie niemand —
+dieselbe Art von Defekt wie das Verlosungskästchen: eine Zusage ohne Empfänger.
+
+Jetzt stehen die Regeln als **Daten** in `domain/aufbewahrung.ts`. Derselbe Katalog steuert den
+Aufräumlauf und füllt die Tabelle in der Datenschutzerklärung; sie können nicht auseinanderlaufen,
+weil es nur eine Quelle gibt. Wer eine Frist ändert, ändert damit die veröffentlichte Angabe.
+
+**Der schwierige Fall ist das Konto.** Die Erklärung verspricht zweierlei, das sich auf den
+ersten Blick ausschließt: „Konto und Kontaktdaten bis 24 Monate nach der letzten Nutzung“ und
+„Bewertungen, solange sie veröffentlicht sind“. Solange die Bewertung am Konto hängt, nimmt
+dessen Löschung sie mit. Aufgelöst wird das, indem das Konto nicht gelöscht, sondern
+**stillgelegt** wird: Kontakt weg, Zeile bleibt. Was übrig bleibt, ist ein Anker ohne Person —
+die Bewertung ist weiter anonym veröffentlicht, und niemand kann sich mehr auf sie berufen, wir
+eingeschlossen. Ein stillgelegtes Konto kommt auch nicht mehr herein: ohne Kontakt gibt es
+nichts, woran man jemanden wiedererkennt.
+
+Als Nutzung zählt jede Anmeldung **und** jede Bewertung. Wer bewertet und sich nie anmeldet,
+benutzt das Portal trotzdem — die erste Fassung hätte solche Konten nach zwei Jahren stillgelegt.
+
+Jeder Lauf hinterlässt eine Zeile in `aufraeumlaeufe`, und `/moderation/aufbewahrung` schlägt
+Alarm, wenn seit 48 Stunden keiner lief. Ohne diese Spur wäre ein Lauf, der seit Monaten mit
+einem Fehler abbricht, von einem, bei dem nichts fällig war, nicht zu unterscheiden.
+
+Geprüft ist der Lauf an der Datenbank (`scripts/aufraeumen.test.ts`), mit der wichtigsten
+Zusicherung zuerst: **ein stillgelegtes Konto nimmt seine Bewertungen nicht mit.** Dabei fiel ein
+Fehler im Test selbst auf — er erkannte seine eigenen Daten am Kontakt-Hash wieder, und genau den
+löscht die Stilllegung. Übrig blieben Karteileichen, die den Durchstichtest zum Scheitern
+brachten.
+
+**Nicht gelöscht** werden veröffentlichte Bewertungen, das Moderationsprotokoll (der Nachweis,
+dass über jede Ablehnung ein Mensch entschied, Art. 20 DSA) und die Ziehungen der Verlosung
+(ohne sie ließe sich keine Ziehung mehr nachrechnen). Das steht so auch auf der Seite.
+
+**Noch offen:** der Lauf gehört in einen Zeitplan. Vor der ersten Ausführung in der Produktion
+gehört ein `--trocken`-Lauf davor — was gelöscht ist, ist weg.
+
+---
+
 ## 11. Arbeitspakete
 
 Sprintlänge 2 Wochen. „AP“ = Arbeitspaket.

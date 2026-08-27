@@ -127,14 +127,17 @@ export async function ziehen(
 export async function gewinnerkontakt(
   ziehungId: string,
 ): Promise<{ klartext: string; verschleiert: string; art: Kontaktart } | null> {
-  const [zeile] = await sql<{ kontakt_chiffre: Uint8Array; kontaktart: Kontaktart }[]>`
+  const [zeile] = await sql<{ kontakt_chiffre: Uint8Array | null; kontaktart: Kontaktart }[]>`
     select k.kontakt_chiffre, k.kontaktart
     from verlosungen v join konten k on k.id = v.gewinner_konto_id
     where v.id = ${ziehungId}
   `;
   if (!zeile) return null;
 
-  const klartext = entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
+  const klartext =
+    zeile.kontakt_chiffre === null
+      ? null
+      : entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
   if (klartext === null) return null;
   return { klartext, verschleiert: verschleiere(klartext, zeile.kontaktart), art: zeile.kontaktart };
 }

@@ -46,14 +46,19 @@ export function kontoumgebung(basisUrl: string): Kontoumgebung {
     },
 
     async sendeAnmeldelink(kontoId, klartext) {
-      const [zeile] = await sql<{ kontakt_chiffre: Uint8Array; kontaktart: Kontaktart }[]>`
+      const [zeile] = await sql<{ kontakt_chiffre: Uint8Array | null; kontaktart: Kontaktart }[]>`
         select kontakt_chiffre, kontaktart from konten where id = ${kontoId}
       `;
       if (!zeile) return false;
 
-      // Lässt sich der Kontakt nicht lesen, gibt es nichts zu senden. Der
-      // Aufrufer meldet trotzdem den immer gleichen Text nach außen.
-      const empfaenger = entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
+      // Lässt sich der Kontakt nicht lesen, gibt es nichts zu senden — das gilt
+      // auch für ein stillgelegtes Konto, dessen Kontakt nach Ablauf der
+      // Aufbewahrungsfrist gelöscht wurde. Der Aufrufer meldet trotzdem den
+      // immer gleichen Text nach außen.
+      const empfaenger =
+        zeile.kontakt_chiffre === null
+          ? null
+          : entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
       if (empfaenger === null) return false;
 
       const nachricht = baueAnmeldelink(basisUrl, klartext, zeile.kontaktart);
@@ -104,12 +109,15 @@ export interface AngemeldetesKonto {
 }
 
 export async function holeKontositzung(klartext: string): Promise<AngemeldetesKonto | null> {
-  const [zeile] = await sql<{ id: string; kontaktart: Kontaktart; kontakt_chiffre: Uint8Array }[]>`
+  const [zeile] = await sql<{ id: string; kontaktart: Kontaktart; kontakt_chiffre: Uint8Array | null }[]>`
     select k.id, k.kontaktart, k.kontakt_chiffre
     from konto_sitzungen s
     join konten k on k.id = s.konto_id
     where s.token_hash = ${hasheKontotoken(klartext, "sitzung")}
       and s.beendet_am is null and s.gueltig_bis > now()
+      -- Ein stillgelegtes Konto kommt nicht mehr herein: der Kontakt ist weg,
+      -- und mit ihm die Grundlage, auf der wir jemanden wiedererkennen.
+      and k.stillgelegt_am is null
   `;
   if (!zeile) return null;
 
@@ -119,7 +127,10 @@ export async function holeKontositzung(klartext: string): Promise<AngemeldetesKo
   // Ein unlesbarer Kontakt sperrt niemanden aus: die Sitzung gilt, angezeigt
   // wird dann eben nichts. Anders herum stünde jemand nach einem
   // Schlüsselwechsel vor seinen eigenen Bewertungen und käme nicht heran.
-  const klar = entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
+  const klar =
+    zeile.kontakt_chiffre === null
+      ? null
+      : entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
   return {
     id: zeile.id,
     kontaktart: zeile.kontaktart,

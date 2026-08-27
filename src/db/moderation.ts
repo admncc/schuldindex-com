@@ -199,7 +199,7 @@ export interface Vorgang {
 
   konto_id: string;
   kontaktart: Kontaktart;
-  kontakt_chiffre: Uint8Array;
+  kontakt_chiffre: Uint8Array | null;
   konto_verifiziert_am: Date | null;
   konto_erstellt_am: Date;
 
@@ -295,14 +295,17 @@ export async function kontaktEinsehen(
   bewertungId: string,
   moderatorId: string,
 ): Promise<{ klartext: string; verschleiert: string } | null> {
-  const [zeile] = await sql<{ kontakt_chiffre: Uint8Array; kontaktart: Kontaktart; schule_id: string }[]>`
+  const [zeile] = await sql<{ kontakt_chiffre: Uint8Array | null; kontaktart: Kontaktart; schule_id: string }[]>`
     select k.kontakt_chiffre, k.kontaktart, b.schule_id
     from bewertungen b join konten k on k.id = b.konto_id
     where b.id = ${bewertungId}
   `;
   if (!zeile) return null;
 
-  const klartext = entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
+  const klartext =
+    zeile.kontakt_chiffre === null
+      ? null
+      : entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
   if (klartext === null) return null;
   await sql`
     insert into moderationsprotokoll (aktion, moderator_id, bewertung_id, schule_id, begruendung)

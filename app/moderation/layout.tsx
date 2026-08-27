@@ -21,6 +21,7 @@ export default async function Moderationslayout({ children }: { children: React.
             <a href="/moderation/meldungen">Meldungen</a>
             <a href="/moderation/verlosung">Verlosung</a>
             <a href="/moderation/schulzugang">Schulzugänge</a>
+            <a href="/moderation/aufbewahrung">Aufbewahrung</a>
           </nav>
           <form action={abmelden} className="anmeldung">
             <span>

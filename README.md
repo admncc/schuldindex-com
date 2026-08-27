@@ -63,6 +63,8 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/db/verlosung.ts` | Teilnahmen, Ziehung, Nachweis |
 | `src/domain/schulzugang.ts` | Nachweis für die Rolle „Schulsupport“ — und warum die Domäne allein nichts belegt |
 | `src/db/schulzugang.ts` | Anfrage, Einlösung, Sitzung, Handprüfung |
+| `src/domain/aufbewahrung.ts` | Die Fristen als Daten — Grundlage des Aufräumlaufs **und** der Datenschutzerklärung |
+| `src/db/aufraeumen.ts` | Setzt die Fristen um, trocken oder löschend, mit Spur |
 | `src/dienste/umgebung.ts` | Anbindung des Abgabedienstes an Postgres — das einzige SQL außerhalb der Abfrageschicht |
 | `messages/de.json` | Alle Oberflächentexte |
 | `db/migrations/` | Datenbankschema |
@@ -75,10 +77,12 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `scripts/moderator-anlegen.ts` | Legt ein Moderationskonto an, gibt Kennwort und App-URL einmalig aus |
 | `scripts/zusammenfassen.ts` | Erzeugt die Freitext-Zusammenfassungen der fälligen Schulen |
 | `scripts/verlosung-ziehen.ts` | Zieht die monatliche Verlosung, `--pruefen` rechnet sie nach |
+| `scripts/aufraeumen.ts` | Täglicher Aufräumlauf, `--trocken` zählt nur |
+| `scripts/aufraeumen.test.ts` | Prüft an der Datenbank, dass keine Frist zu viel löscht |
 
 ```bash
 npm install
-npm test        # 499 Tests (24 davon gegen die eingespielten Echtdaten)
+npm test        # 538 Tests (31 davon gegen die eingespielten Echtdaten)
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000

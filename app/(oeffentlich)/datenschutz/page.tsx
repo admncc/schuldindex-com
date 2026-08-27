@@ -3,6 +3,7 @@ import { betreiber } from "@/recht/betreiber";
 import { GUELTIG_STUNDEN } from "@/domain/verifizierung";
 import { SCHWELLE_KM } from "@/domain/geopruefung";
 import { MINDESTZAHL_FREITEXTE } from "@/ki/pruefung";
+import { fristtext, REGELN } from "@/domain/aufbewahrung";
 import { Angabe, Fehlt } from "../rechtsteile";
 
 export const metadata: Metadata = { title: "Datenschutz" };
@@ -159,26 +160,43 @@ export default function Datenschutzseite() {
       <p>Eine Weitergabe zu Werbezwecken findet nicht statt. Wir verkaufen keine Daten.</p>
 
       <h2>6. Wie lange wir speichern</h2>
-      <ul>
-        <li>
-          <strong>Konto und Kontaktdaten:</strong> bis 24 Monate nach der letzten Nutzung, danach
-          automatische Löschung.
-        </li>
-        <li>
-          <strong>Bewertungen:</strong> solange sie veröffentlicht sind, und ihre Vorfassungen,
-          solange die Bewertung besteht.
-        </li>
-        <li>
-          <strong>Abgelehnte Bewertungen:</strong> sechs Monate, damit Beschwerden nachvollziehbar
-          bleiben (Art. 17 DSA).
-        </li>
-        <li>
-          <strong>Bestätigungslinks:</strong> 30 Tage nach Ablauf.
-        </li>
-        <li>
-          <strong>Meldungen nach Art. 16 DSA:</strong> sechs Monate nach der Entscheidung.
-        </li>
-      </ul>
+      {/* Diese Tabelle kommt aus demselben Regelkatalog, den der tägliche
+          Aufräumlauf abarbeitet (`domain/aufbewahrung.ts`). Sie kann nicht
+          auseinanderlaufen — eine Frist, die hier steht und niemand ausführt,
+          wäre eine Zusage, die wir brechen. */}
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Daten</th>
+            <th scope="col">Frist</th>
+            <th scope="col">Warum</th>
+          </tr>
+        </thead>
+        <tbody>
+          {REGELN.map((r) => (
+            <tr key={r.art}>
+              <td>{r.gegenstand}</td>
+              <td>
+                {fristtext(r.tage)} ab {r.ab}
+              </td>
+              <td>{r.begruendung}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>
+        Veröffentlichte Bewertungen bleiben, solange sie veröffentlicht sind. Wird dein Konto
+        nach {fristtext(REGELN[0]!.tage)} ohne Nutzung stillgelegt, löschen wir deinen Kontakt —
+        deine Bewertungen bleiben anonym bestehen, und auch wir können sie dir danach nicht mehr
+        zuordnen. Willst du sie vorher entfernen, geht das jederzeit selbst unter{" "}
+        <a href="/konto">Deine Bewertungen</a>.
+      </p>
+      <p>
+        Das Protokoll der Moderation — wer wann was entschieden hat — bewahren wir länger auf:
+        Es ist der Nachweis, dass über jede Ablehnung ein Mensch entschieden hat, und wird bei
+        einer Beschwerde nach Art. 20 DSA gebraucht. Personenbezogene Daten der bewertenden
+        Personen stehen nicht darin.
+      </p>
 
       <h2>7. Deine Rechte</h2>
       <p>
