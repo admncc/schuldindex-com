@@ -148,7 +148,8 @@ export default function Datenschutzseite() {
           <strong>Deine IP-Adresse bei der Abgabe.</strong> Aus ihr wird einmalig die Entfernung
           zur Schule berechnet ({SCHWELLE_KM} Kilometer sind die Schwelle für eine Prüfung durch
           Menschen); danach wird sie verworfen. In der Datenbank steht die Zahl der Kilometer,
-          nicht die Adresse.
+          nicht die Adresse. Nachgeschlagen wird sie <strong>auf unserem eigenen Server</strong>,
+          in einer dort gespeicherten Datenbank - kein Dienstleister erfährt, wer bewertet.
         </li>
         <li>
           <strong>Deinen Namen.</strong> Wir fragen ihn nicht ab. Bewertungen erscheinen ohne

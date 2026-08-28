@@ -20,6 +20,7 @@ import {
   type FaelligeSchule,
 } from "../src/db/zusammenfassungen";
 import { claudeModell } from "../src/ki/anthropic";
+import { ANTHROPIC, holeSchluessel } from "../src/db/geheimnisse";
 import { erzeugeZusammenfassung } from "../src/ki/zusammenfassung";
 import { baueBlock } from "../src/ki/vorlage";
 
@@ -51,7 +52,19 @@ try {
   const liste = await schulen();
   console.log(`${liste.length} Schule(n) fällig.`);
 
-  const modell = trocken ? null : claudeModell();
+  // Der Schlüssel kommt aus der Umgebung oder, wenn dort keiner steht, aus dem
+  // Panel (`/moderation/einstellungen`). So lässt er sich wechseln, ohne dass
+  // jemand auf den Server muss.
+  const apiSchluessel = trocken ? null : await holeSchluessel(ANTHROPIC, "ANTHROPIC_API_KEY");
+  if (!trocken && apiSchluessel === null) {
+    console.error(
+      "Kein Anthropic-Schlüssel hinterlegt. Entweder ANTHROPIC_API_KEY setzen oder ihn im Panel " +
+        "unter Einstellungen eintragen.",
+    );
+    process.exitCode = 1;
+    throw new Error("Kein Anthropic-Schlüssel");
+  }
+  const modell = trocken || apiSchluessel === null ? null : claudeModell({ apiSchluessel });
   let veroeffentlicht = 0;
   let eskaliert = 0;
   let fehlgeschlagen = 0;

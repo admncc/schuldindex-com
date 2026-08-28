@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { KATEGORIEN } from "@/domain/fragebogen";
 import { MINDESTZAHL_PROFIL, MINDESTZAHL_RANGLISTE } from "@/domain/aggregation";
-import { SCHWELLE_KM } from "@/domain/geopruefung";
 import { MINDESTZAHL_FREITEXTE } from "@/ki/pruefung";
 import { SCORE_GRENZEN } from "@/domain/scoring";
 
@@ -43,9 +42,11 @@ export default function Ueberseite() {
           Bewertung möglich.
         </li>
         <li>
-          <strong>Automatische Prüfung.</strong> Auffälligkeiten führen nicht zur Ablehnung,
-          sondern zur Prüfung durch Menschen: Abgaben aus mehr als {SCHWELLE_KM} Kilometern
-          Entfernung, gleichförmige Antwortmuster, viele Abgaben in kurzer Zeit, Namen im Freitext.
+          <strong>Automatische Prüfung.</strong> Mehrere Verfahren suchen nach Hinweisen auf
+          gekaufte, mehrfach abgegebene oder maschinell erzeugte Bewertungen. Welche das im
+          Einzelnen sind, steht hier bewusst nicht - eine Liste der Prüfungen wäre eine Anleitung,
+          sie zu umgehen. Auffälligkeiten führen nicht zur Ablehnung, sondern zur Prüfung durch
+          Menschen.
         </li>
         <li>
           <strong>Moderation.</strong> Über jede Ablehnung entscheidet ein Mensch, mit Begründung

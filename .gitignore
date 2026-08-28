@@ -21,3 +21,7 @@ bestaetigen.mjs
 # Erzeugte Dateien
 tsconfig.tsbuildinfo
 schulen.json
+
+# Die GeoIP-Datenbank ist lizenziert und 46 MB groß - sie gehört nicht ins
+# Repository. Hochgeladen wird sie im Panel unter Einstellungen.
+daten/geoip/

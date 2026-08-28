@@ -75,6 +75,13 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/domain/formularstempel.ts` | Signierter Zeitstempel: warum die Dauer vom Server kommt und nicht aus dem Browser |
 | `src/domain/klickmuster.ts` | Auswertung des Klickverhaltens, millisekundengenau - und was die Aufbewahrung der Folge bedeutet |
 | `src/domain/schulpflege.ts` | Prüfung von Hand eingetragener Schulangaben - fängt vertauschte Koordinaten |
+| `src/geo/mmdb.ts` | Standortbestimmung aus der IP - lokal, ohne fremden Dienst, ohne Speicherung |
+| `src/geo/tar.ts` | So viel tar, wie das MaxMind-Archiv braucht - ohne Abhängigkeit |
+| `src/db/analytik.ts` | Auswertungen für die Moderation: Lage, Signale, Verlauf, einzelne Schule |
+| `src/domain/risiko.ts` | Aus Signalpunkten wird eine Risikostufe - Lesehilfe, kein Urteil |
+| `src/ki/betrugsanalyse.ts` | Zweitmeinung des Modells zu einer Welle von Bewertungen |
+| `src/domain/geheimnis.ts` | Zugangsschlüssel verschlüsseln - zweckgetrennt von den Kontaktdaten |
+| `app/moderation/analytik/` | Auswertung, Risikoanzeige, KI-Analyse, Ablehnen aus der Liste |
 | `src/db/schulverwaltung.ts` | Bestand im Panel: Lage, Liste, Bearbeiten, Anlegen |
 | `app/moderation/schulen/` | Schulbestand ansehen, korrigieren, ergänzen - Import lässt Handarbeit in Ruhe |
 | `app/moderation/einstellungen/` | Panel der Leitung: Grenzwerte der Betrugserkennung nachziehen |
@@ -98,7 +105,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 
 ```bash
 npm install
-npm test        # 661 Tests (37 davon gegen die eingespielten Echtdaten)
+npm test        # 675 Tests (37 davon gegen die eingespielten Echtdaten)
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000

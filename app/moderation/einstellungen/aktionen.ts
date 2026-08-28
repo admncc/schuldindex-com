@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { speichereEinstellungen } from "@/db/einstellungen";
 import { KATALOG, beschreibung, pruefeWert } from "@/domain/einstellungen";
 import { verlangeAnmeldung } from "../sitzung";
+import { ANTHROPIC, entferneSchluessel, setzeSchluessel } from "@/db/geheimnisse";
+import { sichtbarKeinSchluessel } from "@/domain/geheimnis";
 
 export interface Einstellungszustand {
   readonly meldung?: string;
@@ -58,4 +60,53 @@ export async function speichern(
     .map((g) => `${beschreibung(g.schluessel)?.label ?? g.schluessel}: ${g.alt ?? "Vorgabe"} → ${g.neu}`)
     .join(" · ");
   return { erfolg: `Gespeichert. ${liste}`, versuch };
+}
+
+export interface Schluesselzustand {
+  readonly meldung?: string;
+  readonly erfolg?: string;
+  readonly versuch?: number;
+}
+
+/**
+ * Hinterlegt den Claude-Schlüssel.
+ *
+ * Der Klartext geht durch diese Funktion und nirgendwo sonst hin: Er wird
+ * verschlüsselt gespeichert, im Protokoll steht nur, **dass** ein Schlüssel
+ * gesetzt wurde, und die Antwort an das Formular enthält ihn nicht.
+ */
+export async function schluesselSetzen(
+  vorher: Schluesselzustand,
+  formular: FormData,
+): Promise<Schluesselzustand> {
+  const moderatorin = await verlangeAnmeldung();
+  const versuch = (vorher.versuch ?? 0) + 1;
+
+  if (moderatorin.rolle !== "leitung") {
+    return { meldung: "Den Schlüssel darf nur die Leitung setzen.", versuch };
+  }
+
+  const klartext = String(formular.get("schluessel") ?? "").trim();
+  const beanstandung = sichtbarKeinSchluessel(klartext);
+  if (beanstandung !== null) return { meldung: beanstandung, versuch };
+
+  await setzeSchluessel(ANTHROPIC, klartext, moderatorin.id);
+  revalidatePath("/moderation/einstellungen");
+  return { erfolg: "Schlüssel gespeichert. Der nächste Zusammenfassungslauf benutzt ihn.", versuch };
+}
+
+export async function schluesselEntfernen(
+  vorher: Schluesselzustand,
+  _formular: FormData,
+): Promise<Schluesselzustand> {
+  const moderatorin = await verlangeAnmeldung();
+  const versuch = (vorher.versuch ?? 0) + 1;
+
+  if (moderatorin.rolle !== "leitung") {
+    return { meldung: "Den Schlüssel darf nur die Leitung entfernen.", versuch };
+  }
+
+  await entferneSchluessel(ANTHROPIC, moderatorin.id);
+  revalidatePath("/moderation/einstellungen");
+  return { erfolg: "Schlüssel entfernt.", versuch };
 }

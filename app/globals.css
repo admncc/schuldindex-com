@@ -868,3 +868,39 @@ mark.fehlt {
 .feldreihe { display: grid; gap: 0.8rem; grid-template-columns: 1fr 1fr; }
 .feldgruppe.schlicht { border: none; padding: 0; background: none; }
 .feldgruppe.schlicht legend { font-size: 0.95rem; padding: 0; margin: 0; }
+
+/* ---------- Markenzeichen ---------- */
+.marke { display: inline-flex; align-items: center; gap: 0.5rem; }
+.markenzeichen { flex-shrink: 0; }
+/* Der höchste Balken trägt die Akzentfarbe - der einzige Farbtupfer im
+   Zeichen, und er zeigt in die Leserichtung. */
+.markenzeichen .hoechster { fill: var(--akzent); }
+.fussmarke { display: flex; align-items: center; gap: 0.5rem; }
+
+/* ---------- Auswertung ---------- */
+.analyse { display: grid; gap: 0.45rem; margin: 0.6rem 0 1.4rem; }
+.analysezeile {
+  display: grid; grid-template-columns: minmax(8rem, 18rem) 1fr auto;
+  align-items: center; gap: 0.8rem; font-size: 0.9rem;
+}
+.analysezeile .beschriftung { color: var(--schrift-2); }
+.analysezeile .zahl { font-variant-numeric: tabular-nums; font-weight: 650; min-width: 3rem; text-align: right; }
+.analysezeile .kategoriebalken {
+  height: 0.5rem; border-radius: 999px; background: var(--flaeche-2); overflow: hidden; min-width: 3rem;
+}
+.analysezeile .fuellung { display: block; height: 100%; border-radius: 999px; background: var(--akzent); }
+.analysezeile .fuellung.gut { background: var(--gut); }
+.analysezeile .fuellung.mittel { background: var(--mittel); }
+.analysezeile .fuellung.schlecht { background: var(--schlecht); }
+@media (max-width: 40rem) {
+  .analysezeile { grid-template-columns: 1fr auto; }
+  .analysezeile .kategoriebalken { grid-column: 1 / -1; order: 3; }
+}
+
+/* Risikozeilen in der Auswertung. Rot heißt: zuerst ansehen - nicht: ablehnen. */
+.risikotabelle tr.hohesrisiko { background: var(--schlecht-flaeche); }
+.risikotabelle tr.hohesrisiko td:first-child { box-shadow: inset 3px 0 0 var(--schlecht); }
+.risikotabelle tr.auffaellig { background: var(--mittel-flaeche); }
+.risikotabelle .befundspalte { max-width: 26rem; font-size: 0.85rem; }
+.risikotabelle .kibefund { display: block; margin-top: 0.3rem; color: var(--schrift); }
+.risikotabelle .loeschfrage { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin-top: 0.3rem; }

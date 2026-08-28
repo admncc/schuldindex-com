@@ -4,6 +4,7 @@ import { umgebungMitDatenbank } from "@/dienste/umgebung";
 import type { Bewertungseingabe } from "@/domain/bewertungseingabe";
 import { pruefeStempel } from "@/domain/formularstempel";
 import { MAX_ABSTAENDE } from "@/domain/klickmuster";
+import { absenderadresse, ortungFuerIp } from "@/geo/mmdb";
 
 type Anfragekoerper = Bewertungseingabe & { stempel?: string; klickabstaende?: unknown };
 
@@ -43,10 +44,15 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
 
   const basis = process.env["BASIS_URL"] ?? new URL(anfrage.url).origin;
 
-  // Die IP wird hier gelesen und nirgends gespeichert (Entscheidung E3). Ohne
-  // angebundenen Geo-Dienst bleibt der Standort unbekannt - die Bewertung geht
-  // dann in die Moderation, statt ungeprüft durchzugehen.
-  const ortung = async () => null;
+  // Die IP wird gelesen und nirgends gespeichert (Entscheidung E3). Nachgeschlagen
+  // wird sie in der Datenbank auf unserem eigenen Server - kein fremder Dienst
+  // erfährt, wer hier bewertet (`src/geo/mmdb.ts`). Liegt keine Datenbank vor,
+  // bleibt der Ort unbekannt und die Bewertung geht in die Moderation, statt
+  // ungeprüft durchzugehen.
+  const ortung = async () => {
+    const treffer = await ortungFuerIp(absenderadresse(anfrage.headers));
+    return treffer === null ? null : { lat: treffer.lat, lon: treffer.lon };
+  };
 
   // Die Dauer rechnet der Server aus seinem eigenen Stempel - nicht aus einer
   // Zahl, die die Anfrage mitbringt. Ohne gültigen Stempel bleibt sie leer, und

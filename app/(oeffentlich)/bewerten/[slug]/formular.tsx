@@ -302,10 +302,9 @@ export function Bewertungsformular({
         <div className="warnkasten" role="note">
           <strong>Bitte ehrlich antworten - erfundene Bewertungen erkennen wir.</strong>
           <p>
-            Wir prüfen jede Abgabe automatisch: wie schnell geklickt wurde, wie gleichmäßig,
-            von wo sie kommt, ob dieselbe Quelle mehrfach abgibt und wie stark sie vom Bild
-            abweicht, das andere von dieser Schule zeichnen. Was auffällt, sieht sich ein Mensch
-            an und lehnt es ab.
+            Jede Abgabe wird geprüft, auf mehreren Wegen und automatisch. Was dabei auffällt,
+            landet bei einem Menschen und wird abgelehnt: Die Bewertung zählt dann nicht - weder
+            für die Schule noch für dich.
           </p>
           <p>
             <strong>Abgelehnte Bewertungen nehmen auch nicht an der Verlosung teil.</strong> Eine

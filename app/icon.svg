@@ -1,5 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#1b3a8c"/>
-  <path d="M16 6 4 12l12 6 12-6-12-6z" fill="#fff"/>
-  <path d="M9 15v6c0 2.5 3.1 4.5 7 4.5s7-2 7-4.5v-6l-7 3.5-7-3.5z" fill="#fff" opacity=".78"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!--
+    Das Zeichen als Symbol im Browsertab.
+
+    Eigene Datei statt des Bauteils aus `marke.tsx`: Ein Tabsymbol erbt keine
+    Textfarbe und steht auf hellem wie dunklem Grund - deshalb liegt es hier auf
+    einer eigenen Fläche und bringt seine Farben mit. Die Form ist dieselbe;
+    ändert sich eine, muss die andere nach.
+  -->
+  <rect width="32" height="32" rx="7" fill="#2733d4"/>
+  <path d="M6.5 14.5 16 7.2l9.5 7.3" stroke="#ffffff" stroke-width="2.4"
+        stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="8.4" y="20.4" width="4" height="5.6" rx="1.4" fill="#ffffff" opacity="0.5"/>
+  <rect x="14" y="18.2" width="4" height="7.8" rx="1.4" fill="#ffffff" opacity="0.75"/>
+  <rect x="19.6" y="15.6" width="4" height="10.4" rx="1.4" fill="#ffffff"/>
 </svg>

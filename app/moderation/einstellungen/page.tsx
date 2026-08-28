@@ -3,6 +3,10 @@ import { holeEinstellungen, verlauf } from "@/db/einstellungen";
 import { abweichungen, beschreibung, KATALOG } from "@/domain/einstellungen";
 import { verlangeAnmeldung } from "../sitzung";
 import Einstellungsformular from "./formular";
+import Schluesselblock from "./schluesselblock";
+import { ANTHROPIC, lage } from "@/db/geheimnisse";
+import { datenbanklage } from "@/geo/mmdb";
+import Geoipblock from "./geoipblock";
 
 export const metadata: Metadata = { title: "Einstellungen", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -19,7 +23,12 @@ const ZEIT = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium", timeStyle: 
  */
 export default async function Einstellungsseite() {
   const moderatorin = await verlangeAnmeldung();
-  const [werte, eintraege] = await Promise.all([holeEinstellungen(), verlauf()]);
+  const [werte, eintraege, schluessel, geoip] = await Promise.all([
+    holeEinstellungen(),
+    verlauf(),
+    lage(ANTHROPIC, "ANTHROPIC_API_KEY"),
+    datenbanklage(),
+  ]);
   const geaendert = abweichungen(werte);
 
   return (
@@ -51,6 +60,32 @@ export default async function Einstellungsseite() {
       )}
 
       <Einstellungsformular werte={werte} darfAendern={moderatorin.rolle === "leitung"} />
+
+      {/* Zugangsschlüssel gehören nicht zur Betrugserkennung, aber sehr wohl in
+          die Einstellungen: Es ist die Seite, auf der die Leitung Dinge setzt,
+          die den Betrieb steuern. */}
+      <Geoipblock
+        darfAendern={moderatorin.rolle === "leitung"}
+        lage={{
+          vorhanden: geoip.vorhanden,
+          pfad: geoip.pfad,
+          groesseMb: geoip.groesseMb,
+          art: geoip.art,
+          standAm: geoip.standAm === null ? null : ZEIT.format(geoip.standAm),
+          eintraege: geoip.eintraege,
+        }}
+      />
+
+      <Schluesselblock
+        darfAendern={moderatorin.rolle === "leitung"}
+        lage={{
+          ausUmgebung: schluessel.ausUmgebung,
+          inDatenbank: schluessel.inDatenbank,
+          hinweis: schluessel.hinweis,
+          gesetztAm: schluessel.gesetztAm === null ? null : ZEIT.format(schluessel.gesetztAm),
+          gesetztVon: schluessel.gesetztVon,
+        }}
+      />
 
       <section className="abschnitt">
         <h2>Verlauf</h2>

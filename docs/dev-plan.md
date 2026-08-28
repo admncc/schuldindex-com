@@ -1421,6 +1421,48 @@ Demosätze als solche markiert, damit niemand eine erfundene Bewertung für eine
 
 ---
 
+## 13.2 Auswertung, Standortbestimmung und Zugangsschlüssel
+
+**Auswertung** (`/moderation/analytik`, seit 28.08.): Zahlen über den ganzen Bestand -
+einschließlich dessen, was öffentlich nicht sichtbar ist. Ablehnungsquote, mittlere
+Bearbeitungsdauer, Abgaben je Monat, und welche Signale wie oft anschlagen. Darunter die
+einzelne Schule: Zustände, Rollen, Kategorien, Verlauf, alle Bewertungen mit Filter nach Zustand.
+
+Die Zeilen sind nach Risiko eingefärbt (`domain/risiko.ts`): Die Stufen hängen an der
+**eingestellten Halteschwelle**, nicht an festen Zahlen - sonst hieße „hohes Risiko“ nach jeder
+Änderung im Panel etwas anderes als das, was das Portal tatsächlich zurückhält. Rot heißt
+„zuerst ansehen“, nicht „ablehnen“.
+
+**KI-Zweitmeinung** (`ki/betrugsanalyse.ts`): Die automatischen Signale sehen jede Bewertung für
+sich. Was sie nicht sehen, ist das Muster über eine Schule hinweg - fünfzehn Abgaben an einem
+Nachmittag, dieselbe Handschrift in verschiedenen Freitexten. Dafür lässt sich ein Modell über
+die Bewertungen einer Schule schicken. Übertragen werden laufende Nummer, Datum, Rolle, Wertung,
+Signale, Klickkennzahlen und Freitext - **kein Kontakt, keine Kontokennung**; die Zuordnung von
+Nummer zu Bewertung bleibt auf dem Server. Der Befund entscheidet nichts: Ablehnen kann nur ein
+Mensch, mit Grund aus der Vorlage und Eintrag im Protokoll.
+
+**Standortbestimmung** (`geo/mmdb.ts`): Bis hierher lieferte `ortungDesAbsenders` immer `null` -
+jede Abgabe galt als „Ort unbekannt“ und ging in die Moderation. Jetzt liegt eine
+MaxMind-Datenbank auf dem Server, und die Auflösung geschieht **lokal**. Das ist der ganze Punkt:
+Bei einem Anbieter nachzufragen hieße, ihm die IP-Adresse jeder bewertenden Person zu schicken -
+bei überwiegend minderjähriger Nutzerschaft dieselbe Frage wie bei den Google-Schriften und den
+Kartenkacheln, und dieselbe Antwort. Die IP wird gelesen, nachgeschlagen und verworfen; gespeichert
+wird die Entfernung in Kilometern (Entscheidung E3).
+
+Die Datenbank ist lizenziert und 46 MB groß, liegt also nicht im Repository, sondern unter
+`daten/geoip/` und wird im Panel hochgeladen (Einstellungen → Standortbestimmung). Angenommen
+wird das Archiv von MaxMind unverändert; die `.mmdb` wird daraus entpackt (`geo/tar.ts` - 60
+Zeilen statt einer Abhängigkeit). Geschrieben wird über eine Nebendatei und `rename`, damit ein
+Abbruch keine halbe Datenbank hinterlässt.
+
+**Zugangsschlüssel** (`domain/geheimnis.ts`): Der Claude-Schlüssel lässt sich im Panel
+hinterlegen, verschlüsselt mit einem aus `KONTAKT_CHIFFRE_SCHLUESSEL` abgeleiteten,
+zweckgetrennten Schlüssel. Angezeigt wird nie der Klartext, nur Anfang und Ende. Die
+Umgebungsvariable geht weiterhin vor: Was im Betrieb gesetzt wurde, soll sich nicht aus einer
+Oberfläche heraus überschreiben lassen.
+
+---
+
 ## 14. Betrieb
 
 - Umgebungen: `production`, `staging`, `preview` (pro Pull Request).

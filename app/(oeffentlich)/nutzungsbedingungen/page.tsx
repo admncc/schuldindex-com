@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { MINDESTZAHL_PROFIL, MINDESTZAHL_RANGLISTE } from "@/domain/aggregation";
-import { SCHWELLE_KM } from "@/domain/geopruefung";
 
 export const metadata: Metadata = { title: "Nutzungsbedingungen" };
 
@@ -60,11 +59,13 @@ export default function Nutzungsbedingungenseite() {
 
       <h2>4. Wie wir prüfen</h2>
       <p>
-        Jede Bewertung braucht eine Bestätigung über Telefon oder E-Mail. Automatische Prüfungen
-        halten Auffälliges zurück - etwa Abgaben aus mehr als {SCHWELLE_KM} Kilometern Entfernung,
-        auffällige Antwortmuster oder viele Abgaben in kurzer Zeit. Über die Veröffentlichung
-        entscheidet dann ein Mensch. Freitexte werden nie wörtlich veröffentlicht, sondern
-        zusammengefasst.
+        Jede Bewertung braucht eine Bestätigung über Telefon oder E-Mail. Mehrere automatische
+        Verfahren halten Auffälliges zurück; über die Veröffentlichung entscheidet dann ein
+        Mensch. Welche Merkmale dabei geprüft werden, legen wir nicht offen - das würde denen
+        helfen, gegen die sich die Prüfung richtet. Welche Daten dafür verarbeitet werden, steht
+        vollständig in der <a href="/datenschutz">Datenschutzerklärung</a>; die Auskunft nach
+        Art. 15 DSGVO bleibt davon unberührt. Freitexte werden nie wörtlich veröffentlicht,
+        sondern zusammengefasst.
       </p>
 
       <h2>5. Was wir veröffentlichen</h2>
