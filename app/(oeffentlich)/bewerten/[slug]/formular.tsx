@@ -295,6 +295,25 @@ export function Bewertungsformular({
         </fieldset>
       )}
 
+      {/* Einmal, direkt nach dem ersten Schritt: Wer gleich anfängt zu würfeln,
+          soll vorher wissen, dass es auffällt. Später im Formular wäre es
+          wirkungslos, auf jeder Seite wäre es Lärm. */}
+      {schritt.art === "kategorie" && nummer === 1 && (
+        <div className="warnkasten" role="note">
+          <strong>Bitte ehrlich antworten - erfundene Bewertungen erkennen wir.</strong>
+          <p>
+            Wir prüfen jede Abgabe automatisch: wie schnell geklickt wurde, wie gleichmäßig,
+            von wo sie kommt, ob dieselbe Quelle mehrfach abgibt und wie stark sie vom Bild
+            abweicht, das andere von dieser Schule zeichnen. Was auffällt, sieht sich ein Mensch
+            an und lehnt es ab.
+          </p>
+          <p>
+            <strong>Abgelehnte Bewertungen nehmen auch nicht an der Verlosung teil.</strong> Eine
+            ehrliche Bewertung dauert drei Minuten und zählt.
+          </p>
+        </div>
+      )}
+
       {schritt.art === "kategorie" && (
         <Kategorieschritt
           id={schritt.id}

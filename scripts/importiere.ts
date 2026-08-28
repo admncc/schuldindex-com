@@ -113,6 +113,9 @@ async function schreibe(sql: postgres.Sql, schulen: readonly Importschule[]) {
 
     await sql`
       insert into schulen ${sql(teil)}
+      -- Von Hand gepflegte Schulen bleiben, wie die Redaktion sie hinterlassen
+      -- hat: Ohne diese Bedingung wäre jede Korrektur im Panel bis zum nächsten
+      -- Import haltbar (Migration 0019).
       on conflict (quell_id) do update set
         name              = excluded.name,
         schularten        = excluded.schularten,
@@ -132,6 +135,7 @@ async function schreibe(sql: postgres.Sql, schulen: readonly Importschule[]) {
       -- Koordinaten und Slug bleiben bewusst unangetastet: eine nachgeocodierte
       -- Koordinate ist wertvoller als das erneute Nichts aus der Quelle, und ein
       -- geänderter Slug bräche alle geteilten Links.
+      where not schulen.manuell_gepflegt
     `;
   }
 }

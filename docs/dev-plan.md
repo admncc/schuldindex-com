@@ -541,6 +541,31 @@ Interne Oberfläche unter `/moderation`, auf Deutsch, Zugang nur mit Login + 2FA
 - **Meldewege für Dritte:** öffentliches Formular `/inhalt-melden` für Schulen und Betroffene
   (Pflicht nach Art. 16 DSA), mit deutschem Formular und Eingangsbestätigung.
 
+### 8.0 Schulbestand im Panel
+
+Seit dem 28.08. hat die Moderation einen eigenen Bereich für den Bestand
+(`/moderation/schulen`): Kennzahlen, vollständige Liste mit Suche und Filtern, Bearbeiten jeder
+Schule und Anlegen neuer. Ändern darf nur die Leitung - eine umbenannte oder stillgelegte Schule
+wirkt auf jedes Profil, jeden geteilten Link und jede Bewertung, die daran hängt.
+
+Vier Punkte, die dabei zusammengehören:
+
+- **Der Import läuft nicht automatisch**, und die Seite sagt das. Es gibt keinen Zeitplan, der
+  ihn anstößt; die Befehle stehen dort, dazu der Stand der Quelldaten und wann zuletzt
+  geschrieben wurde. Ohne diese Angabe hält jemand einen ein Jahr alten Bestand für aktuell.
+- **Handarbeit überlebt den Import.** `manuell_gepflegt` (Migration 0019) markiert bearbeitete
+  Zeilen, und `scripts/importiere.ts` überspringt sie beim Aktualisieren. Ohne das wäre jede
+  Korrektur bis zum nächsten Lauf haltbar.
+- **Der Suchtext wird mitgeschrieben.** Er ist eine eigene Spalte aus Name, Ort, Postleitzahl und
+  Schulart. Wer den Namen ändert und ihn stehen lässt, macht eine Schule unauffindbar, ohne dass
+  es auffällt.
+- **Der Slug bleibt.** Beim Umbenennen ändert er sich nicht - sonst führen alle geteilten Links
+  ins Leere. Von Hand angelegte Schulen bekommen eine `quell_id` der Form `manuell:<uuid>`, die
+  in keiner Lieferung vorkommt.
+
+Geschlossene Schulen werden **stillgelegt, nicht gelöscht** (`ist_aktiv`): Sie verschwinden aus
+Suche, Karte und Ranglisten, ihre Bewertungen bleiben erhalten.
+
 ### 8.1 Umgesetzt - und was sich beim Bauen geändert hat
 
 Die Oberfläche steht: Anmeldung mit Kennwort und TOTP, Warteschlange mit Filtern,

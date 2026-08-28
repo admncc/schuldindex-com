@@ -74,6 +74,9 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/db/einstellungen.ts` | Gespeicherte Abweichungen von den Vorgaben, mit Änderungsverlauf |
 | `src/domain/formularstempel.ts` | Signierter Zeitstempel: warum die Dauer vom Server kommt und nicht aus dem Browser |
 | `src/domain/klickmuster.ts` | Auswertung des Klickverhaltens, millisekundengenau - und was die Aufbewahrung der Folge bedeutet |
+| `src/domain/schulpflege.ts` | Prüfung von Hand eingetragener Schulangaben - fängt vertauschte Koordinaten |
+| `src/db/schulverwaltung.ts` | Bestand im Panel: Lage, Liste, Bearbeiten, Anlegen |
+| `app/moderation/schulen/` | Schulbestand ansehen, korrigieren, ergänzen - Import lässt Handarbeit in Ruhe |
 | `app/moderation/einstellungen/` | Panel der Leitung: Grenzwerte der Betrugserkennung nachziehen |
 | `src/dienste/umgebung.ts` | Anbindung des Abgabedienstes an Postgres - das einzige SQL außerhalb der Abfrageschicht |
 | `messages/de.json` | Alle Oberflächentexte |
@@ -95,7 +98,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 
 ```bash
 npm install
-npm test        # 646 Tests (37 davon gegen die eingespielten Echtdaten)
+npm test        # 661 Tests (37 davon gegen die eingespielten Echtdaten)
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000
