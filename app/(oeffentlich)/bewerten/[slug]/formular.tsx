@@ -23,6 +23,13 @@ import {
   type Rolle,
 } from "@/domain/bewertungseingabe";
 import { MAX_ABSTAENDE } from "@/domain/klickmuster";
+import {
+  HOECHSTWERT_PFLICHT,
+  ZUSCHLAG_JE_FREIWILLIGER_BEREICH,
+  hoechstwert,
+} from "@/domain/scoring";
+
+const ZAHL = new Intl.NumberFormat("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 const PFLICHT: KategorieId[] = ["A", "B", "C"];
 const FREIWILLIG: KategorieId[] = ["D", "E", "F"];
@@ -310,7 +317,28 @@ export function Bewertungsformular({
           {FREIWILLIG.filter((id) => !freiwillige.includes(id)).length > 0 && (
             <fieldset className="feldgruppe">
               <legend>Möchtest du noch etwas bewerten?</legend>
-              <p className="hinweis">Freiwillig - deine Bewertung zählt auch ohne.</p>
+              {/* Der Anreiz gehört genau hierhin: An dieser Stelle entscheidet
+                  sich, ob jemand weitermacht - und die Regel ist erklärbar,
+                  nicht bloß ein Appell. */}
+              <p className="hinweis">
+                Freiwillig - deine Bewertung zählt auch ohne. Aber:{" "}
+                <strong>
+                  Mit nur den Pflichtbereichen kann eine Schule höchstens{" "}
+                  {ZAHL.format(HOECHSTWERT_PFLICHT)} von 10 erreichen.
+                </strong>{" "}
+                Jeder freiwillige Bereich hebt die Grenze um{" "}
+                {ZAHL.format(ZUSCHLAG_JE_FREIWILLIGER_BEREICH)} - bei allen dreien sind die
+                vollen 10 möglich. Deine Schule bekommt also nur dann die Spitzenwertung, wenn
+                jemand auch diese Bereiche beurteilt.
+              </p>
+              <p className="hinweis">
+                Zurzeit möglich: <strong>{ZAHL.format(hoechstwert(freiwillige.length))} von 10</strong>
+                {freiwillige.length < FREIWILLIG.length
+                  ? ` · mit jedem weiteren Bereich ${ZAHL.format(
+                      hoechstwert(freiwillige.length + 1),
+                    )}`
+                  : ""}
+              </p>
               <div className="wahl">
                 {FREIWILLIG.filter((id) => !freiwillige.includes(id)).map((id) => {
                   const k = KATEGORIEN.find((x) => x.id === id)!;

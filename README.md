@@ -56,6 +56,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/db/ranglisten.ts` | Beste Schulen und höchster Verbesserungsbedarf, mit Sechs-Monats-Trend |
 | `src/domain/karte.ts` | Projektion der Schulkarte - und warum sie ohne fremde Kartenkacheln auskommt |
 | `src/db/karte.ts` | Schulbestand als Raster, bewertete Schulen einzeln |
+| `app/(oeffentlich)/karte/ansicht.tsx` | Bedienbare Karte: zoomen, ziehen, filtern, Umkreis - ohne fremde Kacheln |
 | `src/domain/meldung.ts` | Prüfung der Meldungen nach Art. 16 DSA |
 | `src/db/meldungen.ts` | Meldungen annehmen, entscheiden, Missbrauch des Meldewegs erkennen |
 | `src/recht/betreiber.ts` | Betreiberangaben aus der Umgebung - fehlende Pflichtangaben werden sichtbar |
@@ -94,7 +95,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 
 ```bash
 npm install
-npm test        # 642 Tests (37 davon gegen die eingespielten Echtdaten)
+npm test        # 646 Tests (37 davon gegen die eingespielten Echtdaten)
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000

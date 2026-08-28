@@ -27,6 +27,7 @@ import { KATEGORIEN, type KategorieId } from "./fragebogen";
 import {
   ampelstufe,
   aufZehnerskala,
+  hoechstwert,
   scorestufe,
   type Ampelstufe,
   type Bewertungsergebnis,
@@ -106,7 +107,15 @@ export function aggregiere(bewertungen: readonly EinzelneBewertung[]): Schulaggr
   }
 
   const roh = gewichtssumme === 0 ? null : summe / gewichtssumme;
-  const gesamtscore = roh === null ? null : aufZehnerskala(roh);
+  // Dieselbe Deckelung wie bei der einzelnen Bewertung, hier auf Schulebene:
+  // Gezählt werden die freiwilligen Bereiche, zu denen überhaupt jemand etwas
+  // gesagt hat. Ohne das stünde auf dem Profil eine 9,4, während jede einzelne
+  // Bewertung, aus der sie entstand, auf 8,5 gedeckelt war.
+  const freiwilligeBereiche = KATEGORIEN.filter(
+    (k) => !k.pflicht && kategorien[k.id] !== undefined,
+  ).length;
+  const gesamtscore =
+    roh === null ? null : Math.min(aufZehnerskala(roh), hoechstwert(freiwilligeBereiche));
 
   const aggressionswerte = bewertungen
     .map((b) => b.ergebnis.aggression?.index)

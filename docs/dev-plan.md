@@ -297,6 +297,7 @@ Score_B…E     = Ø der jeweiligen Kategoriefragen
 Gesamtscore   = (A×4 + B×2 + C×2 + D×1* + E×1* + F×1*) ÷ Σ(aktive Gewichte)
                 * optionale Kategorien zählen nur, wenn beantwortet
 Anzeigewert   = (Gesamtscore − 1) ÷ 4 × 10           → Skala 0–10 (E7)
+Obergrenze    = 8,5 + 0,5 je beantwortetem freiwilligen Bereich   → höchstens 10
 
 Auf dem Schulprofil steht seit dem 28.08. **jede Kategorie einzeln** auf derselben Skala 0-10,
 mit Balken und Gewichtungsangabe. Die Gesamtzahl allein sagt zu wenig: Eine 6,5 kann eine Schule
@@ -304,6 +305,23 @@ sein, an der alles mittelmäßig ist, oder eine, an der der Unterricht gut und d
 ist - und für die Frage, um die es Eltern und Schülern geht, ist das der ganze Unterschied.
 Angezeigt wird nur, was beantwortet wurde; die optionalen Kategorien fehlen bei vielen Schulen,
 und eine Zeile „keine Angabe“ suggerierte einen Mangel, wo nur niemand gefragt wurde.
+
+**Obergrenze nach Vollständigkeit** (Entscheidung vom 28.08.2026): Wer nur die drei
+Pflichtbereiche beurteilt, kommt höchstens auf **8,5 von 10**; jeder zusätzlich beantwortete
+freiwillige Bereich hebt die Grenze um 0,5, bei allen sechs Kategorien sind die vollen 10
+möglich. Es ist eine **Deckelung, keine Umrechnung** - wer 6,2 hat, behält 6,2.
+
+Der Grund ist Aussagekraft, nicht Strenge: Eine Schule, über die nur Sicherheit, Unterricht und
+Ausstattung bekannt sind, ist mit einer, über die auch Verwaltung, Nachhaltigkeit und Schulleben
+beurteilt wurden, nicht vergleichbar - die Spitzenplätze sollen der zweiten Gruppe offenstehen.
+Die Regel gilt an beiden Stellen: bei der einzelnen Bewertung (`domain/scoring.ts`) und bei der
+Schulwertung (`domain/aggregation.ts`, gezählt werden die Bereiche, zu denen überhaupt jemand
+etwas gesagt hat). Ohne das zweite stünde auf dem Profil eine 9,4, während jede Bewertung, aus
+der sie entstand, bei 8,5 gedeckelt war.
+
+Im Bewertungsformular steht die Regel dort, wo die freiwilligen Bereiche angeboten werden, samt
+der Zahl, die gerade erreichbar wäre; auf dem Schulprofil steht sie unter den
+Kategoriewertungen, sobald ein Bereich fehlt.
 
 Farbstufen des Gesamtscores, verankert an den Antwortstufen statt an Dritteln:
    ≥ 7,5  grün      im Schnitt mindestens „Gut“

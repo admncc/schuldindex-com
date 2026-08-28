@@ -1,5 +1,5 @@
 import { KATEGORIEN } from "@/domain/fragebogen";
-import { aufZehnerskala, scorestufe } from "@/domain/scoring";
+import { aufZehnerskala, hoechstwert, scorestufe } from "@/domain/scoring";
 
 /**
  * Die Wertungen der einzelnen Kategorien.
@@ -38,20 +38,24 @@ export function Kategoriewertungen({ werte }: { werte: readonly Kategoriewert[] 
 
   if (zeilen.length === 0) return null;
 
+  const fehlendeFreiwillige = KATEGORIEN.filter(
+    (k) => !k.pflicht && !zeilen.some((z) => z.id === k.id),
+  ).length;
+
   return (
     <>
       <h3>Wertung nach Kategorien</h3>
       <p className="hinweis">
         Jede Kategorie auf derselben Skala von 0 bis 10. Die Gesamtwertung ist der gewichtete
-        Schnitt daraus - nicht der einfache Mittelwert.
+        Schnitt daraus - die Gewichtung steht am Namen, wenn du darauf zeigst.
       </p>
       <div className="kategoriewertungen">
       {zeilen.map((z) => (
         <div key={z.id} className="kategoriewertung">
-          <span className="titel">
-            {z.titel}
-            <span className="gedaempft"> · zählt {z.gewichtung}-fach</span>
-          </span>
+          {/* Die Gewichtung steht nur im Titel-Attribut: In der Zeile wiederholte
+              sie eine Erklärung, die schon über der Liste und auf „Über uns“
+              steht - und machte aus jeder zweiten Zeile einen Zweizeiler. */}
+          <span className="titel" title={`Gewichtung ${z.gewichtung}-fach`}>{z.titel}</span>
           <span className="kategoriebalken" aria-hidden="true">
             <span
               className={`fuellung ${scorestufe(z.anzeige)}`}
@@ -62,6 +66,17 @@ export function Kategoriewertungen({ werte }: { werte: readonly Kategoriewert[] 
         </div>
       ))}
       </div>
+
+      {/* Wenn freiwillige Bereiche fehlen, steht die Obergrenze da - sonst
+          bliebe unerklärlich, warum eine durchweg gut bewertete Schule nicht
+          über 8,5 kommt. */}
+      {fehlendeFreiwillige > 0 ? (
+        <p className="hinweis">
+          Zu {fehlendeFreiwillige === 1 ? "einem freiwilligen Bereich" : `${fehlendeFreiwillige} freiwilligen Bereichen`}{" "}
+          liegt noch keine Bewertung vor. Solange das so ist, kann diese Schule höchstens{" "}
+          <strong>{ZAHL.format(hoechstwert(3 - fehlendeFreiwillige))} von 10</strong> erreichen.
+        </p>
+      ) : null}
     </>
   );
 }

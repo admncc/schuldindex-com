@@ -13,6 +13,7 @@ import { sql } from "./verbindung";
 import { MINDESTZAHL_PROFIL } from "../domain/aggregation";
 import type { Ausschnitt } from "../domain/karte";
 import type { Bundesland } from "../domain/bundesland";
+import type { Schulart } from "../import/schulart";
 
 export interface Rasterzelle {
   lat: number;
@@ -44,16 +45,31 @@ export interface BewerteteSchule {
   slug: string;
   name: string;
   ort: string | null;
+  plz: string | null;
+  bundesland: Bundesland;
+  schularten: Schulart[];
   lat: number;
   lon: number;
   gesamtscore: string;
   anzahl: number;
+  /** Aggressionsindex der Schule, 1-5. Für den Kartenfilter „Mobbing“. */
+  aggressionsindex: string | null;
+  /** Wertung vor sechs Monaten - für den Trendpfeil in der Auswahl. */
+  gesamtscore_vor_6m: string | null;
 }
 
-/** Die Schulen mit veröffentlichtem Score im Ausschnitt. */
-export async function bewerteteSchulen(a: Ausschnitt, grenze = 500): Promise<BewerteteSchule[]> {
+/**
+ * Die Schulen mit veröffentlichtem Score im Ausschnitt.
+ *
+ * Es kommen mehr Felder mit als früher: Die Karte filtert und beschreibt jetzt
+ * selbst, statt nur Punkte zu setzen, und dafür braucht sie Schulart, Land und
+ * Trend. Das sind wenige hundert Zeilen - die Alternative wäre ein zweiter
+ * Abruf beim Antippen jedes Punktes.
+ */
+export async function bewerteteSchulen(a: Ausschnitt, grenze = 2000): Promise<BewerteteSchule[]> {
   return sql<BewerteteSchule[]>`
-    select s.slug, s.name, s.ort, s.lat, s.lon, ag.gesamtscore, ag.anzahl
+    select s.slug, s.name, s.ort, s.plz, s.bundesland, s.schularten, s.lat, s.lon,
+           ag.gesamtscore, ag.anzahl, ag.aggressionsindex, ag.gesamtscore_vor_6m
     from schul_aggregate ag
     join schulen s on s.id = ag.schule_id
     where s.ist_aktiv and s.lat is not null and s.lon is not null

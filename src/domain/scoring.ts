@@ -212,12 +212,37 @@ export function scorestufe(score: number): Scorestufe {
 }
 
 /**
+ * Die Obergrenze hängt daran, wie vollständig bewertet wurde.
+ *
+ * Entscheidung vom 28.08.2026: Wer nur die drei Pflichtbereiche beurteilt,
+ * kommt höchstens auf **8,5 von 10**. Jeder zusätzlich beantwortete freiwillige
+ * Bereich hebt die Grenze um 0,5 - bei allen sechs sind die vollen 10 möglich.
+ *
+ * Der Grund ist nicht Strenge, sondern Aussagekraft: Eine Schule, über die nur
+ * Sicherheit, Unterricht und Ausstattung bekannt sind, ist nicht mit einer
+ * vergleichbar, über die auch Verwaltung, Nachhaltigkeit und Schulleben
+ * beurteilt wurden. Die Spitzenplätze sollen der zweiten Gruppe offenstehen.
+ *
+ * Es ist eine **Deckelung, keine Umrechnung**: Wer 6,2 hat, behält 6,2. Nur wer
+ * über die Grenze käme, wird auf sie gesetzt.
+ */
+export const HOECHSTWERT_PFLICHT = 8.5;
+export const ZUSCHLAG_JE_FREIWILLIGER_BEREICH = 0.5;
+
+export function hoechstwert(freiwilligeBeantwortet: number): number {
+  const optionale = KATEGORIEN.filter((k) => !k.pflicht).length;
+  const gezaehlt = Math.min(Math.max(0, freiwilligeBeantwortet), optionale);
+  return Math.min(10, HOECHSTWERT_PFLICHT + gezaehlt * ZUSCHLAG_JE_FREIWILLIGER_BEREICH);
+}
+
+/**
  * Gesamtscore.
  *
- *   (A×3 + B×2 + C×2 + D×2* + E×1* + F×1*) ÷ Σ(aktive Gewichte)
+ *   (A×4 + B×2 + C×2 + D×1* + E×1* + F×1*) ÷ Σ(aktive Gewichte)
  *   * optionale Kategorien zählen nur, wenn beantwortet
  *
- * Das Ergebnis wird auf die Anzeigeskala 0–10 umgerechnet.
+ * Das Ergebnis wird auf die Anzeigeskala 0–10 umgerechnet und anschließend
+ * gedeckelt (siehe `hoechstwert`).
  */
 export function bewerte(antworten: Antworten): Bewertungsergebnis {
   const kategorien = KATEGORIEN.map((k) => scoreKategorie(k.id, antworten));
@@ -235,7 +260,10 @@ export function bewerte(antworten: Antworten): Bewertungsergebnis {
     gewichtssumme += ergebnis.gewichtung;
   }
 
-  const gesamtscore = aufZehnerskala(summe / gewichtssumme);
+  const freiwillige = kategorien.filter(
+    (e) => e.score !== null && KATEGORIEN.find((k) => k.id === e.kategorie)?.pflicht === false,
+  ).length;
+  const gesamtscore = Math.min(aufZehnerskala(summe / gewichtssumme), hoechstwert(freiwillige));
 
   return {
     gesamtscore,

@@ -15,6 +15,7 @@ import {
   bewerte,
   formatiereScore,
   formatiereScoreMitSkala,
+  hoechstwert,
   punktwert,
   scoreKategorie,
   scorestufe,
@@ -166,6 +167,47 @@ describe("Kategorie A", () => {
 });
 
 // ---- Optionale Kategorien ----
+
+describe("Obergrenze nach Vollständigkeit", () => {
+  /** Bestnoten in genau den genannten Kategorien. */
+  function bestensIn(kategorien: readonly KategorieId[]): Antworten {
+    const antworten: Record<string, Antwort> = {};
+    for (const f of FRAGEN) {
+      if (!kategorien.includes(f.kategorie)) continue;
+      antworten[f.id] = (f.wertung === "invertiert" ? 1 : 5) as Skalenwert;
+    }
+    return antworten;
+  }
+
+  it("deckelt eine Bestbewertung der Pflichtbereiche bei 8,5", () => {
+    // Ohne Deckelung wären es glatte 10 - und eine Schule, über die nur
+    // Sicherheit, Unterricht und Ausstattung bekannt sind, stünde gleichauf mit
+    // einer, über die alles bekannt ist.
+    expect(bewerte(bestensIn(["A", "B", "C"])).gesamtscore).toBeCloseTo(8.5, 6);
+  });
+
+  it("hebt die Grenze je freiwilligem Bereich um 0,5", () => {
+    expect(bewerte(bestensIn(["A", "B", "C", "D"])).gesamtscore).toBeCloseTo(9.0, 6);
+    expect(bewerte(bestensIn(["A", "B", "C", "D", "F"])).gesamtscore).toBeCloseTo(9.5, 6);
+    expect(bewerte(bestensIn(["A", "B", "C", "D", "E", "F"])).gesamtscore).toBeCloseTo(10, 6);
+  });
+
+  it("lässt eine mittelmäßige Bewertung unberührt", () => {
+    // Die Deckelung ist keine Umrechnung: Wer die Grenze nicht erreicht, merkt
+    // nichts von ihr.
+    const ohneDeckel = bewerte(roh({ A: 3, B: 3, C: 3 })).gesamtscore;
+    expect(ohneDeckel).toBeLessThan(8.5);
+    expect(ohneDeckel).toBeCloseTo(bewerte(roh({ A: 3, B: 3, C: 3 })).gesamtscore, 10);
+  });
+
+  it("rechnet die Grenze aus der Zahl der freiwilligen Bereiche", () => {
+    expect(hoechstwert(0)).toBe(8.5);
+    expect(hoechstwert(1)).toBe(9);
+    expect(hoechstwert(3)).toBe(10);
+    // Mehr als es gibt, hebt nichts weiter an.
+    expect(hoechstwert(9)).toBe(10);
+  });
+});
 
 describe("Optionale Kategorien", () => {
   it("zählt D, E und F nicht mit, solange sie unbeantwortet sind", () => {
