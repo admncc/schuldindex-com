@@ -37,6 +37,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/import/normalisiere.ts` | Rohdatensatz → Schule: Adresse, Koordinate samt Reparatur vertauschter Werte, Suchtext |
 | `src/import/dubletten.ts` | Zusammenführung mehrfach gelieferter Schulen, Standorte bleiben erhalten |
 | `src/db/schulsuche.ts` | Autovervollständigung, unscharfe Suche, Umkreissuche, Filter |
+| `app/(oeffentlich)/kategoriewertungen.tsx` | Die sechs Kategoriewertungen auf dem Schulprofil, mit Gewichtung |
 | `app/(oeffentlich)/suchfeld.tsx` | Suchfeld mit Vorschlagsliste - Tastaturbedienung, funktioniert auch ohne JavaScript |
 | `src/domain/suchhervorhebung.ts` | Markiert die Fundstelle im Vorschlag - und markiert nichts, wenn es keine gibt |
 | `app/(oeffentlich)/` | Öffentliches Portal: Startseite, Suche, Schulprofil, Bewertungsformular, Bestätigung |
@@ -103,9 +104,9 @@ npm run dev          # Anwendung unter http://localhost:3000
 ANTHROPIC_API_KEY=… npx tsx scripts/zusammenfassen.ts --grenze 20
 npx tsx scripts/zusammenfassen.ts --schule <slug> --trocken
 
-# Testbestand: 550 erfundene Bewertungen über 55 Schulen. Sie sind als Demodaten
+# Testbestand: erfundene Bewertungen über viele Schulen. Sie sind als Demodaten
 # gekennzeichnet und im Panel unter Aufbewahrung mit einem Klick wieder weg.
-npx tsx scripts/demodaten.ts --anzahl 550 --schulen 55
+npx tsx scripts/demodaten.ts   # Vorgabe: 900 Bewertungen über 40 Schulen
 
 # Zugang zur Moderation anlegen (Ausgabe erscheint genau einmal):
 npx tsx scripts/moderator-anlegen.ts anna "Anna Beispiel" --leitung

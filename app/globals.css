@@ -519,3 +519,29 @@ mark.fehlt {
 .einstellung .schalter input { width: auto; }
 
 .plakette.demo { background: var(--flaeche-2); color: var(--schrift-2); border: 1px dashed var(--linie-stark); }
+
+/* ---------- Kategoriewertungen ---------- */
+.kategoriewertungen { display: grid; gap: 0.7rem; margin: 1rem 0 1.6rem; }
+.kategoriewertung {
+  display: grid; grid-template-columns: minmax(10rem, 22rem) 1fr auto;
+  align-items: center; gap: 0.9rem;
+}
+.kategoriewertung .titel { font-size: 0.95rem; }
+/* Eigener Name statt `.balken`: Die gibt es schon, mit `grid-column: 1 / -1`
+   für einen anderen Zusammenhang - und die Regel brach diese Zeile in drei. */
+.kategoriewertung .kategoriebalken {
+  height: 0.55rem; border-radius: 999px; background: var(--flaeche-2);
+  overflow: hidden; min-width: 4rem;
+}
+.kategoriewertung .fuellung { display: block; height: 100%; border-radius: 999px; background: var(--mittel); }
+.kategoriewertung .fuellung.gut { background: var(--gut); }
+.kategoriewertung .fuellung.schlecht { background: var(--schlecht); }
+.kategoriewertung .zahl { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 2.5rem; text-align: right; }
+.kategoriewertung .zahl.gut { color: var(--gut); }
+.kategoriewertung .zahl.mittel { color: var(--mittel); }
+.kategoriewertung .zahl.schlecht { color: var(--schlecht); }
+
+@media (max-width: 640px) {
+  .kategoriewertung { grid-template-columns: 1fr auto; }
+  .kategoriewertung .kategoriebalken { grid-column: 1 / -1; order: 3; }
+}

@@ -8,6 +8,7 @@ import { BUNDESLAND_LABEL } from "@/domain/bundesland";
 import { MINDESTZAHL_PROFIL } from "@/domain/aggregation";
 import { ampelstufe } from "@/domain/scoring";
 import { Wertungsplakette, Wertungszahl } from "../../teile";
+import { Kategoriewertungen } from "../../kategoriewertungen";
 
 export async function generateMetadata({
   params,
@@ -106,6 +107,20 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
               ? ` · ${t("schule.stand", { datum: DATUM.format(schule.letzte_bewertung_am) })}`
               : ""}
           </p>
+
+          {/* Die Kategoriewertungen stehen vor dem Aggressionsindex und vor der
+              Zusammenfassung: Sie beantworten die Frage, mit der die meisten auf
+              diese Seite kommen - was ist an dieser Schule gut, was nicht. */}
+          <Kategoriewertungen
+            werte={[
+              { kategorie: "A", score: schule.score_a },
+              { kategorie: "B", score: schule.score_b },
+              { kategorie: "C", score: schule.score_c },
+              { kategorie: "D", score: schule.score_d },
+              { kategorie: "E", score: schule.score_e },
+              { kategorie: "F", score: schule.score_f },
+            ]}
+          />
 
           {aggression !== null && (
             <div className="karte">

@@ -1,7 +1,7 @@
 /**
  * Erzeugt Demobewertungen für den Testbetrieb.
  *
- *   DATABASE_URL=postgres://… npx tsx scripts/demodaten.ts [--anzahl 600] [--schulen 60]
+ *   DATABASE_URL=postgres://… npx tsx scripts/demodaten.ts [--anzahl 900] [--schulen 40]
  *
  * Warum überhaupt: Ohne Bewertungen ist das Portal nicht zu beurteilen.
  * Ranglisten brauchen 20 Bewertungen je Schule, ein Profil 10, die Karte
@@ -36,8 +36,29 @@ function argument(name: string, standard: number): number {
   return Number.isFinite(wert) && wert > 0 ? Math.floor(wert) : standard;
 }
 
-const ANZAHL = argument("anzahl", 600);
-const SCHULEN = argument("schulen", 60);
+const ANZAHL = argument("anzahl", 900);
+const SCHULEN = argument("schulen", 40);
+
+/**
+ * Wie viele Bewertungen eine Schule bekommt.
+ *
+ * Der erste Entwurf verteilte sie über eine quadratische Zufallsverteilung -
+ * das sah nach echtem Betrieb aus und war als Testbestand unbrauchbar: Eine
+ * Schule bekam 76 Bewertungen, der Schwanz je zwei, und **vier** von 55 Schulen
+ * erreichten die Ranglistenschwelle von 20. Da jede der beiden Ranglisten
+ * höchstens die Hälfte der infrage kommenden Schulen zeigt, standen am Ende
+ * zwei Schulen in der Wertung.
+ *
+ * Deshalb wird jetzt zugeteilt statt gewürfelt, und zwar so, dass alle drei
+ * Zustände des Portals vorkommen, die sich jemand ansehen können muss:
+ *
+ *  - **ranglistenfähig** (ab 20): der Regelfall im Testbestand,
+ *  - **nur Profil** (10 bis 19): Score sichtbar, aber keine Rangliste,
+ *  - **zu wenige** (1 bis 9): der Leerzustand, der im echten Betrieb auf
+ *    Jahre der häufigste sein wird.
+ */
+const ANTEIL_RANGLISTE = 0.65;
+const ANTEIL_NUR_PROFIL = 0.2;
 
 /**
  * Ein fester Zufall.
@@ -96,6 +117,60 @@ const FREITEXTE: Readonly<Record<KategorieId, readonly string[]>> = {
   ],
 };
 
+/**
+ * Verteilt das Kontingent auf die Schulen.
+ *
+ * Zuerst bekommt jede Schule ihre Untergrenze - 20, 10 oder 1 -, damit die drei
+ * Zustände auch wirklich eintreten. Was übrig bleibt, geht an die
+ * ranglistenfähigen, damit die Zahlen dort nicht alle gleich aussehen.
+ *
+ * Reicht das Kontingent nicht für alle Schulen, bekommen die hinteren nichts;
+ * der Aufrufer erfährt das über die Summe, die zurückkommt.
+ */
+function teileZu(schulen: number, kontingent: number): number[] {
+  const zufall = zufallsfolge("verteilung-v2");
+  const zuteilung: number[] = [];
+
+  const bisRangliste = Math.round(schulen * ANTEIL_RANGLISTE);
+  const bisProfil = bisRangliste + Math.round(schulen * ANTEIL_NUR_PROFIL);
+
+  let vergeben = 0;
+  for (let i = 0; i < schulen; i++) {
+    // 24 statt 20 für die ranglistenfähigen: Ein Teil der Bewertungen landet in
+    // der Moderationswarteschlange und zählt noch nicht mit. Mit 20 als Basis
+    // rutschten drei von 26 Schulen wieder unter die Schwelle.
+    const grundwert =
+      i < bisRangliste
+        ? 24
+        : i < bisProfil
+          ? 11 + Math.floor(zufall() * 8)
+          : 1 + Math.floor(zufall() * 8);
+    if (vergeben + grundwert > kontingent) {
+      zuteilung.push(0);
+      continue;
+    }
+    zuteilung.push(grundwert);
+    vergeben += grundwert;
+  }
+
+  // Der Rest geht an die ranglistenfähigen Schulen, in ungleichen Portionen -
+  // sonst hätte jede exakt 20 und die Rangliste wäre ein Gleichstand.
+  let rest = kontingent - vergeben;
+  let i = 0;
+  while (rest > 0 && bisRangliste > 0) {
+    const stelle = i % bisRangliste;
+    if ((zuteilung[stelle] ?? 0) > 0) {
+      const portion = Math.min(rest, 1 + Math.floor(zufall() * 6));
+      zuteilung[stelle] = (zuteilung[stelle] ?? 0) + portion;
+      rest -= portion;
+    }
+    i += 1;
+    if (i > kontingent * 4) break;
+  }
+
+  return zuteilung;
+}
+
 interface Schulcharakter {
   readonly id: string;
   readonly mittel: number;
@@ -115,12 +190,14 @@ async function main(): Promise<void> {
       return;
     }
 
-    // Schulen mit Koordinate: Nur die erscheinen auf der Karte, und genau das
-    // soll sich ja ansehen lassen.
+    // Schulen mit Koordinate zuerst - nur die erscheinen auf der Karte -, aber
+    // nicht ausschließlich: Auf einem Server, dessen Nachgeocodierung noch nicht
+    // gelaufen ist, gäbe es sonst kaum Schulen und alle Bewertungen landeten auf
+    // einer Handvoll davon.
     const schulen = await sql<{ id: string; name: string }[]>`
       select id, name from schulen
-      where ist_aktiv and lat is not null
-      order by md5(id::text)
+      where ist_aktiv
+      order by (lat is null), md5(id::text)
       limit ${SCHULEN}
     `;
     if (schulen.length === 0) {
@@ -136,14 +213,20 @@ async function main(): Promise<void> {
       streuung: 0.4 + zufall() * 0.5,
     }));
 
-    console.error(`${schulen.length} Schulen, ${ANZAHL} Bewertungen werden erzeugt …`);
+    const zuteilung = teileZu(charaktere.length, ANZAHL);
+    const gesamt = zuteilung.reduce((n, z) => n + z, 0);
+    const ranglistenfaehig = zuteilung.filter((n) => n >= 20).length;
+    console.error(
+      `${charaktere.length} Schulen, ${gesamt} Bewertungen werden erzeugt ` +
+        `(${ranglistenfaehig} Schulen über der Ranglistenschwelle) …`,
+    );
 
+    // Reihenfolge: Schule für Schule, aber die Zeitpunkte streuen ohnehin über
+    // 400 Tage - für die Aggregation zählt nichts davon.
     let erzeugt = 0;
-    for (let i = 0; i < ANZAHL; i++) {
-      // Ungleich verteilt: Ein paar Schulen bekommen viele Bewertungen (über
-      // der Ranglistenschwelle), der Rest wenige - so sieht es im Betrieb aus.
-      const gewichtet = Math.floor(charaktere.length * zufall() ** 2);
-      const schule = charaktere[Math.min(gewichtet, charaktere.length - 1)]!;
+    for (let index = 0; index < charaktere.length; index++) {
+      const schule = charaktere[index]!;
+      for (let n = 0; n < (zuteilung[index] ?? 0); n++) {
       const rolle = ROLLEN[Math.floor(zufall() * ROLLEN.length)]!;
 
       const antworten: Record<string, Antwort> = {};
@@ -226,6 +309,7 @@ async function main(): Promise<void> {
 
       erzeugt += 1;
       if (erzeugt % 100 === 0) console.error(`  ${erzeugt} …`);
+      }
     }
 
     console.error("Aggregate werden neu gerechnet …");

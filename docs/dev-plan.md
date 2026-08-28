@@ -298,6 +298,13 @@ Gesamtscore   = (A×4 + B×2 + C×2 + D×1* + E×1* + F×1*) ÷ Σ(aktive Gewich
                 * optionale Kategorien zählen nur, wenn beantwortet
 Anzeigewert   = (Gesamtscore − 1) ÷ 4 × 10           → Skala 0–10 (E7)
 
+Auf dem Schulprofil steht seit dem 28.08. **jede Kategorie einzeln** auf derselben Skala 0-10,
+mit Balken und Gewichtungsangabe. Die Gesamtzahl allein sagt zu wenig: Eine 6,5 kann eine Schule
+sein, an der alles mittelmäßig ist, oder eine, an der der Unterricht gut und das Klima schlecht
+ist - und für die Frage, um die es Eltern und Schülern geht, ist das der ganze Unterschied.
+Angezeigt wird nur, was beantwortet wurde; die optionalen Kategorien fehlen bei vielen Schulen,
+und eine Zeile „keine Angabe“ suggerierte einen Mangel, wo nur niemand gefragt wurde.
+
 Farbstufen des Gesamtscores, verankert an den Antwortstufen statt an Dritteln:
    ≥ 7,5  grün      im Schnitt mindestens „Gut“
    ≥ 5,0  gelb      zwischen „Befriedigend“ und „Gut“
@@ -1340,7 +1347,7 @@ Verzögerungsrisiko und werden deshalb früh angestoßen.
 
 Ein leeres Portal lässt sich nicht beurteilen: Ranglisten brauchen 20 Bewertungen je Schule, ein
 Profil 10, die Karte bewertete Schulen, die Moderation eine Warteschlange. `scripts/demodaten.ts`
-erzeugt deshalb einen Testbestand (Vorgabe 600 Bewertungen über 60 Schulen).
+erzeugt deshalb einen Testbestand (Vorgabe 900 Bewertungen über 40 Schulen).
 
 Zwei Festlegungen, die den Bestand brauchbar machen:
 
@@ -1350,6 +1357,17 @@ Zwei Festlegungen, die den Bestand brauchbar machen:
   dabei andersherum, sonst stünde eine „gute“ Schule mit hohem Aggressionsindex da.
 - **Fester Zufall.** Zwei Läufe mit denselben Argumenten ergeben denselben Bestand; eine seltsam
   aussehende Rangliste sieht nach dem nächsten Lauf noch genauso aus.
+- **Zugeteilt statt gewürfelt.** Der erste Entwurf verteilte die Bewertungen über eine
+  quadratische Zufallsverteilung - das sah nach echtem Betrieb aus und war als Testbestand
+  unbrauchbar: eine Schule bekam 76 Bewertungen, der Schwanz je zwei, und **vier von 55**
+  Schulen erreichten die Ranglistenschwelle. Da jede der beiden Listen höchstens die Hälfte
+  zeigt, standen am Ende zwei Schulen in der Wertung. Jetzt bekommen 65 % der Schulen mindestens
+  24 Bewertungen (ranglistenfähig, auch nachdem ein Teil in der Moderation hängt), 20 % zwischen
+  11 und 18 (Profil ohne Rangliste) und der Rest weniger als zehn (Leerzustand).
+
+**Schulen ohne Koordinate zählen mit**, aber erst nach denen mit: Auf einem Server, dessen
+Nachgeocodierung noch nicht gelaufen ist, gäbe es sonst kaum Schulen zur Auswahl und alle
+Bewertungen landeten auf einer Handvoll davon.
 
 **Gekennzeichnet, nicht erraten.** Konten und Bewertungen tragen `ist_demo`
 (`0018_demodaten.sql`), und die Löschung im Panel (Aufbewahrung → Demodaten, nur Leitung, mit
