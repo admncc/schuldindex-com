@@ -340,10 +340,7 @@ export function Kartenansicht({
                       strokeWidth={1.5 / Math.sqrt(sicht.k)}
                       data-slug={s.slug}
                     >
-                      <title>
-                        {s.name}
-                        {s.ort ? `, ${s.ort}` : ""} - {WERT.format(wert)} von 10
-                      </title>
+                      <title>{`${s.name}${s.ort ? `, ${s.ort}` : ""} - ${WERT.format(wert)} von 10`}</title>
                     </circle>
                   );
                 })}
@@ -368,11 +365,11 @@ export function Kartenansicht({
             lässt sich mit der Tastatur durchgehen und schiebt die Karte auf den
             gewählten Punkt. Ohne sie wäre die Karte für einen Teil der Leute
             schlicht nicht benutzbar. */}
-        <div className="kartenliste">
-          <p className="hinweis">
-            {ZAHL.format(sichtbar.length)} bewertete Schulen
-            {schnitt !== null ? ` · Schnitt ${WERT.format(schnitt)}` : ""}
-          </p>
+        <aside className="kartenliste">
+          <div className="listenkopf">
+            <strong>{ZAHL.format(sichtbar.length)} bewertete Schulen</strong>
+            {schnitt !== null ? <span>Schnitt {WERT.format(schnitt)}</span> : null}
+          </div>
 
           {ausgewaehlt !== null ? (
             <div className="kartenauswahl">
@@ -384,24 +381,35 @@ export function Kartenansicht({
               >
                 ×
               </button>
-              <span className={`punktzahl ${scorestufe(Number(ausgewaehlt.gesamtscore))}`}>
-                {WERT.format(Number(ausgewaehlt.gesamtscore))}
-              </span>
-              <strong>{ausgewaehlt.name}</strong>
+              <div className="kopfzeile">
+                <span className={`punktzahl ${scorestufe(Number(ausgewaehlt.gesamtscore))}`}>
+                  {WERT.format(Number(ausgewaehlt.gesamtscore))}
+                </span>
+                <strong>{ausgewaehlt.name}</strong>
+              </div>
               <span className="beiwerk">
                 {[ausgewaehlt.plz, ausgewaehlt.ort].filter(Boolean).join(" ")} ·{" "}
                 {BUNDESLAND_LABEL[ausgewaehlt.bundesland]}
               </span>
-              <span className="beiwerk">
-                {ZAHL.format(ausgewaehlt.anzahl)} Bewertungen
-                {ausgewaehlt.aggressionsindex !== null
-                  ? ` · Mobbing-Index ${WERT.format(Number(ausgewaehlt.aggressionsindex))} von 5`
-                  : ""}
-              </span>
-              <a className="knopf klein" href={`/schule/${ausgewaehlt.slug}`}>Schulprofil</a>
+              <ul className="merkmale">
+                <li>{ZAHL.format(ausgewaehlt.anzahl)} Bewertungen</li>
+                {ausgewaehlt.aggressionsindex !== null ? (
+                  <li>Mobbing-Index {WERT.format(Number(ausgewaehlt.aggressionsindex))} von 5</li>
+                ) : null}
+                {standort !== null ? (
+                  <li>
+                    {WERT.format(entfernungKm(standort, { lat: ausgewaehlt.lat, lon: ausgewaehlt.lon }))} km
+                    entfernt
+                  </li>
+                ) : null}
+              </ul>
+              <a className="knopf klein" href={`/schule/${ausgewaehlt.slug}`}>Schulprofil ansehen</a>
             </div>
           ) : null}
 
+          {/* Der Rollbereich endet unten bündig mit der Karte. Der Innenabstand
+              darunter sorgt dafür, dass der letzte Eintrag ganz zu sehen ist und
+              nicht mittendrin abgeschnitten wirkt. */}
           <ol className="kartentreffer">
             {(standort !== null ? inDerNaehe.map((n) => n.schule) : sichtbar.slice(0, 40)).map((s) => {
               const wert = Number(s.gesamtscore);
@@ -418,10 +426,15 @@ export function Kartenansicht({
                   >
                     <span className={`punktzahl klein ${scorestufe(wert)}`}>{WERT.format(wert)}</span>
                     <span className="name">
-                      {s.name}
-                      <span>
-                        {s.ort ?? ""}
-                        {naehe !== undefined ? ` · ${WERT.format(naehe.km)} km entfernt` : ""}
+                      <span className="titel">{s.name}</span>
+                      <span className="beiwerk">
+                        {[
+                          s.ort ?? "",
+                          naehe !== undefined ? `${WERT.format(naehe.km)} km` : "",
+                          `${ZAHL.format(s.anzahl)} Bewertungen`,
+                        ]
+                          .filter((teil) => teil !== "")
+                          .join(" · ")}
                       </span>
                     </span>
                   </button>
@@ -432,11 +445,11 @@ export function Kartenansicht({
 
           {sichtbar.length > 40 && standort === null ? (
             <p className="fussnote">
-              Es werden die 40 meistbewerteten aufgeführt. Die Karte zeigt alle{" "}
+              Aufgeführt sind die 40 meistbewerteten. Die Karte zeigt alle{" "}
               {ZAHL.format(sichtbar.length)}.
             </p>
           ) : null}
-        </div>
+        </aside>
       </div>
     </>
   );

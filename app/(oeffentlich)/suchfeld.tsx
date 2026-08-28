@@ -30,12 +30,21 @@ export function Suchfeld({
   knopftext,
   beschriftung,
   autofokus = false,
+  mitfuehren = {},
 }: {
   vorbelegt?: string;
   platzhalter: string;
   knopftext: string;
   beschriftung: string;
   autofokus?: boolean;
+  /**
+   * Was beim Absenden erhalten bleiben soll.
+   *
+   * Auf der Ergebnisseite stehen Filter neben dem Suchfeld. Ohne diese
+   * versteckten Felder wäre eine neue Suche zugleich ein Zurücksetzen aller
+   * Filter - das Formular schickt nur, was in ihm steht.
+   */
+  mitfuehren?: Record<string, string>;
 }) {
   const [eingabe, setEingabe] = useState(vorbelegt);
   const [liste, setListe] = useState<Vorschlag[]>([]);
@@ -163,6 +172,10 @@ export function Suchfeld({
       }}
       role="search"
     >
+      {Object.entries(mitfuehren).map(([name, wert]) => (
+        <input key={name} type="hidden" name={name} value={wert} />
+      ))}
+
       <div className="vorschlagsfeld">
         <input
           ref={feld}

@@ -436,6 +436,26 @@ Zwei Festlegungen sind wichtiger als sie aussehen:
   wandern, Enter übernimmt den markierten Vorschlag, Escape schließt, Enter ohne Markierung
   bleibt das gewohnte Absenden.
 
+### 7.1.2 Ergebnisseite: suchen oder eingrenzen
+
+Ein Suchfeld allein setzt voraus, dass man den Namen kennt. Wer ihn nicht kennt - „irgendein
+Gymnasium in meiner Stadt“ -, stand vor einer leeren Seite. Seit dem 28.08. hat `/schulen`
+deshalb zwei gleichwertige Wege zu einer Liste:
+
+- **Begriff** wie bisher, jedes Wort muss vorkommen (`schiller öhringen`).
+- **Eingrenzung** ohne Begriff: Bundesland, Schulart, Ort oder Postleitzahl, „nur mit Wertung“.
+  `sucheSchulen` liefert deshalb auch zu leerem Begriff Treffer, sobald ein Filter gesetzt ist.
+
+Dazu zwei Leisten mit **Facetten** (`bundeslandFacetten`, `ortFacetten`): Bundesländer und Orte
+mit ihrer Trefferzahl, jedes ein Link, der die übrigen Filter mitnimmt. Gezählt wird jeweils
+**ohne die eigene Bedingung** - sonst zeigte die Bundeslandleiste nur das Land, in dem man
+schon steht, und man käme nicht mehr heraus. Ohne Suche und ohne Filter stehen die sechzehn
+Bundesländer als Kacheln da, mit ihrer Größe: sechzehn Türen statt einer Aufforderung zu tippen.
+
+Alles bleibt in der Adresse: Filter sind GET-Parameter, jede Ansicht ist verschickbar und
+wiederauffindbar, und das Suchfeld führt die gesetzten Filter als versteckte Felder mit -
+sonst wäre eine neue Suche zugleich ein Zurücksetzen aller Filter.
+
 Die Markierung der Fundstelle darf nicht raten: Der Suchtext der Datenbank führt jeden Begriff
 zusätzlich umlautbereinigt, „gruenewald“ findet also „Grünewald“, obwohl der getippte Begriff
 im angezeigten Namen gar nicht vorkommt. Dann wird nichts markiert

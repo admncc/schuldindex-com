@@ -158,6 +158,106 @@ a { color: var(--akzent); }
 .treffer .titel { font-weight: 500; display: block; }
 .treffer .beiwerk { font-size: 0.88rem; color: var(--schrift-3); display: block; }
 
+/* ---------- Suchseite ---------- */
+.suchbuehne {
+  padding: 2.5rem 0 1.5rem; display: flex; flex-direction: column; gap: 1rem;
+  border-bottom: 1px solid var(--linie);
+}
+/* Der Abschnitt darunter bringt seinen eigenen Abstand mit - sonst klafft
+   zwischen Filterleiste und erster Trefferzeile eine Lücke. */
+.suchbuehne + .abschnitt { padding-top: 1.5rem; }
+.suchbuehne h1 { margin: 0; }
+.suchbuehne .einleitung { margin: 0; font-size: 1.02rem; }
+
+.suchfilter { display: flex; flex-wrap: wrap; gap: 0.7rem 0.9rem; align-items: flex-end; }
+.suchfilter .feld { font-size: 0.85rem; gap: 0.2rem; }
+.suchfilter .feld > span { color: var(--schrift-3); font-weight: 500; }
+.suchfilter select, .suchfilter input[type="text"] {
+  padding: 0.5rem 0.8rem; border-radius: 999px; font-size: 0.92rem;
+}
+.suchfilter input[type="text"] { min-width: 11rem; }
+/* Der Schalter steht in der Reihe der Auswahlfelder und braucht deshalb
+   dieselbe Höhe wie sie - deshalb der Rahmen statt einer nackten Zeile. */
+.suchfilter .schalterfeld {
+  flex-direction: row; align-items: center; gap: 0.45rem;
+  border: 1px solid var(--linie-stark); border-radius: 999px;
+  padding: 0.5rem 0.9rem; background: var(--flaeche); cursor: pointer;
+  min-height: 2.35rem; align-self: flex-end;
+}
+.suchfilter .schalterfeld input { width: 1rem; height: 1rem; accent-color: var(--akzent); margin: 0; }
+.suchfilter .schalterfeld > span { color: var(--schrift-2); font-weight: 500; }
+.suchfilter .knopf { align-self: flex-end; }
+.suchfilter .zuruecksetzen { align-self: flex-end; padding-bottom: 0.6rem; }
+
+/* Was gerade eingegrenzt ist - jede Marke nimmt sich selbst wieder zurück. */
+.filtermarken { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.filtermarken a {
+  display: inline-flex; align-items: center; gap: 0.45rem; text-decoration: none;
+  font-size: 0.85rem; font-weight: 600; color: var(--akzent);
+  background: var(--akzent-sanft); border-radius: 999px; padding: 0.3rem 0.7rem;
+}
+.filtermarken a:hover { background: var(--flaeche-2); color: var(--schrift); }
+.filtermarken a span[aria-hidden] { font-size: 1rem; line-height: 1; opacity: 0.7; }
+
+.trefferzahl { font-size: 0.95rem; color: var(--schrift-3); margin: 0 0 1rem; }
+.trefferzahl strong { color: var(--schrift); }
+
+/* Die Vorschlagsleisten zum Eingrenzen: Bundesland und Ort mit Trefferzahl. */
+.facette { display: flex; flex-direction: column; align-items: flex-start; gap: 0.35rem; margin-bottom: 0.8rem; }
+.facette .beschriftung { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--schrift-3); }
+.facette ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.facette a {
+  display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none;
+  font-size: 0.85rem; color: var(--schrift-2); background: var(--flaeche);
+  border: 1px solid var(--linie); border-radius: 999px; padding: 0.25rem 0.7rem;
+}
+.facette a:hover { border-color: var(--akzent); color: var(--akzent); }
+.facette a span { font-variant-numeric: tabular-nums; color: var(--schrift-3); font-size: 0.78rem; }
+
+/* Die Treffer als Karten: Name und Wertung in einer Zeile, darunter Anschrift
+   und die Merkmale, nach denen gefiltert werden kann. */
+.trefferkarten { list-style: none; margin: 1.2rem 0 0; padding: 0; display: grid; gap: 0.7rem; }
+@media (min-width: 52rem) { .trefferkarten { grid-template-columns: 1fr 1fr; } }
+.trefferkarten li a {
+  display: flex; flex-direction: column; gap: 0.4rem; height: 100%;
+  padding: 1rem 1.1rem; background: var(--flaeche); border: 1px solid var(--linie);
+  border-radius: var(--radius); text-decoration: none; color: inherit;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.trefferkarten li a:hover {
+  border-color: var(--akzent); transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(21, 26, 35, 0.06), 0 18px 36px -24px rgba(21, 26, 35, 0.45);
+}
+.trefferkarten .kopfzeile {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 0.8rem;
+}
+.trefferkarten .titel { font-weight: 650; line-height: 1.35; overflow-wrap: anywhere; }
+.trefferkarten .punktzahl { font-size: 1.5rem; flex-shrink: 0; }
+.trefferkarten .ohnewertung {
+  font-size: 0.75rem; color: var(--schrift-3); text-align: right; flex-shrink: 0; max-width: 6rem;
+}
+.trefferkarten .anschrift { font-size: 0.88rem; color: var(--schrift-3); }
+.marken { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: auto; padding-top: 0.2rem; }
+.marke-flach {
+  font-size: 0.75rem; color: var(--schrift-2); background: var(--flaeche-2);
+  border-radius: 999px; padding: 0.18rem 0.55rem;
+}
+
+/* Der Einstieg ohne Suchbegriff: sechzehn Türen statt einer leeren Seite. */
+.landkacheln {
+  list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+}
+.landkacheln a {
+  display: flex; flex-direction: column; gap: 0.15rem; padding: 0.8rem 1rem;
+  text-decoration: none; color: inherit; height: 100%;
+  background: var(--flaeche); border: 1px solid var(--linie); border-radius: var(--radius);
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.landkacheln strong { font-size: 0.92rem; font-weight: 600; }
+.landkacheln span { font-size: 0.78rem; color: var(--schrift-3); font-variant-numeric: tabular-nums; }
+.landkacheln a:hover { border-color: var(--akzent); color: var(--akzent); transform: translateY(-2px); }
+
 /* ---------- Wertungen ---------- */
 .wertung { display: inline-flex; align-items: baseline; gap: 0.3rem; font-variant-numeric: tabular-nums; }
 .wertung .zahl { font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: 1.5rem; }
@@ -791,7 +891,14 @@ mark.fehlt {
 .feld.klein select { padding: 0.5rem 0.7rem; border-radius: 999px; }
 
 .kartenbuehne { display: grid; gap: 1rem; align-items: start; }
-@media (min-width: 60rem) { .kartenbuehne { grid-template-columns: minmax(0, 3fr) minmax(16rem, 1fr); } }
+@media (min-width: 60rem) {
+  .kartenbuehne { grid-template-columns: minmax(0, 2.5fr) minmax(20rem, 1fr); }
+  /* Die Spalte bleibt beim Blättern neben der Karte stehen und wird höchstens
+     so hoch wie diese. Gerollt wird dann in der Liste, nicht in der Seite. */
+  /* Dieselbe Obergrenze wie der Kartenrahmen: Die Spalte endet damit unten
+     bündig mit der Karte, gerollt wird in der Liste. */
+  .kartenliste { max-height: 80vh; }
+}
 
 .karte-rahmen {
   /* Der Zeiger zieht die Karte, nicht die Seite: `touch-action: none` schaltet
@@ -815,30 +922,71 @@ mark.fehlt {
 .standort .hof { fill: var(--akzent); opacity: 0.18; stroke: none; }
 .standort .kern { fill: var(--akzent); stroke: var(--flaeche); }
 
-.kartenliste { display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; }
-.kartenauswahl {
-  position: relative; display: flex; flex-direction: column; gap: 0.3rem;
-  border: 1px solid var(--akzent); border-radius: var(--radius);
-  background: var(--flaeche); padding: 0.9rem 1rem;
+/* ---------- Die Spalte neben der Karte ---------- */
+.kartenliste {
+  display: flex; flex-direction: column; gap: 0.7rem; min-width: 0; min-height: 0;
 }
+.listenkopf {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 0.4rem; font-size: 0.9rem;
+}
+.listenkopf strong { font-size: 0.95rem; }
+.listenkopf span { color: var(--schrift-3); }
+
+.kartenauswahl {
+  position: relative; display: flex; flex-direction: column; gap: 0.45rem;
+  border: 1px solid var(--linie); border-left: 4px solid var(--akzent);
+  border-radius: var(--radius); background: var(--flaeche); padding: 0.9rem 2rem 0.9rem 1rem;
+  box-shadow: var(--schatten);
+}
+.kartenauswahl .kopfzeile { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+.kartenauswahl .kopfzeile strong { font-size: 1rem; line-height: 1.3; overflow-wrap: anywhere; }
+.kartenauswahl .kopfzeile .punktzahl { font-size: 1.6rem; flex-shrink: 0; }
 .kartenauswahl .beiwerk { font-size: 0.85rem; color: var(--schrift-3); }
-.kartenauswahl .knopf { align-self: flex-start; margin-top: 0.4rem; }
+.kartenauswahl .merkmale {
+  list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem;
+}
+.kartenauswahl .merkmale li {
+  font-size: 0.78rem; color: var(--schrift-2); background: var(--flaeche-2);
+  border-radius: 999px; padding: 0.2rem 0.6rem;
+}
+.kartenauswahl .knopf { align-self: flex-start; margin-top: 0.2rem; }
 .kartenauswahl .schliessen {
   position: absolute; top: 0.4rem; right: 0.5rem; border: none; background: none;
   font-size: 1.3rem; line-height: 1; color: var(--schrift-3); cursor: pointer;
 }
+.kartenauswahl .schliessen:hover { color: var(--schrift); }
 
-.kartentreffer { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.3rem; max-height: 26rem; overflow-y: auto; }
+.kartentreffer {
+  list-style: none; margin: 0; padding: 0 0.2rem 1.4rem 0; display: grid; gap: 0.4rem;
+  align-content: start; overflow-y: auto; min-height: 0; flex: 1 1 auto; max-height: 26rem;
+  scrollbar-width: thin; scrollbar-color: var(--linie-stark) transparent;
+  /* Unten ausblenden statt hart abschneiden: So ist zu sehen, dass die Liste
+     weitergeht. Der Innenabstand darunter lässt den letzten Eintrag am Ende
+     wieder vollständig erscheinen. */
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.4rem), transparent);
+}
+@media (min-width: 60rem) { .kartentreffer { max-height: none; } }
 .kartentreffer .eintrag {
   width: 100%; display: flex; align-items: center; gap: 0.7rem; text-align: left;
   background: var(--flaeche); border: 1px solid var(--linie); border-radius: 10px;
-  padding: 0.5rem 0.7rem; cursor: pointer; font: inherit; color: inherit;
+  padding: 0.55rem 0.7rem; cursor: pointer; font: inherit; color: inherit; min-width: 0;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
-.kartentreffer .eintrag:hover { border-color: var(--akzent); }
+.kartentreffer .eintrag:hover { border-color: var(--akzent); background: var(--flaeche-2); }
 .kartentreffer .eintrag.gewaehlt { border-color: var(--akzent); background: var(--akzent-sanft); }
-.kartentreffer .name { font-size: 0.9rem; font-weight: 600; min-width: 0; }
-.kartentreffer .name span { display: block; font-weight: 400; font-size: 0.8rem; color: var(--schrift-3); }
-.punktzahl.klein { font-size: 1rem; min-width: 2.2rem; }
+.kartentreffer .name { min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
+/* Zwei Zeilen für den Namen, danach Auslassungspunkte: „Staatl. Berufsfachschule
+   für Musikinstrumentenbau Mittenwald“ soll die Liste nicht auseinanderziehen. */
+.kartentreffer .titel {
+  font-size: 0.88rem; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.kartentreffer .beiwerk {
+  font-size: 0.76rem; color: var(--schrift-3); white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis;
+}
+.punktzahl.klein { font-size: 1.05rem; min-width: 2.3rem; text-align: center; flex-shrink: 0; }
 
 /* Der Warnhinweis im Bewertungsformular. Rot und groß: Er steht genau einmal,
    nach dem ersten Schritt, und soll gelesen werden. */

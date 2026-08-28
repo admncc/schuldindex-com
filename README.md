@@ -37,6 +37,8 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/import/normalisiere.ts` | Rohdatensatz → Schule: Adresse, Koordinate samt Reparatur vertauschter Werte, Suchtext |
 | `src/import/dubletten.ts` | Zusammenführung mehrfach gelieferter Schulen, Standorte bleiben erhalten |
 | `src/db/schulsuche.ts` | Autovervollständigung, unscharfe Suche, Umkreissuche, Filter |
+| `src/db/schulen.ts` | Suche der Ergebnisseite: Begriff, Filter, Facetten nach Bundesland und Ort |
+| `app/(oeffentlich)/schulen/page.tsx` | Ergebnisseite: Filterleiste, Facetten zum Eingrenzen, Bundesländer als Einstieg |
 | `app/(oeffentlich)/kategoriewertungen.tsx` | Die sechs Kategoriewertungen auf dem Schulprofil, mit Gewichtung |
 | `app/(oeffentlich)/suchfeld.tsx` | Suchfeld mit Vorschlagsliste - Tastaturbedienung, funktioniert auch ohne JavaScript |
 | `src/domain/suchhervorhebung.ts` | Markiert die Fundstelle im Vorschlag - und markiert nichts, wenn es keine gibt |
@@ -93,6 +95,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `scripts/geokodiere.ts` | Holt fehlende Koordinaten nach, wiederaufnehmbar |
 | `scripts/pruefe-koordinaten.test.ts` | Qualitätstor: prüft die Koordinaten gegen die Datenbank |
 | `scripts/suche.test.ts` | Prüft die Suche an den echten Daten |
+| `scripts/trefferseite.test.ts` | Prüft Filter, Facetten und Sortierung der Ergebnisseite an den echten Daten |
 | `scripts/durchstich.test.ts` | Durchstich: echte Schulen, Bewertungen, Aggregation |
 | `scripts/moderator-anlegen.ts` | Legt ein Moderationskonto an, gibt Kennwort und App-URL einmalig aus |
 | `scripts/zusammenfassen.ts` | Erzeugt die Freitext-Zusammenfassungen der fälligen Schulen |

@@ -10,9 +10,9 @@
  * sonst hieße „hohes Risiko“ nach jeder Änderung im Panel etwas anderes als das,
  * was das Portal tatsächlich anhält.
  *
- *  - **gering** — unter der Halteschwelle. Läuft durch.
- *  - **auffaellig** — ab der Halteschwelle. Wird angehalten und angesehen.
- *  - **hoch** — doppelte Halteschwelle. Mehrere schwere Signale zugleich; das
+ *  - **gering** - unter der Halteschwelle. Läuft durch.
+ *  - **auffaellig** - ab der Halteschwelle. Wird angehalten und angesehen.
+ *  - **hoch** - doppelte Halteschwelle. Mehrere schwere Signale zugleich; das
  *    ist der Fall, den man in einer langen Liste zuerst sehen will.
  *
  * Auch „hoch“ ist **kein Beweis**. Es ist der Grund, genau hinzusehen - die
