@@ -35,7 +35,7 @@ export default async function Anfrageseite({
       <p>
         Schulen können die Auswertungen zu ihrer eigenen Schule einsehen: Gesamtwertung,
         Kategoriewerte, Verlauf und die Zusammenfassung der Freitexte.{" "}
-        <strong>Einzelne Bewertungen sind nicht einsehbar</strong> — auch nicht für die Schule.
+        <strong>Einzelne Bewertungen sind nicht einsehbar</strong> - auch nicht für die Schule.
         Sonst wäre die Zusage der Anonymität nichts wert.
       </p>
 
@@ -87,7 +87,7 @@ export default async function Anfrageseite({
       <ol>
         <li>
           <strong>Ist im Schulverzeichnis eine Adresse hinterlegt</strong>, schicken wir den
-          Zugangslink dorthin — nicht an eine Adresse, die in diesem Formular steht.
+          Zugangslink dorthin - nicht an eine Adresse, die in diesem Formular steht.
         </li>
         <li>
           <strong>Sonst</strong> nehmen wir eine Adresse an der Domäne der Schulwebsite, sofern
@@ -96,7 +96,7 @@ export default async function Anfrageseite({
         <li>
           <strong>In allen anderen Fällen</strong> prüfen wir von Hand und melden uns bei der
           Schule. Das betrifft vor allem Schulen an gemeinsamen Landesdomänen: unter{" "}
-          <code>schule.nrw.de</code> etwa liegen über fünftausend Schulen — eine Adresse dort sagt
+          <code>schule.nrw.de</code> etwa liegen über fünftausend Schulen - eine Adresse dort sagt
           nichts darüber aus, für welche davon jemand spricht.
         </li>
       </ol>

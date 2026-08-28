@@ -43,7 +43,7 @@ export default function Regelzeile({
     <form action={absenden} className="loeschfrage" key={zustand.versuch ?? 0}>
       <input type="hidden" name="art" value={art} />
       <span>
-        {betroffen.toLocaleString("de-DE")} Datensätze — {gegenstand.toLowerCase()} — endgültig löschen?
+        {betroffen.toLocaleString("de-DE")} Datensätze - {gegenstand.toLowerCase()} - endgültig löschen?
       </span>
       <button className="knopf gefahr klein" disabled={laeuft}>
         {laeuft ? "Wird gelöscht …" : "Ja, löschen"}

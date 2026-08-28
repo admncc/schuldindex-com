@@ -2,8 +2,8 @@
  * Anbindung an Photon (photon.komoot.io), den OSM-Geocoder von Komoot.
  *
  * Gewählt, weil er ausdrücklich für höhere Lasten gedacht und selbst betreibbar
- * ist. Nominatim liefert genauer — im Test das Schulgebäude statt der
- * Bushaltestelle davor —, seine Nutzungsbedingungen sehen Massenabfragen aber
+ * ist. Nominatim liefert genauer - im Test das Schulgebäude statt der
+ * Bushaltestelle davor -, seine Nutzungsbedingungen sehen Massenabfragen aber
  * nicht gern. Für die Kartenanzeige reichen Photons rund 40 m Abweichung, für
  * die 150-km-Prüfung ohnehin.
  *
@@ -101,7 +101,7 @@ export class PhotonGeocoder implements Geocoder {
         const punkt = daten.features?.[0]?.geometry?.coordinates;
         if (!punkt || punkt.length < 2) return null;
 
-        // Achtung: GeoJSON führt [Länge, Breite] — nicht umgekehrt.
+        // Achtung: GeoJSON führt [Länge, Breite] - nicht umgekehrt.
         const [lon, lat] = punkt;
         this.treffer++;
         const plz = daten.features?.[0]?.properties?.["postcode"];
@@ -122,7 +122,7 @@ export class PhotonGeocoder implements Geocoder {
  * Legt einen Zwischenspeicher um einen Geocoder.
  *
  * Der Lauf über 6.207 Schulen dauert je nach Takt eine halbe bis zwei Stunden.
- * Bricht er ab, soll der nächste Versuch nicht bei null anfangen — und
+ * Bricht er ab, soll der nächste Versuch nicht bei null anfangen - und
  * dieselbe Anfrage soll einen fremden Dienst nicht zweimal belasten.
  */
 export function mitZwischenspeicher(

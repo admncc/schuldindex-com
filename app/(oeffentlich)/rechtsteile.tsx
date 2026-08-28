@@ -1,13 +1,13 @@
 import { FELDNAME, type Betreiberangaben } from "@/recht/betreiber";
 
 /**
- * Fehlende Pflichtangabe — sichtbar, nicht stillschweigend.
+ * Fehlende Pflichtangabe - sichtbar, nicht stillschweigend.
  *
  * Eine Impressumsseite, die eine fehlende Angabe einfach ausblendet, sieht
  * vollständig aus und ist es nicht. Genau daran hängt die Abmahnung.
  */
 export function Fehlt({ feld }: { feld: keyof Betreiberangaben }) {
-  return <mark className="fehlt">{FELDNAME[feld]} fehlt — bitte eintragen</mark>;
+  return <mark className="fehlt">{FELDNAME[feld]} fehlt - bitte eintragen</mark>;
 }
 
 export function Angabe({

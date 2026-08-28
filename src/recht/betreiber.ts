@@ -1,12 +1,12 @@
 /**
- * Angaben zum Betreiber — Grundlage für Impressum und Datenschutzerklärung.
+ * Angaben zum Betreiber - Grundlage für Impressum und Datenschutzerklärung.
  *
  * Diese Daten kennt der Code nicht: sie hängen daran, wer das Portal am Ende
  * betreibt (§ 5 DDG verlangt unter anderem die Rechtsform, das Register und die
  * Vertretungsberechtigten). Sie kommen deshalb aus der Umgebung.
  *
  * Was hier **nicht** passiert: Beispielangaben als Voreinstellung. Ein
- * Impressum mit „Musterstraße 1“ sieht aus wie ein Impressum und ist keines —
+ * Impressum mit „Musterstraße 1“ sieht aus wie ein Impressum und ist keines -
  * und ein fehlendes Impressum ist abmahnfähig. Fehlt eine Angabe, sagt die
  * Seite das an der Stelle deutlich, an der sie stehen müsste.
  */
@@ -23,12 +23,12 @@ export interface Betreiberangaben {
   readonly umsatzsteuerId: string | null;
   readonly email: string | null;
   readonly telefon: string | null;
-  /** Verantwortlich nach § 18 Abs. 2 MStV — bei redaktionellen Angeboten Pflicht. */
+  /** Verantwortlich nach § 18 Abs. 2 MStV - bei redaktionellen Angeboten Pflicht. */
   readonly verantwortlich: string | null;
   readonly datenschutzbeauftragter: string | null;
   /** Verarbeitungsregion der Claude API, die im Vertrag festgelegt wurde. */
   readonly kiRegion: string | null;
-  /** Wer die Anwendung betreibt — Empfänger der Zugriffsprotokolle. */
+  /** Wer die Anwendung betreibt - Empfänger der Zugriffsprotokolle. */
   readonly hoster: string | null;
   /** Wie lange die Zugriffsprotokolle des Servers aufbewahrt werden. */
   readonly protokollfrist: string | null;

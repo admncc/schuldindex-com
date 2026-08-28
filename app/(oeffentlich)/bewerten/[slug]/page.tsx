@@ -31,7 +31,7 @@ export default async function Bewertungsseite({
   if (!schule) notFound();
 
   // Ändern geht nur angemeldet und nur an der eigenen Bewertung. Beides wird
-  // hier geprüft und beim Speichern noch einmal — die Seite kann täuschen, die
+  // hier geprüft und beim Speichern noch einmal - die Seite kann täuschen, die
   // Schnittstelle nicht.
   let aenderung = undefined;
   if (aendern) {
@@ -60,7 +60,7 @@ export default async function Bewertungsseite({
 
       <section className="abschnitt">
         {/* Der Stempel wird hier ausgestellt und beim Absenden zurückgeschickt.
-            Aus ihm rechnet der Server die Dauer — eine Angabe des Browsers wäre
+            Aus ihm rechnet der Server die Dauer - eine Angabe des Browsers wäre
             wertlos (siehe domain/formularstempel.ts). */}
         <Bewertungsformular
           schulSlug={schule.slug}

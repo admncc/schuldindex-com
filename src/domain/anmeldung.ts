@@ -3,7 +3,7 @@
  *
  * Die Moderation ist die einzige Stelle im Portal, an der ein Mensch
  * Bewertungen freigeben, ablehnen und Kontaktdaten einsehen kann. Ein
- * übernommenes Moderationskonto wiegt daher schwerer als jedes andere Konto —
+ * übernommenes Moderationskonto wiegt daher schwerer als jedes andere Konto -
  * deshalb Kennwort **und** zweiter Faktor (`totp.ts`), und deshalb die drei
  * Maßnahmen hier: langsames Hashen, kurze Sitzungen, Sperre nach Fehlversuchen.
  */
@@ -22,7 +22,7 @@ const scrypt = promisify(scryptRueckruf) as (
  * scrypt-Parameter.
  *
  * N=2^15 braucht auf heutiger Serverhardware rund 100 ms und 32 MB. Das ist für
- * eine Anmeldung, die ein Mensch zweimal am Tag macht, nicht spürbar — für
+ * eine Anmeldung, die ein Mensch zweimal am Tag macht, nicht spürbar - für
  * jemanden, der eine gestohlene Kennworttabelle durchrechnet, dagegen sehr.
  */
 const N = 32768;
@@ -35,7 +35,7 @@ const MAXMEM = 64 * 1024 * 1024;
 export const PASSWORT_MINDESTLAENGE = 12;
 
 /**
- * Bewertet ein Kennwort — Länge vor Zeichenklassen.
+ * Bewertet ein Kennwort - Länge vor Zeichenklassen.
  *
  * Erzwungene Sonderzeichen erzeugen bekanntlich `Passwort1!` und sonst nichts.
  * Die Länge ist das, was zählt; dazu eine kleine Sperrliste der Wörter, die im
@@ -71,7 +71,7 @@ export async function hashePasswort(klartext: string): Promise<string> {
  * Vergleicht ein Kennwort mit dem gespeicherten Abdruck.
  *
  * Die Parameter kommen aus dem gespeicherten Wert, nicht aus den Konstanten
- * oben — sonst wären alle bestehenden Kennwörter ungültig, sobald wir N erhöhen.
+ * oben - sonst wären alle bestehenden Kennwörter ungültig, sobald wir N erhöhen.
  */
 export async function stimmtPasswort(klartext: string, gespeichert: string): Promise<boolean> {
   const teile = gespeichert.split("$");
@@ -128,15 +128,15 @@ export function erzeugeSitzung(jetzt = new Date()): Sitzungstoken {
 const COOKIE_BASIS = "schulindex_moderation";
 
 /**
- * Name des Sitzungscookies — mit `__Host-`-Präfix, wo es zulässig ist.
+ * Name des Sitzungscookies - mit `__Host-`-Präfix, wo es zulässig ist.
  *
  * Das Präfix bindet das Cookie an genau diesen Ursprung: keine Subdomain kann
- * es setzen oder überschreiben. Der Preis ist eine harte Bedingung — ohne das
+ * es setzen oder überschreiben. Der Preis ist eine harte Bedingung - ohne das
  * Attribut `Secure` ist ein `__Host-`-Cookie ungültig.
  *
  * Über http (Entwicklung) lässt sich `Secure` nicht setzen. Chromium nimmt das
  * Cookie über localhost zwar entgegen, schickt es aber nicht mehr bei jedem
- * Request mit: die Seiten waren angemeldet, die Server Actions nicht — und die
+ * Request mit: die Seiten waren angemeldet, die Server Actions nicht - und die
  * Oberfläche warf mitten in der Arbeit auf die Anmeldeseite zurück. Deshalb
  * trägt das Cookie das Präfix genau dann, wenn es auch `Secure` bekommt.
  */
@@ -172,7 +172,7 @@ export interface Sperre {
  * Ist das Konto gerade gesperrt?
  *
  * Die Sperre läuft von selbst ab. Eine Sperre, die ein Mensch aufheben muss,
- * wäre bei fünf Moderatoren ein Ärgernis — und für jemanden, der Konten
+ * wäre bei fünf Moderatoren ein Ärgernis - und für jemanden, der Konten
  * lahmlegen will, ein Werkzeug.
  */
 export function pruefeSperre(zustand: Sperrzustand, jetzt = new Date()): Sperre {
@@ -188,7 +188,7 @@ export function pruefeSperre(zustand: Sperrzustand, jetzt = new Date()): Sperre 
  *
  * Ein einziger Text für „Konto gibt es nicht“, „Kennwort falsch“ und „Code
  * falsch“. Alles andere verrät, welche Kennungen existieren und ob ein Kennwort
- * bereits stimmte — die zweite Auskunft ist die wertvollere.
+ * bereits stimmte - die zweite Auskunft ist die wertvollere.
  */
 export const ANMELDUNG_FEHLGESCHLAGEN = "Kennung, Kennwort oder Code stimmen nicht.";
 

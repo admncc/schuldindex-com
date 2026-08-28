@@ -2,7 +2,7 @@
  * Der Anmeldevorgang der Moderation.
  *
  * Wie beim Abgabedienst steht hier kein SQL: die Datenbank kommt als
- * `Zugang` herein. Das ist an dieser Stelle mehr als Stilfrage — die
+ * `Zugang` herein. Das ist an dieser Stelle mehr als Stilfrage - die
  * Reihenfolge der Prüfungen und das, was bei jedem Fehlschlag protokolliert
  * wird, sind die eigentliche Sicherheitsleistung, und beides lässt sich so
  * ohne laufende Datenbank vollständig prüfen.
@@ -38,7 +38,7 @@ export interface Zugang {
    * Setzt die Fehlversuche zurück und hält den verbrauchten TOTP-Schritt fest.
    *
    * `null` heißt: Es wurde kein Code verbraucht, der gespeicherte Schritt bleibt
-   * unangetastet. Das ist der Fall bei abgeschaltetem zweitem Faktor — ihn dabei
+   * unangetastet. Das ist der Fall bei abgeschaltetem zweitem Faktor - ihn dabei
    * zu überschreiben hieße, einen alten Code nach dem Wiedereinschalten erneut
    * gültig zu machen.
    */
@@ -66,18 +66,23 @@ export interface Anmeldeoptionen {
   /**
    * Ob der zweite Faktor verlangt wird.
    *
-   * Abschaltbar über `MODERATION_OHNE_2FA=1` (Stand 27.08.2026, auf Wunsch des
-   * Auftraggebers für den Testbetrieb). Was dann bleibt, ist ein Kennwort vor
-   * einem Panel, das Klartextkontakte entschlüsselt, Bewertungen freigibt und
-   * die Betrugsschwellen verstellt. Für den Echtbetrieb ist das zu wenig;
-   * deshalb ist der Schalter kein stiller, sondern einer, der in der Oberfläche
-   * sichtbar wird (`app/moderation/layout.tsx`) und dessen Vorgabe an ist.
+   * Abschaltbar im Panel selbst (`/moderation/einstellungen`, Einstellung
+   * `zweiter_faktor`; Stand 27.08.2026 aus, auf Entscheidung des Auftraggebers
+   * für den Testbetrieb). Was dann bleibt, ist ein Kennwort vor einem Panel, das
+   * Klartextkontakte entschlüsselt, Bewertungen freigibt und die
+   * Betrugsschwellen verstellt. Für den Echtbetrieb ist das zu wenig; deshalb
+   * ist der Schalter kein stiller, sondern einer, der in der Oberfläche sichtbar
+   * bleibt (`app/moderation/layout.tsx`) und im Verlauf steht.
+   *
+   * Der Vorgabewert *dieser Funktion* bleibt „an“: Wer sie ohne Angabe aufruft,
+   * bekommt die sichere Fassung. Was gilt, entscheidet die Aufrufstelle mit dem
+   * Wert aus den Einstellungen.
    */
   readonly zweiterFaktorPflicht?: boolean;
 }
 
 /**
- * Meldet an — oder eben nicht.
+ * Meldet an - oder eben nicht.
  *
  * Drei Festlegungen, die den Ablauf bestimmen:
  *
@@ -88,7 +93,7 @@ export interface Anmeldeoptionen {
  *    das System auf existierende Kennungen hundert Millisekunden langsamer, und
  *    die Liste der Moderatoren ist mit einer Stoppuhr auslesbar.
  *  - **Der Fehlversuch zählt vor der Antwort.** Auch bei richtigem Kennwort und
- *    falschem Code — sonst ließe sich der sechsstellige Code mit bekanntem
+ *    falschem Code - sonst ließe sich der sechsstellige Code mit bekanntem
  *    Kennwort ungebremst durchprobieren.
  */
 export async function melde(
@@ -130,7 +135,7 @@ export async function melde(
   const passwortStimmt = await stimmtPasswort(daten.passwort, konto.passwortAbdruck);
 
   // Auch ein stillgelegtes Konto und eines ohne zweiten Faktor durchlaufen die
-  // Kennwortprüfung — und scheitern danach mit demselben Text wie alle anderen.
+  // Kennwortprüfung - und scheitern danach mit demselben Text wie alle anderen.
   const codeErgebnis = !zweiterFaktorPflicht
     ? ({ ok: true, schritt: null } as const)
     : konto.totpGeheimnis === null
@@ -173,7 +178,7 @@ export async function melde(
  * Ein gültiger scrypt-Abdruck, zu dem kein Kennwort gehört.
  *
  * Er dient nur dazu, bei unbekannter Kennung dieselbe Rechenzeit zu verbrauchen
- * wie bei einer bekannten. Der Salzwert ist fest — er schützt nichts, weil es
+ * wie bei einer bekannten. Der Salzwert ist fest - er schützt nichts, weil es
  * nichts zu schützen gibt.
  */
 const BLINDABDRUCK =

@@ -1,7 +1,7 @@
 /**
  * Umgang mit Kontaktdaten.
  *
- * Ein Konto braucht den Kontakt dauerhaft (Entscheidung E10) — also liegt er
+ * Ein Konto braucht den Kontakt dauerhaft (Entscheidung E10) - also liegt er
  * verschlüsselt in der Datenbank. Daneben steht ein Hash, mit dem sich Dubletten
  * und Mehrfachkonten erkennen lassen, **ohne** entschlüsseln zu müssen. Das ist
  * der Unterschied, auf den es ankommt: die Betrugserkennung läuft ständig, das
@@ -28,7 +28,7 @@ export function istKontaktart(wert: string): wert is Kontaktart {
  * Bringt eine Eingabe in die Form, in der sie gehasht wird.
  *
  * Ohne Normalisierung gälten `0170 1234567`, `+49 170 1234567` und
- * `0049-170-1234567` als drei verschiedene Personen — und jede
+ * `0049-170-1234567` als drei verschiedene Personen - und jede
  * Mehrfachkonten-Erkennung liefe ins Leere.
  */
 export function normalisiereKontakt(wert: string, art: Kontaktart): string {
@@ -86,7 +86,7 @@ export function entschluessele(daten: Buffer): string {
 }
 
 /**
- * Entschlüsselt, wenn es geht — sonst `null`.
+ * Entschlüsselt, wenn es geht - sonst `null`.
  *
  * Gebraucht überall dort, wo ein einzelner unlesbarer Datensatz nicht die ganze
  * Seite mitreißen darf. Unlesbar wird ein Kontakt vor allem nach einem Wechsel
@@ -105,7 +105,7 @@ export function entschluesseleWennMoeglich(daten: Buffer): string | null {
  * Verschleiert einen Kontakt für die Anzeige: `a***a@beispiel.de`,
  * `+49 170 ****567`.
  *
- * Gebraucht auf der Bestätigungsseite — sie muss erkennen lassen, wohin die
+ * Gebraucht auf der Bestätigungsseite - sie muss erkennen lassen, wohin die
  * Nachricht ging, ohne den Kontakt bei einem geteilten Bildschirm preiszugeben.
  */
 export function verschleiere(wert: string, art: Kontaktart): string {

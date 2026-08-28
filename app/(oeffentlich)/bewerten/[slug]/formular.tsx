@@ -33,7 +33,7 @@ type Schritt = { art: "rolle" } | { art: "kategorie"; id: KategorieId } | { art:
  * Eine bestehende Bewertung, die geändert werden soll.
  *
  * Dasselbe Formular, andere Ausgangslage: die Antworten stehen schon da, und
- * Kontakt und Einwilligung fehlen ganz — beide liegen längst vor. Sie erneut zu
+ * Kontakt und Einwilligung fehlen ganz - beide liegen längst vor. Sie erneut zu
  * verlangen würde die Einwilligung zur Formalität machen.
  */
 export interface Aenderung {
@@ -65,7 +65,7 @@ export function Bewertungsformular({
     aenderung?.freitexte ?? {},
   );
   // Bei einer Änderung sind die freiwilligen Kategorien schon aufgeklappt, wenn
-  // sie beantwortet wurden — sonst wären die Antworten unsichtbar und würden
+  // sie beantwortet wurden - sonst wären die Antworten unsichtbar und würden
   // beim Speichern trotzdem mitgeschickt.
   const [freiwillige, setFreiwillige] = useState<KategorieId[]>(
     aenderung === undefined
@@ -89,7 +89,7 @@ export function Bewertungsformular({
    *
    * Als Ref und nicht als State: Jeder Klick soll das Formular nicht neu
    * rendern, und die Werte gehen ohnehin nur einmal mit, beim Absenden. Was
-   * hier entsteht, ist eine Zahlenreihe ohne Bezug zu einzelnen Fragen — welche
+   * hier entsteht, ist eine Zahlenreihe ohne Bezug zu einzelnen Fragen - welche
    * Frage jemand wie lange bedacht hat, wird nicht festgehalten und verlässt
    * den Browser nie.
    */
@@ -199,7 +199,7 @@ export function Bewertungsformular({
         <h2>Fast geschafft</h2>
         <p>
           Wir haben dir eine Nachricht an <strong>{gesendet.kontaktAnzeige}</strong> geschickt.
-          Bitte bestätige darüber deine Bewertung — der Link ist 24 Stunden gültig.
+          Bitte bestätige darüber deine Bewertung - der Link ist 24 Stunden gültig.
         </p>
         <p className="hinweis">
           Erst nach der Bestätigung wird deine Bewertung geprüft und veröffentlicht. Deine
@@ -243,7 +243,7 @@ export function Bewertungsformular({
           </div>
           {fehlerZu("rolle") && <p className="fehler">{fehlerZu("rolle")}</p>}
 
-          {/* Die Elterneinwilligung erscheint nur dort, wo sie hingehört —
+          {/* Die Elterneinwilligung erscheint nur dort, wo sie hingehört -
               direkt nach der Rollenwahl, nicht irgendwo am Ende. */}
           {rolle === "schueler_unter_16" && (
             <label className="ankreuzfeld">
@@ -304,13 +304,13 @@ export function Bewertungsformular({
 
       {schritt.art === "abschluss" && (
         <>
-          {/* Die freiwilligen Kategorien werden erst hier angeboten — einzeln
+          {/* Die freiwilligen Kategorien werden erst hier angeboten - einzeln
               und eingeklappt. Dreißig weitere Fragen als Wand hätten viele
               abgeschreckt, bevor sie den Pflichtteil abgeschlossen haben. */}
           {FREIWILLIG.filter((id) => !freiwillige.includes(id)).length > 0 && (
             <fieldset className="feldgruppe">
               <legend>Möchtest du noch etwas bewerten?</legend>
-              <p className="hinweis">Freiwillig — deine Bewertung zählt auch ohne.</p>
+              <p className="hinweis">Freiwillig - deine Bewertung zählt auch ohne.</p>
               <div className="wahl">
                 {FREIWILLIG.filter((id) => !freiwillige.includes(id)).map((id) => {
                   const k = KATEGORIEN.find((x) => x.id === id)!;
@@ -389,7 +389,7 @@ export function Bewertungsformular({
               <legend>Änderung speichern</legend>
               <p className="hinweis">
                 Deine neue Fassung wird noch einmal geprüft und ersetzt danach die bisherige. Eine
-                erneute Bestätigung brauchst du nicht — dein Konto ist bestätigt.
+                erneute Bestätigung brauchst du nicht - dein Konto ist bestätigt.
               </p>
             </fieldset>
           )}
@@ -505,7 +505,7 @@ function Kategorieschritt({
         <p className="warnung">
           <strong>Dein Text wird nicht veröffentlicht.</strong> Er fließt zusammen mit anderen
           Bewertungen in eine kurze Zusammenfassung für diese Schule ein.{" "}
-          <strong>Bitte nenne keine Namen</strong> — weder von Lehrkräften noch von Mitschülerinnen
+          <strong>Bitte nenne keine Namen</strong> - weder von Lehrkräften noch von Mitschülerinnen
           und Mitschülern. Bewertungen mit Namen werden abgelehnt.
         </p>
         <textarea rows={4} value={freitext} onChange={(e) => setFreitext(e.target.value)} />

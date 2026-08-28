@@ -1,14 +1,14 @@
-# Fragebogen — deutsche Fassung (kanonisch)
+# Fragebogen - deutsche Fassung (kanonisch)
 
 **Diese Datei ist die Quelle für die Fragebogeninhalte des Portals.** Die maschinenlesbare
 Fassung liegt in `src/domain/fragebogen.ts`; Struktur und Wertung werden dort durch Tests
 abgesichert. Die englischen
-Fassungen in den Spezifikationsdokumenten sind Vorlage, nicht Auslieferungsstand — für ein
+Fassungen in den Spezifikationsdokumenten sind Vorlage, nicht Auslieferungsstand - für ein
 deutschsprachiges Portal ist die deutsche Fassung das Original.
 
 Grundlage: *Full Rating Questionnaire* und *Developer Specification* (Kategorien A–E,
 Gewichtungen, Pflicht/optional). Die Zuordnung der Antwortskala je Frage ist neu und ergibt
-sich aus dem Fragetyp — siehe Entscheidung E5 im Entwicklungsplan.
+sich aus dem Fragetyp - siehe Entscheidung E5 im Entwicklungsplan.
 
 ---
 
@@ -16,7 +16,7 @@ sich aus dem Fragetyp — siehe Entscheidung E5 im Entwicklungsplan.
 
 Drei Skalen, intern immer als 1–5 kodiert. Je Frage ist genau eine Skala hinterlegt.
 
-### Skala Q — Qualität
+### Skala Q - Qualität
 | Label | Wert |
 |---|---|
 | Sehr gut | 5 |
@@ -25,7 +25,7 @@ Drei Skalen, intern immer als 1–5 kodiert. Je Frage ist genau eine Skala hinte
 | Schlecht | 2 |
 | Sehr schlecht | 1 |
 
-### Skala S — Sicherheit
+### Skala S - Sicherheit
 | Label | Wert |
 |---|---|
 | Sehr sicher | 5 |
@@ -34,7 +34,7 @@ Drei Skalen, intern immer als 1–5 kodiert. Je Frage ist genau eine Skala hinte
 | Eher unsicher | 2 |
 | Sehr unsicher | 1 |
 
-### Skala H — Häufigkeit (Rohwert; für das Scoring invertiert)
+### Skala H - Häufigkeit (Rohwert; für das Scoring invertiert)
 | Label | Rohwert | Invertiert (6 − Rohwert) |
 |---|---|---|
 | Nie | 1 | 5 |
@@ -43,14 +43,14 @@ Drei Skalen, intern immer als 1–5 kodiert. Je Frage ist genau eine Skala hinte
 | Häufig | 4 | 2 |
 | Sehr häufig | 5 | 1 |
 
-Zusätzlich bei jeder Frage verfügbar: **„Kann ich nicht beurteilen“** — fließt nicht in die
+Zusätzlich bei jeder Frage verfügbar: **„Kann ich nicht beurteilen“** - fließt nicht in die
 Berechnung ein und wird als fehlender Wert behandelt. (Ohne diese Option raten Befragte bei
 Fragen außerhalb ihrer Wahrnehmung, etwa Eltern zur Ausstattung der Fachräume, was die
 Datenqualität senkt.)
 
 ---
 
-## 2. Kategorie A — Sicherheit & Schulklima
+## 2. Kategorie A - Sicherheit & Schulklima
 **Gewichtung 3 · Pflichtkategorie · 11 Fragen**
 
 Kategorie A ist intern zweigeteilt: **A2 und A3 bilden den Aggressionsindex** (Teilbereich
@@ -75,7 +75,7 @@ Kategorie A ist intern zweigeteilt: **A2 und A3 bilden den Aggressionsindex** (T
 
 ---
 
-## 3. Kategorie B — Unterrichts- & Lernqualität
+## 3. Kategorie B - Unterrichts- & Lernqualität
 **Gewichtung 2 · Pflichtkategorie · 10 Fragen · durchgehend Skala Q**
 
 | Nr. | Frage |
@@ -95,7 +95,7 @@ Kategorie A ist intern zweigeteilt: **A2 und A3 bilden den Aggressionsindex** (T
 
 ---
 
-## 4. Kategorie C — Ausstattung & Lernmittel
+## 4. Kategorie C - Ausstattung & Lernmittel
 **Gewichtung 2 · Pflichtkategorie · 10 Fragen · durchgehend Skala Q**
 
 | Nr. | Frage |
@@ -115,7 +115,7 @@ Kategorie A ist intern zweigeteilt: **A2 und A3 bilden den Aggressionsindex** (T
 
 ---
 
-## 5. Kategorie D — Schulleitung, Kommunikation & Verwaltung
+## 5. Kategorie D - Schulleitung, Kommunikation & Verwaltung
 **Gewichtung 2 · optional · 10 Fragen · durchgehend Skala Q**
 
 | Nr. | Frage |
@@ -135,7 +135,7 @@ Kategorie A ist intern zweigeteilt: **A2 und A3 bilden den Aggressionsindex** (T
 
 ---
 
-## 6. Kategorie E — Umwelt & Nachhaltigkeit
+## 6. Kategorie E - Umwelt & Nachhaltigkeit
 **Gewichtung 1 · optional · 10 Fragen · durchgehend Skala Q**
 
 | Nr. | Frage |
@@ -155,11 +155,11 @@ Kategorie A ist intern zweigeteilt: **A2 und A3 bilden den Aggressionsindex** (T
 
 ---
 
-## 7. Kategorie F — Außerunterrichtliches Angebot & Schulleben
+## 7. Kategorie F - Außerunterrichtliches Angebot & Schulleben
 **Gewichtung 1 · optional · 10 Fragen · durchgehend Skala Q**
 
 Neu aufgenommen am 26.08.2026. Die fünf bestehenden Kategorien decken Sicherheit,
-Unterricht, Ausstattung, Verwaltung und Umwelt ab — aber nichts von dem, was für Eltern bei
+Unterricht, Ausstattung, Verwaltung und Umwelt ab - aber nichts von dem, was für Eltern bei
 der Schulwahl oft den Ausschlag gibt: Arbeitsgemeinschaften, Klassenfahrten, Ganztag,
 Austausch, Berufsorientierung. Die Lücke ist echt und schließt sich gut.
 
@@ -181,13 +181,13 @@ Austausch, Berufsorientierung. Die Lücke ist echt und schließt sich gut.
 **Zwei Hinweise zur Ausgestaltung:**
 
 1. **Alle Fragen bewusst auf Skala Q**, nicht auf die Häufigkeitsskala. Bei „Wie häufig
-   finden Ausflüge statt?“ wäre *häufiger = besser* — die Umkehrung der Aggressionsfragen,
+   finden Ausflüge statt?“ wäre *häufiger = besser* - die Umkehrung der Aggressionsfragen,
    wo *häufiger = schlechter* gilt. Zwei gegenläufige Häufigkeitsregeln in derselben
    Scoring-Engine sind eine sichere Fehlerquelle. „Wie angemessen ist die Anzahl?“ misst
    dasselbe ohne diesen Bruch.
 2. **Möglicher elfter Punkt zur Abstimmung:** „Wie gut sorgt die Schule dafür, dass
    kostenpflichtige Angebote wie Klassenfahrten für alle Familien bezahlbar bleiben?"
-   Sozial aussagekräftig und in keinem Vergleichsportal zu finden — aber auch die
+   Sozial aussagekräftig und in keinem Vergleichsportal zu finden - aber auch die
    politischste Frage des Fragebogens. Aufnehmen oder nicht, ist eine Produktentscheidung.
 
 **Auswirkung auf die Länge:** Der Fragenkatalog wächst von 51 auf 61 Fragen. Da D, E und F
@@ -200,28 +200,28 @@ Mehr als drei optionale Kategorien sollten es nicht werden.
 
 ## 8. Ansprache
 
-**Das Portal duzt durchgehend** — auch gegenüber Eltern und Lehrkräften (Entscheidung vom
+**Das Portal duzt durchgehend** - auch gegenüber Eltern und Lehrkräften (Entscheidung vom
 26.08.2026). Es gibt nur einen Textstand. Eine Sie-Form existiert nicht mehr, weder hier noch
 im Code; ein Test in `src/domain/fragebogen.test.ts` schlägt an, sobald eine Frage in der
 Sie-Form nachgetragen wird.
 
-Von den 61 Fragen sprechen zwölf überhaupt jemanden direkt an — A1, A2, A3, A7, A11, B10, C1,
+Von den 61 Fragen sprechen zwölf überhaupt jemanden direkt an - A1, A2, A3, A7, A11, B10, C1,
 C10, D6, D10, E10 und F10. Alle übrigen sind neutral formuliert („Wie gut unterstützt die
 Schule …“) und bleiben davon unberührt.
 
 **Gendern:** durchgehend Doppelnennung oder neutrale Form („Schülerinnen und Schüler“,
-„Lehrkräfte“, „Erziehungsberechtigte“). Keine Sonderzeichen-Formen in Fragebogentexten — sie
+„Lehrkräfte“, „Erziehungsberechtigte“). Keine Sonderzeichen-Formen in Fragebogentexten - sie
 stören Screenreader und wirken in einer Bewertungsfrage positionierend.
 
 ---
 
 ## 9. Hinweistext über dem Freitextfeld
 
-Verpflichtend einzublenden, nicht wegklickbar. Er muss zwei Dinge sagen — was mit dem Text
+Verpflichtend einzublenden, nicht wegklickbar. Er muss zwei Dinge sagen - was mit dem Text
 passiert und was nicht hineingehört (Begründung: Abschnitte 7, 9 und 10 des Entwicklungsplans):
 
 > **Dein Text wird nicht veröffentlicht.** Er fließt zusammen mit anderen Bewertungen in eine
-> kurze Zusammenfassung für diese Schule ein. **Bitte nenne keine Namen** — weder von
+> kurze Zusammenfassung für diese Schule ein. **Bitte nenne keine Namen** - weder von
 > Lehrkräften noch von Mitschülerinnen und Mitschülern. Bewertungen mit Namen werden abgelehnt.
 
 ---

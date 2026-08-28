@@ -6,7 +6,7 @@
  *
  * Die Abhängigkeiten werden hereingereicht statt importiert. Das ist hier kein
  * Selbstzweck: der Ablauf lässt sich damit vollständig prüfen, ohne eine
- * Datenbank, einen Geocoder oder einen Nachrichtendienst zu betreiben — und
+ * Datenbank, einen Geocoder oder einen Nachrichtendienst zu betreiben - und
  * genau dieser Ablauf entscheidet, ob eine Bewertung veröffentlicht wird.
  */
 
@@ -49,7 +49,7 @@ export interface Umgebung {
    * Panel sofort wirkt und nicht erst nach dem nächsten Neustart.
    */
   holeEinstellungen(): Promise<Einstellungen>;
-  /** Bisheriger Stand der Schule — Grundlage des Abweichungssignals. */
+  /** Bisheriger Stand der Schule - Grundlage des Abweichungssignals. */
   holeSchulmittel(schuleId: string): Promise<{ mittel: number | null; anzahl: number }>;
   speichere(daten: Gespeicherte): Promise<{ bewertungId: string }>;
   sendeBestaetigung(empfaenger: string, art: string, token: Token): Promise<boolean>;
@@ -73,7 +73,7 @@ export interface Gespeicherte {
    *
    * Aufbewahrt für die Kalibrierung der Schwellen und den Vergleich ganzer
    * Verläufe untereinander (Entscheidung vom 27.08.2026). Auch dann gespeichert,
-   * wenn die Folge nicht zur vom Server gemessenen Zeit passt — eine erfundene
+   * wenn die Folge nicht zur vom Server gemessenen Zeit passt - eine erfundene
    * Reihe ist selbst ein Befund. Personenbezogene Verhaltensspur; was daraus
    * folgt, steht in `domain/klickmuster.ts`.
    */
@@ -146,7 +146,7 @@ export async function bewertungAbgeben(
       antworten: eingabe.antworten,
       freitextAuffaellig: freitexte.length > 0 && (await umgebung.pruefeFreitext(freitexte)),
       kontoPerEmail: art === "email",
-      // Vom Server gemessen, nicht vom Browser gemeldet — siehe
+      // Vom Server gemessen, nicht vom Browser gemeldet - siehe
       // `domain/formularstempel.ts`. Ohne gültigen Stempel bleibt es leer,
       // und das Tempo-Signal entfällt, statt zu raten.
       dauerSekunden: eingabe.dauerSekunden ?? null,

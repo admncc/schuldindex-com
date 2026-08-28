@@ -69,7 +69,7 @@ export default async function Bestaetigungsseite({
 
   return (
     <Rueckmeldung
-      titel="Danke — deine Bewertung ist bestätigt"
+      titel="Danke - deine Bewertung ist bestätigt"
       text={
         freigegeben > 0
           ? "Sie erscheint in Kürze auf dem Schulprofil. Von jetzt an kannst du weitere Schulen bewerten, ohne dich erneut zu bestätigen."

@@ -18,10 +18,10 @@ export interface Punkt {
 }
 
 /**
- * Erdradius — bewusst derselbe Wert, den Postgres' `earthdistance` verwendet.
+ * Erdradius - bewusst derselbe Wert, den Postgres' `earthdistance` verwendet.
  *
  * Die Erweiterung rechnet mit dem Äquatorradius (6378,168 km), nicht mit dem
- * mittleren (6371,0088 km). Der Unterschied beträgt 0,11 % — auf 600 km rund
+ * mittleren (6371,0088 km). Der Unterschied beträgt 0,11 % - auf 600 km rund
  * 670 Meter. Für die 150-km-Grenze ist das bedeutungslos, für die
  * Nachvollziehbarkeit nicht: die Anwendung prüft die Entfernung bei der Abgabe,
  * die Datenbank bei der Umkreissuche. Rechnen beide unterschiedlich, kann
@@ -78,7 +78,7 @@ export interface Geobefund {
  *  - **Absender nicht lokalisierbar** (Proxy, VPN, unbekannter Adressbereich).
  *    Das ist genau das Verhalten, das eine Kampagne zeigt.
  *  - **Schule ohne Koordinate.** Betrifft aktuell noch Schulen, deren
- *    Nachgeocodierung nichts ergab. Ohne Bezugspunkt lässt sich nichts prüfen —
+ *    Nachgeocodierung nichts ergab. Ohne Bezugspunkt lässt sich nichts prüfen -
  *    die Bewertung ungeprüft durchzulassen wäre die schlechtere Wahl.
  */
 export function pruefeEinreichung(e: Einreichung, schwelleKm = SCHWELLE_KM): Geobefund {
@@ -87,7 +87,7 @@ export function pruefeEinreichung(e: Einreichung, schwelleKm = SCHWELLE_KM): Geo
       entfernungKm: null,
       unbekannt: true,
       haltenWegenEntfernung: true,
-      begruendung: "Schule ohne Koordinate — Entfernung nicht prüfbar",
+      begruendung: "Schule ohne Koordinate - Entfernung nicht prüfbar",
     };
   }
   if (e.absender === null) {

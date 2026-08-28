@@ -4,7 +4,7 @@
  * Als ausdrückliche Tabelle geführt, nicht als verstreute Wenn-Bedingungen.
  * Fehler in Zustandsübergängen sind besonders teuer: eine Bewertung, die aus
  * „abgelehnt“ zurück in „freigegeben“ rutscht, veröffentlicht Inhalte, die ein
- * Mensch bewusst gestoppt hat — und niemand bemerkt es.
+ * Mensch bewusst gestoppt hat - und niemand bemerkt es.
  */
 
 export const ZUSTAENDE = [

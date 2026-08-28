@@ -13,7 +13,7 @@ import {
 const GRUPPEN = [...new Set(KATALOG.map((k) => k.gruppe))];
 
 function wertText(b: Einstellungsbeschreibung, wert: number): string {
-  return b.art === "ganzzahl" ? String(wert) : String(wert).replace(".", ",");
+  return b.art === "kommazahl" ? String(wert).replace(".", ",") : String(wert);
 }
 
 export default function Einstellungsformular({
@@ -31,7 +31,7 @@ export default function Einstellungsformular({
    *
    * „Auf Vorgabe“ trägt damit einfach den Vorgabewert ein, und gespeichert wird
    * über denselben Weg wie jede andere Änderung. Der erste Entwurf hatte dafür
-   * eine zweite Server-Aktion am Knopf — die lief still durch die Hauptaktion
+   * eine zweite Server-Aktion am Knopf - die lief still durch die Hauptaktion
    * des Formulars, und das Zurücksetzen tat nichts.
    */
   const [felder, setzeFelder] = useState<Record<string, string>>(() =>
@@ -56,20 +56,50 @@ export default function Einstellungsformular({
                 <div key={b.schluessel} className={abweichend ? "einstellung abweichend" : "einstellung"}>
                   <label htmlFor={b.schluessel}>{b.label}</label>
                   <div className="eingabe">
-                    <input
-                      id={b.schluessel}
-                      name={b.schluessel}
-                      value={eingetragen}
-                      onChange={(e) =>
-                        setzeFelder((bisher) => ({ ...bisher, [b.schluessel]: e.target.value }))
-                      }
-                      inputMode={b.art === "ganzzahl" ? "numeric" : "decimal"}
-                      disabled={!darfAendern}
-                      aria-describedby={`${b.schluessel}-hilfe`}
-                    />
+                    {/* Ein Schalter ist eine 0 oder eine 1 - aber niemand soll
+                        eine Null tippen müssen, um etwas abzuschalten. */}
+                    {b.art === "schalter" ? (
+                      <label className="schalter">
+                        <input
+                          id={b.schluessel}
+                          type="checkbox"
+                          checked={eingetragen === "1"}
+                          onChange={(e) =>
+                            setzeFelder((bisher) => ({
+                              ...bisher,
+                              [b.schluessel]: e.target.checked ? "1" : "0",
+                            }))
+                          }
+                          disabled={!darfAendern}
+                          aria-describedby={`${b.schluessel}-hilfe`}
+                        />
+                        <span>{eingetragen === "1" ? "an" : "aus"}</span>
+                      </label>
+                    ) : (
+                      <input
+                        id={b.schluessel}
+                        name={b.schluessel}
+                        value={eingetragen}
+                        onChange={(e) =>
+                          setzeFelder((bisher) => ({ ...bisher, [b.schluessel]: e.target.value }))
+                        }
+                        inputMode={b.art === "ganzzahl" ? "numeric" : "decimal"}
+                        disabled={!darfAendern}
+                        aria-describedby={`${b.schluessel}-hilfe`}
+                      />
+                    )}
+                    {/* Das Ankreuzfeld selbst schickt nichts mit, wenn es leer
+                        ist. Der Wert geht deshalb immer über ein verstecktes
+                        Feld raus - sonst hieße „abgehakt“ beim Speichern
+                        „nicht angegeben“. */}
+                    {b.art === "schalter" ? (
+                      <input type="hidden" name={b.schluessel} value={eingetragen} />
+                    ) : null}
                     {b.einheit ? <span className="einheit">{b.einheit}</span> : null}
                     <span className="gedaempft">
-                      {b.min}–{b.max}, Vorgabe {wertText(b, b.vorgabe)}
+                      {b.art === "schalter"
+                        ? `Vorgabe ${b.vorgabe === 1 ? "an" : "aus"}`
+                        : `${b.min}–${b.max}, Vorgabe ${wertText(b, b.vorgabe)}`}
                     </span>
                     {abweichend && darfAendern ? (
                       <button
@@ -98,7 +128,7 @@ export default function Einstellungsformular({
             {laeuft ? "Wird gespeichert …" : "Einstellungen speichern"}
           </button>
           <p className="fussnote">
-            Änderungen wirken sofort — auf Bewertungen, die ab jetzt eingehen. Bereits
+            Änderungen wirken sofort - auf Bewertungen, die ab jetzt eingehen. Bereits
             entschiedene Bewertungen bleiben, wie sie sind.
           </p>
         </div>

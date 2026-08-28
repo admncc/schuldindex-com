@@ -74,7 +74,7 @@ export default async function Einstellungsseite() {
                   <td>{beschreibung(e.schluessel)?.label ?? e.schluessel}</td>
                   <td className="gedaempft">{e.alter_wert ?? "Vorgabe"}</td>
                   <td>{e.neuer_wert}</td>
-                  <td>{e.moderator_name ?? "—"}</td>
+                  <td>{e.moderator_name ?? "-"}</td>
                 </tr>
               ))}
             </tbody>

@@ -53,14 +53,14 @@ describe("entscheideWeg", () => {
 
   it("nimmt die hinterlegte Adresse auch dann, wenn eine andere vorgeschlagen wird", () => {
     // Sonst könnte jemand mit einer Adresse an der Schuldomäne den stärkeren
-    // Nachweis umgehen — und die Wahl läge bei ihm statt bei uns.
+    // Nachweis umgehen - und die Wahl läge bei ihm statt bei uns.
     const e = entscheideWeg(mitAmtlicher, "irgendwer@gymnasium-beispiel.de", auskunft());
     expect(e.weg).toBe("amtliche_adresse");
     expect(e.ziel).toBe("123456@schule.nrw.de");
   });
 
   it("nimmt die hinterlegte Adresse auch bei geteiltem Host", () => {
-    // Der Host schule.nrw.de gehört 5.447 Schulen — für diesen Weg macht das
+    // Der Host schule.nrw.de gehört 5.447 Schulen - für diesen Weg macht das
     // nichts: die Adresse ist der Briefkasten genau dieser Schule, und wir
     // schicken hin, statt sie uns nennen zu lassen.
     const e = entscheideWeg(mitAmtlicher, null, auskunft({ "schule.nrw.de": 5447 }));
@@ -74,7 +74,7 @@ describe("entscheideWeg", () => {
   });
 });
 
-describe("entscheideWeg — ohne hinterlegte Adresse", () => {
+describe("entscheideWeg - ohne hinterlegte Adresse", () => {
   const nurWebsite: Schulkontakt = { email: null, website: "https://www.schule-beispiel.de" };
 
   it("nimmt eine Adresse an der Schuldomäne, wenn der Host nur dieser Schule gehört", () => {

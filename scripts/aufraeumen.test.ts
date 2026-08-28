@@ -4,7 +4,7 @@
  *   DATABASE_URL=postgres://… npx vitest run scripts/aufraeumen.test.ts
  *
  * Prüft das, was an einer Aufbewahrungsfrist wirklich schiefgehen kann: dass sie
- * zu viel löscht. Der Kern ist die erste Zusicherung — ein stillgelegtes Konto
+ * zu viel löscht. Der Kern ist die erste Zusicherung - ein stillgelegtes Konto
  * darf seine Bewertungen **nicht** mitnehmen.
  *
  * Die Testdaten tragen eine eigene Kennung und werden am Ende entfernt.
@@ -22,7 +22,7 @@ let schuleId: string;
 /**
  * Die angelegten Konten, mitgeführt.
  *
- * Nicht über den Kontakt-Hash zu finden: die Stilllegung löscht ihn — also
+ * Nicht über den Kontakt-Hash zu finden: die Stilllegung löscht ihn - also
  * genau das Merkmal, an dem der erste Entwurf dieses Tests seine eigenen Daten
  * wiedererkannte. Übrig blieben Karteileichen, die einen anderen Test
  * durcheinanderbrachten.
@@ -89,7 +89,7 @@ async function legeAn(name: string, alterTage: number, status = "freigegeben"): 
 describe.skipIf(!vorhanden)("Aufräumlauf an der Datenbank", () => {
   it("legt ein ruhendes Konto still, ohne seine Bewertung zu löschen", async () => {
     // Die Zusicherung, an der die ganze Konstruktion hängt: die
-    // Datenschutzerklärung verspricht beides — Konto weg nach 24 Monaten,
+    // Datenschutzerklärung verspricht beides - Konto weg nach 24 Monaten,
     // Bewertungen bleiben, solange sie veröffentlicht sind.
     const { kontoId, bewertungId } = await legeAn("ruhend", 800);
     const { raeumeAuf } = await import("../src/db/aufraeumen");

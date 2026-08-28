@@ -2,7 +2,7 @@
  * Nachprüfung der erzeugten Zusammenfassung.
  *
  * Das Modell bekommt Regeln, und es hält sie meistens ein. „Meistens“ genügt
- * hier nicht: was veröffentlicht wird, ist ab dem Moment **unser** Text — das
+ * hier nicht: was veröffentlicht wird, ist ab dem Moment **unser** Text - das
  * Haftungsprivileg für fremde Inhalte greift für eigene nicht (Entwicklungsplan,
  * Abschnitt 10.2). Deshalb prüft diese Datei die Ausgabe noch einmal mit
  * stumpfen, aber verlässlichen Mitteln.
@@ -20,7 +20,7 @@ export interface Beanstandung {
   readonly fund: string;
 }
 
-/** Zwei bis vier Sätze — so steht es in Abschnitt 10.2. */
+/** Zwei bis vier Sätze - so steht es in Abschnitt 10.2. */
 export const MIN_SAETZE = 2;
 export const MAX_SAETZE = 4;
 export const MAX_ZEICHEN = 700;
@@ -70,7 +70,7 @@ const REGELN: readonly Regel[] = [
   {
     name: "Klassen- oder Jahrgangsangabe",
     schwere: "blockierend",
-    // „der 8b“, „Klasse 10a“, „Jahrgang 7“ — jede davon grenzt den Kreis der
+    // „der 8b“, „Klasse 10a“, „Jahrgang 7“ - jede davon grenzt den Kreis der
     // gemeinten Personen so weit ein, dass er bestimmbar wird.
     muster: /\b(Klasse|Jahrgang|Kurs)\s*\d{1,2}\s*[a-f]?\b|\b\d{1,2}[a-f]\b/i,
   },
@@ -117,7 +117,7 @@ const MEINUNGSBILD =
 export interface Pruefkontext {
   /** Wie viele freigegebene Bewertungen mit Freitext zugrunde liegen. */
   readonly anzahlBewertungen: number;
-  /** Selbstauskunft des Modells — ein Hinweis, keine Prüfung. */
+  /** Selbstauskunft des Modells - ein Hinweis, keine Prüfung. */
   readonly enthaeltPersonenbezug?: boolean | undefined;
   readonly ausreichendDatenbasis?: boolean | undefined;
 }

@@ -19,7 +19,7 @@ describe("Ablehnungsgründe", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("sind in der Du-Form und ganze Sätze — sie gehen so an die Person hinaus", () => {
+  it("sind in der Du-Form und ganze Sätze - sie gehen so an die Person hinaus", () => {
     for (const g of ABLEHNUNGSGRUENDE) {
       expect(g.text.length).toBeGreaterThan(30);
       expect(g.text).toMatch(/[.!?]$/);
@@ -31,7 +31,7 @@ describe("Ablehnungsgründe", () => {
   });
 });
 
-describe("pruefeEntscheidung — Freigabe", () => {
+describe("pruefeEntscheidung - Freigabe", () => {
   it("gibt eine geprüfte Bewertung frei", () => {
     const e = pruefeEntscheidung("in_pruefung_geo", { aktion: "freigeben" });
     expect(e.ok).toBe(true);
@@ -46,12 +46,12 @@ describe("pruefeEntscheidung — Freigabe", () => {
 
   it("gibt eine noch unbestätigte Bewertung nicht frei", () => {
     // Sonst ließe sich die Kontobestätigung durch einen Klick in der Moderation
-    // überspringen — und mit ihr die ganze Verifizierung.
+    // überspringen - und mit ihr die ganze Verifizierung.
     expect(pruefeEntscheidung("wartet_auf_verifizierung", { aktion: "freigeben" }).ok).toBe(false);
   });
 });
 
-describe("pruefeEntscheidung — Ablehnung", () => {
+describe("pruefeEntscheidung - Ablehnung", () => {
   it("verlangt einen Grund", () => {
     const e = pruefeEntscheidung("in_pruefung_betrug", { aktion: "ablehnen" });
     expect(e.ok).toBe(false);
@@ -98,7 +98,7 @@ describe("pruefeEntscheidung — Ablehnung", () => {
   });
 });
 
-describe("pruefeEntscheidung — Rückfrage", () => {
+describe("pruefeEntscheidung - Rückfrage", () => {
   it("lässt den Zustand stehen", () => {
     const e = pruefeEntscheidung("in_pruefung_geo", {
       aktion: "rueckfrage",

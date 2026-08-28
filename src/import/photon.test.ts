@@ -122,7 +122,7 @@ describe("Zwischenspeicher", () => {
 describe("Postleitzahl", () => {
   it("reicht die Postleitzahl des Treffers weiter", async () => {
     // Sie ist die einzige Handhabe gegen den Fehlgriff „richtige Straße,
-    // falscher Ort“ — dafür muss sie erst einmal ankommen.
+    // falscher Ort“ - dafür muss sie erst einmal ankommen.
     const holen = vi.fn(async () => antwort(8.8941, 54.8023, "25899"));
     const treffer = await geocoder(holen as unknown as typeof fetch).suche("Schulstraße 5");
     expect(treffer?.plz).toBe("25899");

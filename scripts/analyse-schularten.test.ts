@@ -4,7 +4,7 @@
  *   npx vitest run scripts/analyse-schularten.test.ts
  *
  * Erwartet den Rohbestand als JSON unter SCHULEN_JSON. Ohne die Datei wird
- * übersprungen — der Bestand liegt bewusst nicht im Repository (rund 12 MB).
+ * übersprungen - der Bestand liegt bewusst nicht im Repository (rund 12 MB).
  */
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
@@ -69,7 +69,7 @@ describe.skipIf(!vorhanden)("Normalisierung am echten Bestand", () => {
 
     // 96 % ist keine willkürliche Marke, sondern das, was die Quelle hergibt.
     // Die restlichen rund 1.170 Schulen tragen die Schulart weder im Feld noch
-    // im Namen — sie heißen schlicht „Kahlhorst-Schule“ oder
+    // im Namen - sie heißen schlicht „Kahlhorst-Schule“ oder
     // „Wolfgang-Ratke-Schule“. Das lässt sich nur mit einer zweiten Quelle
     // lösen, überwiegend für Schleswig-Holstein und Baden-Württemberg.
     expect(quote).toBeGreaterThan(96);

@@ -11,7 +11,7 @@
  *     gibt eine neue Bewertung ab; sonst wanderte eine Wertung mitsamt ihrer
  *     Geschichte von einer Schule zur nächsten.
  *  3. **Die alte Fassung bleibt.** Veröffentlicht ist die neue, nachvollziehbar
- *     bleiben beide — bei einer späteren Beschwerde ist genau das die Frage.
+ *     bleiben beide - bei einer späteren Beschwerde ist genau das die Frage.
  */
 
 import { pruefeAenderung, type Bewertungseingabe, type Eingabefehler } from "../domain/bewertungseingabe";

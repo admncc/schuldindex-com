@@ -102,13 +102,13 @@ describe("Ablauf der Geokodierung", () => {
     const g = attrappe({ "27639 Wurster Nordseeküste": { lat: 53.77, lon: 8.62 } });
     const ergebnis = await geokodiere(NORDHOLZ, g);
     expect(ergebnis.genauigkeit).toBe("plz");
-    // Für die 150-km-Prüfung ist das vollwertig — nur die Karte stellt es anders dar.
+    // Für die 150-km-Prüfung ist das vollwertig - nur die Karte stellt es anders dar.
     expect(ergebnis.koordinate).not.toBeNull();
   });
 
   it("verwirft einen Treffer im falschen Bundesland und sucht weiter", async () => {
     // Der reale Fall: „Neustadt“ gibt es dutzendfach. Ein Geocoder, der die
-    // Adresse in Bayern findet, würde die Schule 600 km entfernt platzieren —
+    // Adresse in Bayern findet, würde die Schule 600 km entfernt platzieren -
     // und jede Bewertung aus ihrer Nachbarschaft fiele durch die Geo-Prüfung.
     const g = attrappe({
       "Grundschule Nordholz, Nordweg 75, 27639 Wurster Nordseeküste": { lat: 48.14, lon: 11.58 },
@@ -148,7 +148,7 @@ describe("Postleitzahl des Treffers", () => {
     expect(plzPasst("25899", " 25899 ")).toBe(true);
     // Der reale Fehlgriff: „Schulstraße 5, 25899 Klixbüll“ wurde rund 110 km
     // weiter südlich gefunden. Beide Orte liegen in Schleswig-Holstein und
-    // beide Postleitzahlen beginnen mit 25 — ein Vergleich der ersten beiden
+    // beide Postleitzahlen beginnen mit 25 - ein Vergleich der ersten beiden
     // Stellen hätte das durchgelassen.
     expect(plzPasst("25899", "25524")).toBe(false);
     expect(plzPasst("25899", "25917")).toBe(false);
@@ -184,7 +184,7 @@ describe("Postleitzahl im Ablauf", () => {
   });
 
   it("lässt auf der Ortsstufe eine abweichende Postleitzahl zu", async () => {
-    // Dort wurde bewusst nur nach dem Ort gefragt — eine passende
+    // Dort wurde bewusst nur nach dem Ort gefragt - eine passende
     // Postleitzahl wäre gar nicht zu erwarten.
     const nurOrt = { ...KLIXBUELL, strasse: null, plz: "25899" };
     const g: Geocoder = {

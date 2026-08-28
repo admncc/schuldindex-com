@@ -2,7 +2,7 @@
 --
 -- Bisher standen die Grenzwerte als Konstanten im Code. Ob „mehr als fünf
 -- Abgaben in zehn Minuten“ zu streng ist, weiß aber niemand vor den ersten
--- tausend Bewertungen — und dann soll für eine Zahl keine neue Fassung
+-- tausend Bewertungen - und dann soll für eine Zahl keine neue Fassung
 -- ausgeliefert werden müssen.
 --
 -- Gespeichert wird nur, was von der Vorgabe abweicht. Eine leere Tabelle

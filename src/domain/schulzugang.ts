@@ -2,7 +2,7 @@
  * Zugang für Schulen (Rolle „Schulsupport“, Entscheidung E8).
  *
  * Eine Schule soll ihre eigenen Werte sehen: Gesamtwertung, Kategorien, Trend,
- * die Zusammenfassung — **keine Einzelbewertungen**. Die Frage, an der alles
+ * die Zusammenfassung - **keine Einzelbewertungen**. Die Frage, an der alles
  * hängt, ist nicht die Anzeige, sondern der Nachweis: Wie belegt jemand, dass er
  * für diese Schule spricht?
  *
@@ -18,11 +18,11 @@
  * Wege, in dieser Reihenfolge:
  *
  *  1. **Die hinterlegte Adresse.** Der Link geht an die Adresse aus dem
- *     Schulverzeichnis — die anfragende Person wählt sie nicht aus, sie muss nur
+ *     Schulverzeichnis - die anfragende Person wählt sie nicht aus, sie muss nur
  *     Zugriff darauf haben. Sichere Variante, unabhängig von geteilten Hosts.
  *  2. **Eine Adresse an einem Host, der genau einer Schule gehört.** Nur dann
  *     sagt der Host etwas über die Schule aus.
- *  3. **Prüfung durch Menschen.** Für alles andere — die Redaktion ruft an oder
+ *  3. **Prüfung durch Menschen.** Für alles andere - die Redaktion ruft an oder
  *     schreibt an die Schulanschrift.
  */
 
@@ -56,7 +56,7 @@ export function istEmail(wert: string): boolean {
 }
 
 /**
- * Wie viele Schulen einen Host benutzen — die Auskunft, die den Ausschlag gibt.
+ * Wie viele Schulen einen Host benutzen - die Auskunft, die den Ausschlag gibt.
  *
  * Kommt aus der Datenbank; die Entscheidung darüber steht hier.
  */
@@ -68,7 +68,7 @@ export interface Hostauskunft {
 export interface Wegentscheidung {
   readonly weg: Zugangsweg;
   /**
-   * Adresse, an die der Link geht. Bei `pruefung` leer — dann geht nichts
+   * Adresse, an die der Link geht. Bei `pruefung` leer - dann geht nichts
    * hinaus, bevor ein Mensch entschieden hat.
    */
   readonly ziel: string | null;
@@ -79,7 +79,7 @@ export interface Wegentscheidung {
  * Entscheidet, auf welchem Weg eine Schule Zugang bekommt.
  *
  * `vorgeschlagen` ist die Adresse, die jemand von sich aus angibt. Sie wird nur
- * benutzt, wenn ihr Host genau dieser einen Schule gehört — sonst wäre sie
+ * benutzt, wenn ihr Host genau dieser einen Schule gehört - sonst wäre sie
  * genau das Schlupfloch, das die geteilten Landesdomänen aufmachen.
  */
 export function entscheideWeg(
@@ -108,7 +108,7 @@ export function entscheideWeg(
         return {
           weg: "eigener_host",
           ziel: vorgeschlagen.trim().toLowerCase(),
-          begruendung: `Die Adresse liegt auf ${vorschlagshost} — der Domäne dieser Schule.`,
+          begruendung: `Die Adresse liegt auf ${vorschlagshost} - der Domäne dieser Schule.`,
         };
       }
       return {
@@ -131,7 +131,7 @@ export function entscheideWeg(
  *
  * Bei Weg 1 **ohne** die Adresse: Sie steht zwar öffentlich im Schulverzeichnis,
  * aber sie hier auszugeben hieße, aus einem Zugangsformular einen Adressabruf zu
- * machen — samt Prüfung, welche Schule welche Adresse hat.
+ * machen - samt Prüfung, welche Schule welche Adresse hat.
  */
 export function wegtext(entscheidung: Wegentscheidung): string {
   switch (entscheidung.weg) {

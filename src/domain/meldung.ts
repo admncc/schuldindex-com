@@ -1,9 +1,9 @@
 /**
- * Meldungen nach Art. 16 DSA — Prüfung der Eingaben.
+ * Meldungen nach Art. 16 DSA - Prüfung der Eingaben.
  *
  * Der Artikel schreibt vor, was eine Meldung enthalten muss, damit sie als
  * hinreichend genau und begründet gilt. Was hier geprüft wird, ist genau diese
- * Liste — nicht mehr: eine Hürde, die über das Gesetz hinausgeht, wäre selbst
+ * Liste - nicht mehr: eine Hürde, die über das Gesetz hinausgeht, wäre selbst
  * ein Verstoß gegen die Pflicht zum „leicht zugänglichen“ Verfahren.
  */
 
@@ -75,7 +75,7 @@ export interface Meldefehler {
  * So lang muss die Erläuterung mindestens sein.
  *
  * „Ist falsch“ ist keine hinreichende Begründung im Sinne von Art. 16 Abs. 2
- * lit. a — und eine Meldung, mit der die Moderation nichts anfangen kann, hilft
+ * lit. a - und eine Meldung, mit der die Moderation nichts anfangen kann, hilft
  * der meldenden Person am wenigsten.
  */
 export const MIN_ERLAEUTERUNG = 40;
@@ -89,7 +89,7 @@ export function istMeldegrund(wert: string): wert is Meldegrund {
  *
  * Bei einer Meldung wegen einer Straftat gegen Leib und Leben verlangt Art. 16
  * Abs. 2 lit. c ausdrücklich **keine** Kontaktangabe. Wer eine Drohung meldet,
- * kommt hier deshalb auch ohne Adresse durch — nur bekommt er dann keine
+ * kommt hier deshalb auch ohne Adresse durch - nur bekommt er dann keine
  * Antwort, und darauf weist das Formular hin.
  */
 export function pruefeMeldung(e: Meldeeingabe): Meldefehler[] {
@@ -158,4 +158,4 @@ export function deuteAdresse(url: string): { art: "schule" | "bewertung" | "unbe
 /** Was die meldende Person nach dem Absenden liest (Art. 16 Abs. 4). */
 export const EINGANGSBESTAETIGUNG =
   "Deine Meldung ist eingegangen. Wir sehen sie uns an und teilen dir das Ergebnis mit, " +
-  "sobald entschieden ist — in der Regel innerhalb weniger Tage.";
+  "sobald entschieden ist - in der Regel innerhalb weniger Tage.";

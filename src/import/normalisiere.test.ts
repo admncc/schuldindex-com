@@ -84,7 +84,7 @@ describe("Koordinaten aus der Quelle", () => {
   it("dreht vertauschte Breite und Länge zurück", () => {
     // Die Quelle liefert 13 Schulen in Nordrhein-Westfalen verdreht. Da
     // Deutschland zwischen 47–55° Nord und 6–15° Ost liegt, überschneiden sich
-    // die Bereiche nicht — die Vertauschung ist eindeutig erkennbar.
+    // die Bereiche nicht - die Vertauschung ist eindeutig erkennbar.
     expect(pruefeKoordinate(7.3465, 51.447, "NW")).toEqual({ art: "vertauscht", lat: 51.447, lon: 7.3465 });
   });
 
@@ -110,7 +110,7 @@ describe("Koordinaten aus der Quelle", () => {
 
   it("behält die Schule, wenn nur die Koordinate unbrauchbar ist", () => {
     // Eine reale Schule wegen eines einzigen kaputten Feldes zu verwerfen wäre
-    // falsch — sie geht ohne Koordinate in die Nachgeocodierung.
+    // falsch - sie geht ohne Koordinate in die Nachgeocodierung.
     const e = normalisiere({ ...NORDHOLZ, latitude: 0, longitude: 0 });
     expect(e.ok).toBe(true);
     if (e.ok) {
@@ -133,7 +133,7 @@ describe("Koordinaten aus der Quelle", () => {
 describe("Suchtext", () => {
   it("nimmt jeden Begriff in beiden Umlautformen auf", () => {
     // Postgres' unaccent macht aus „Grünewald“ ein „Grunewald“. Wer
-    // „Gruenewald“ tippt, fände damit nichts — deshalb stehen beide da.
+    // „Gruenewald“ tippt, fände damit nichts - deshalb stehen beide da.
     const text = baueSuchtext(["Grünewald-Schule"]);
     expect(text).toContain("grünewald-schule");
     expect(text).toContain("gruenewald schule");

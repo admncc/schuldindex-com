@@ -65,7 +65,7 @@ try {
     returning id, (xmax = 0) as angelegt
   `;
 
-  // Ein zurückgesetztes Kennwort muss die laufenden Sitzungen beenden — sonst
+  // Ein zurückgesetztes Kennwort muss die laufenden Sitzungen beenden - sonst
   // arbeitet jemand mit dem alten Zugang weiter, gerade wenn der Grund für das
   // Zurücksetzen ein Verdacht war.
   const beendet = await sql`

@@ -1,7 +1,7 @@
 /**
  * Aufbewahrungsfristen.
  *
- * Die Datenschutzerklärung nennt Fristen — und eine Frist, die niemand
+ * Die Datenschutzerklärung nennt Fristen - und eine Frist, die niemand
  * ausführt, ist eine Zusage, die wir brechen. Deshalb stehen die Regeln hier
  * als Daten und nicht als Prosa: derselbe Katalog steuert den Aufräumlauf und
  * füllt die Tabelle in der Datenschutzerklärung. Sie können nicht
@@ -10,7 +10,7 @@
  * Die schwierigste Regel ist die erste, und sie steht so nicht im Brief des
  * Auftraggebers: Ein Konto verfällt nach 24 Monaten Ruhe, **die Bewertungen
  * bleiben**. Beides zusammen geht nur, wenn das Konto nicht gelöscht, sondern
- * seines Kontakts entledigt wird — sonst nähme es über den Fremdschlüssel die
+ * seines Kontakts entledigt wird - sonst nähme es über den Fremdschlüssel die
  * Bewertungen mit. Was übrig bleibt, ist ein Anker ohne Person: die Bewertung
  * ist weiter anonym veröffentlicht, aber niemand kann sich mehr auf sie berufen,
  * auch wir nicht.
@@ -27,7 +27,7 @@ export type Aufbewahrungsart =
 
 export interface Aufbewahrungsregel {
   readonly art: Aufbewahrungsart;
-  /** Was betroffen ist — Wortlaut für die Datenschutzerklärung. */
+  /** Was betroffen ist - Wortlaut für die Datenschutzerklärung. */
   readonly gegenstand: string;
   readonly tage: number;
   /** Woran die Frist hängt. */
@@ -44,7 +44,7 @@ export const REGELN: readonly Aufbewahrungsregel[] = [
     tage: 24 * MONAT,
     ab: "der letzten Nutzung",
     begruendung:
-      "Der Kontakt wird gelöscht, das Konto bleibt ohne ihn bestehen. Die abgegebenen Bewertungen sind davon nicht betroffen — sie waren nie personenbezogen veröffentlicht.",
+      "Der Kontakt wird gelöscht, das Konto bleibt ohne ihn bestehen. Die abgegebenen Bewertungen sind davon nicht betroffen - sie waren nie personenbezogen veröffentlicht.",
   },
   {
     art: "token_loeschen",
@@ -73,7 +73,7 @@ export const REGELN: readonly Aufbewahrungsregel[] = [
     gegenstand: "Meldungen nach Art. 16 DSA",
     tage: 6 * MONAT,
     ab: "der Entscheidung",
-    begruendung: "Dieselbe Frist wie bei den abgelehnten Bewertungen — sie gehören zum selben Vorgang.",
+    begruendung: "Dieselbe Frist wie bei den abgelehnten Bewertungen - sie gehören zum selben Vorgang.",
   },
   {
     art: "zugaenge_loeschen",
@@ -88,7 +88,7 @@ export const REGELN: readonly Aufbewahrungsregel[] = [
     tage: 12 * MONAT,
     ab: "der Abgabe",
     begruendung:
-      "Die Bewertung selbst bleibt vollständig erhalten; geleert wird nur die Folge der Klickabstände. Sie wird für die Kalibrierung der Betrugserkennung aufbewahrt, und dafür genügt ein Jahr — danach ist sie eine Verhaltensspur ohne Zweck.",
+      "Die Bewertung selbst bleibt vollständig erhalten; geleert wird nur die Folge der Klickabstände. Sie wird für die Kalibrierung der Betrugserkennung aufbewahrt, und dafür genügt ein Jahr - danach ist sie eine Verhaltensspur ohne Zweck.",
   },
 ];
 
@@ -103,7 +103,7 @@ export function stichtag(art: Aufbewahrungsart, jetzt = new Date()): Date {
   return new Date(jetzt.getTime() - regel(art).tage * 24 * 3600_000);
 }
 
-/** „24 Monate“ statt „720 Tage“ — für die Anzeige. */
+/** „24 Monate“ statt „720 Tage“ - für die Anzeige. */
 export function fristtext(tage: number): string {
   if (tage % MONAT === 0) {
     const monate = tage / MONAT;
@@ -121,7 +121,7 @@ export interface Aufraeumbilanz {
  * Was der Lauf gemeldet hat, in einem Satz.
  *
  * Ein Aufräumlauf, der schweigt, ist von einem, der nicht lief, nicht zu
- * unterscheiden — und das ist genau der Fehler, der jahrelang unbemerkt bleibt.
+ * unterscheiden - und das ist genau der Fehler, der jahrelang unbemerkt bleibt.
  */
 export function laufbericht(bilanzen: readonly Aufraeumbilanz[]): string {
   const gesamt = bilanzen.reduce((n, b) => n + b.betroffen, 0);

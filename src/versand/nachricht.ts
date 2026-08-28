@@ -5,7 +5,7 @@
  * WhatsApp → SMS. E-Mail dient als Rückfall, wenn keine Nummer vorliegt.
  *
  * Der Rückfall von WhatsApp auf SMS ist keine Kür: WhatsApp setzt ein Konto zur
- * Nummer voraus. Ohne SMS bliebe jede Person ohne WhatsApp ausgesperrt — und
+ * Nummer voraus. Ohne SMS bliebe jede Person ohne WhatsApp ausgesperrt - und
  * ohne E-Mail zusätzlich jedes Grundschulkind ohne eigene Nummer.
  */
 
@@ -50,7 +50,7 @@ export function baueBestaetigung(basisUrl: string, token: string, art: Kontaktar
         `bitte bestätige deine Bewertung über diesen Link:\n${link}\n\n` +
         `Der Link ist 24 Stunden gültig. Wenn du keine Bewertung abgegeben hast, ` +
         `kannst du diese Nachricht ignorieren.\n\n` +
-        `— SCHULINDEX`,
+        `- SCHULINDEX`,
     };
   }
   return {
@@ -77,9 +77,9 @@ export function baueAnmeldelink(basisUrl: string, token: string, art: Kontaktart
         `Hallo,\n\n` +
         `hier ist dein Anmeldelink zu deinen Bewertungen:\n${link}\n\n` +
         `Der Link ist ${ANMELDELINK_STUNDEN} Stunden gültig und lässt sich nur einmal benutzen.\n\n` +
-        `Hast du ihn nicht angefordert, ignorier diese Nachricht — dann versucht jemand, ` +
+        `Hast du ihn nicht angefordert, ignorier diese Nachricht - dann versucht jemand, ` +
         `sich Zugang zu deinen Bewertungen zu verschaffen. Gib den Link niemandem weiter.\n\n` +
-        `— SCHULINDEX`,
+        `- SCHULINDEX`,
     };
   }
   return {
@@ -95,7 +95,7 @@ export function baueAnmeldelink(basisUrl: string, token: string, art: Kontaktart
  * Zugangslink für die Rolle „Schulsupport“.
  *
  * Geht immer per E-Mail: die Adresse stammt aus dem Schulverzeichnis oder liegt
- * an der Domäne der Schule. Der Text nennt die Schule ausdrücklich — wer ihn
+ * an der Domäne der Schule. Der Text nennt die Schule ausdrücklich - wer ihn
  * versehentlich bekommt, soll sofort sehen, worum es geht.
  */
 export function baueSchulzugang(basisUrl: string, token: string, schulname: string): Nachricht {
@@ -108,18 +108,18 @@ export function baueSchulzugang(basisUrl: string, token: string, schulname: stri
       `jemand hat für ${schulname} den Zugang zu den Auswertungen bei SCHULINDEX angefordert.\n\n` +
       `Zugang einrichten:\n${link}\n\n` +
       `Der Link ist ${ZUGANGSLINK_STUNDEN} Stunden gültig und lässt sich einmal benutzen. Über ` +
-      `den Zugang sind die Gesamtwertung, die Kategoriewerte und die Zusammenfassung einsehbar — ` +
+      `den Zugang sind die Gesamtwertung, die Kategoriewerte und die Zusammenfassung einsehbar - ` +
       `einzelne Bewertungen nicht.\n\n` +
       `Wurde der Zugang nicht von Ihrer Schule angefordert, ignorieren Sie diese Nachricht. ` +
       `Ohne den Link geschieht nichts.\n\n` +
-      `— SCHULINDEX`,
+      `- SCHULINDEX`,
   };
 }
 
 /**
  * Arbeitet die Wege der Reihe nach ab und nimmt den ersten, der zustellt.
  *
- * Ein fehlgeschlagener Weg beendet den Versuch nicht — genau dafür ist die
+ * Ein fehlgeschlagener Weg beendet den Versuch nicht - genau dafür ist die
  * Kette da. Erst wenn alle scheitern, scheitert der Versand.
  */
 export async function sende(
@@ -146,7 +146,7 @@ export async function sende(
 /**
  * Die Reihenfolge der Wege für den Betrieb.
  *
- * WhatsApp und SMS gelten beide für Telefonnummern — deshalb greift der
+ * WhatsApp und SMS gelten beide für Telefonnummern - deshalb greift der
  * Rückfall automatisch, wenn WhatsApp die Nummer nicht erreicht.
  */
 export function istTelefonweg(art: Kontaktart): boolean {

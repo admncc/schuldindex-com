@@ -3,7 +3,7 @@
 -- Ohne diesen Vermerk endet der Nachgeocodierungs-Lauf nie: er holt sich die
 -- Schulen ohne Koordinate, scheitert bei denen, die sich nicht auflösen lassen,
 -- und findet beim nächsten Durchgang exakt dieselben wieder. Beobachtet beim
--- ersten vollständigen Lauf — er blieb bei den letzten 71 Schulen hängen und
+-- ersten vollständigen Lauf - er blieb bei den letzten 71 Schulen hängen und
 -- drehte sich weiter, ohne Fortschritt zu machen.
 --
 -- Mit dem Vermerk endet der Lauf, und ein späterer Versuch bleibt trotzdem

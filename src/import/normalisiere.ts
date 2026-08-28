@@ -65,7 +65,7 @@ function saeubere(wert: string | null | undefined): string | null {
   return s === "" ? null : s;
 }
 
-/** Website mit Schema versehen — die Quelle liefert teils nur `www.…`. */
+/** Website mit Schema versehen - die Quelle liefert teils nur `www.…`. */
 function normalisiereWebsite(wert: string | null): string | null {
   if (wert === null) return null;
   if (/^https?:\/\//i.test(wert)) return wert;
@@ -118,7 +118,7 @@ export type Koordinatenbefund =
  * In Nordrhein-Westfalen liefert die Quelle bei 13 Schulen **Breite und Länge
  * vertauscht**: `7.35 / 51.45` liegt rechnerisch im Südsudan, gedreht aber
  * genau in Hagen. Da sich Deutschland zwischen 47–55° Nord und 6–15° Ost
- * erstreckt, sind die beiden Bereiche überschneidungsfrei — eine Vertauschung
+ * erstreckt, sind die beiden Bereiche überschneidungsfrei - eine Vertauschung
  * ist damit eindeutig erkennbar und gefahrlos zu beheben.
  *
  * Eine Schule wegen eines einzigen kaputten Feldes ganz zu verwerfen wäre
@@ -129,7 +129,7 @@ export type Koordinatenbefund =
  * Deutschland liegen, aber hunderte Kilometer daneben: eine Grundschule bei
  * Kaiserslautern steht auf Dresden, eine bei Trier auf Bayreuth. Übernähme man
  * sie ungeprüft, fiele jede Bewertung aus der echten Nachbarschaft dieser
- * Schulen durch die 150-km-Prüfung — und niemand käme dem auf die Spur.
+ * Schulen durch die 150-km-Prüfung - und niemand käme dem auf die Spur.
  */
 export function pruefeKoordinate(
   lat: number | null | undefined,

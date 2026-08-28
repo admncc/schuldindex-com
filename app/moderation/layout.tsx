@@ -1,16 +1,20 @@
 import { holeAngemeldete } from "./sitzung";
 import { OHNE_2FA_HINWEIS, zweiterFaktorPflicht } from "@/domain/zweiterfaktor";
+import { holeEinstellungen } from "@/db/einstellungen";
 import { abmelden } from "./aktionen";
 
 /**
  * Rahmen der Moderationsoberfläche.
  *
  * Eigene Kopfzeile mit Kennung und Abmeldung: wer zwischen mehreren Konten
- * wechselt, muss ohne Umweg sehen, in welchem er gerade arbeitet — sonst wird
+ * wechselt, muss ohne Umweg sehen, in welchem er gerade arbeitet - sonst wird
  * unter der falschen Kennung entschieden, und das Protokoll ist wertlos.
  */
 export default async function Moderationslayout({ children }: { children: React.ReactNode }) {
   const angemeldet = await holeAngemeldete();
+  // Nur für Angemeldete nachgesehen: Die Anmeldeseite fragt selbst, und ohne
+  // Sitzung soll die Seite keine Auskunft über die eigene Absicherung geben.
+  const ohneZweitenFaktor = angemeldet ? !zweiterFaktorPflicht(await holeEinstellungen()) : false;
 
   return (
     <main className="huelle moderation">
@@ -36,7 +40,7 @@ export default async function Moderationslayout({ children }: { children: React.
       {/* Der Hinweis steht auf jeder Seite und nicht nur einmal beim Anmelden:
           Ein abgeschalteter zweiter Faktor soll niemandem entfallen, der
           täglich hier arbeitet. */}
-      {angemeldet && !zweiterFaktorPflicht() ? (
+      {ohneZweitenFaktor ? (
         <p className="alarm" role="status">
           {OHNE_2FA_HINWEIS}
         </p>

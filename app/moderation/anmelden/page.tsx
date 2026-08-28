@@ -3,13 +3,14 @@ import { redirect } from "next/navigation";
 import { holeAngemeldete } from "../sitzung";
 import Anmeldeformular from "./formular";
 import { OHNE_2FA_HINWEIS, zweiterFaktorPflicht } from "@/domain/zweiterfaktor";
+import { holeEinstellungen } from "@/db/einstellungen";
 
-export const metadata: Metadata = { title: "Moderation — Anmeldung", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Moderation - Anmeldung", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function Anmeldeseite() {
   if (await holeAngemeldete()) redirect("/moderation");
-  const mitCode = zweiterFaktorPflicht();
+  const mitCode = zweiterFaktorPflicht(await holeEinstellungen());
 
   return (
     <section className="abschnitt schmal">

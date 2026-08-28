@@ -21,7 +21,7 @@ export const MELDESTATUS_LABEL: Readonly<Record<Meldestatus, string>> = {
  * Was die meldende Person zur Entscheidung erfährt.
  *
  * Art. 16 Abs. 5 verlangt die Mitteilung der Entscheidung **und** den Hinweis
- * auf Rechtsbehelfe — deshalb steht der zweite Satz da, auch wenn er unbequem
+ * auf Rechtsbehelfe - deshalb steht der zweite Satz da, auch wenn er unbequem
  * ist: Er sagt der Person, wie sie gegen uns vorgehen kann.
  */
 export const RECHTSBEHELFSHINWEIS =

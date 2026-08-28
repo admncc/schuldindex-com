@@ -2,7 +2,7 @@
  * Anbindung an die Claude API.
  *
  * Die einzige Datei im Projekt, die das Anthropic-SDK kennt. Alles, was
- * entschieden wird — was gefragt wird, was mit der Antwort geschieht — steht in
+ * entschieden wird - was gefragt wird, was mit der Antwort geschieht - steht in
  * `vorlage.ts`, `pruefung.ts` und `zusammenfassung.ts` und ist ohne Netz
  * geprüft.
  *
@@ -26,7 +26,7 @@ const Zusammenfassung = z.object({
   positive_themen: z.array(z.string()),
   kritische_themen: z.array(z.string()),
   /**
-   * Selbstauskunft. Sie ersetzt die Nachprüfung nicht — aber wenn das Modell
+   * Selbstauskunft. Sie ersetzt die Nachprüfung nicht - aber wenn das Modell
    * selbst einen Personenbezug meldet, ist die Sache erledigt.
    */
   enthaelt_personenbezug: z.boolean(),
@@ -67,7 +67,7 @@ export function claudeModell(optionen: Optionen = {}): Modell {
       });
 
       // `parsed_output` ist null, wenn die Validierung fehlschlägt. Diese Prüfung
-      // ist nicht optional — ohne sie stünde später `undefined` im Schulprofil.
+      // ist nicht optional - ohne sie stünde später `undefined` im Schulprofil.
       return antwort.parsed_output ?? null;
     },
   };

@@ -20,7 +20,7 @@ import { entschluesseleWennMoeglich, verschleiere, type Kontaktart } from "../do
  *
  * Nur freigegebene Bewertungen: eine gehaltene oder abgelehnte Bewertung nimmt
  * nicht teil, sonst wäre die Verlosung ein Weg, Ablehnungen zu versilbern.
- * Und nur bestätigte Konten — bei einem unbestätigten wüssten wir nicht einmal,
+ * Und nur bestätigte Konten - bei einem unbestätigten wüssten wir nicht einmal,
  * wohin der Gewinn ginge.
  */
 export async function teilnahmen(jahr: number, monat: number): Promise<Teilnahme[]> {
@@ -119,7 +119,7 @@ export async function ziehen(
 }
 
 /**
- * Der Kontakt der gewinnenden Person — nur für die Benachrichtigung.
+ * Der Kontakt der gewinnenden Person - nur für die Benachrichtigung.
  *
  * Wie in der Moderation getrennt gehalten: die Übersicht kommt ohne aus, und
  * was nicht gebraucht wird, soll nicht beiläufig mitlaufen.
@@ -149,7 +149,7 @@ export async function merkeBenachrichtigung(ziehungId: string): Promise<void> {
 /**
  * Rechnet eine gespeicherte Ziehung nach.
  *
- * Gebraucht, wenn jemand die Ziehung anzweifelt — und als Prüfung, dass die
+ * Gebraucht, wenn jemand die Ziehung anzweifelt - und als Prüfung, dass die
  * gespeicherte Losliste zum eingetragenen Gewinner passt.
  */
 export async function pruefeGespeicherteZiehung(jahr: number, monat: number): Promise<boolean | null> {

@@ -19,7 +19,7 @@ beforeAll(() => {
 });
 
 describe("pruefePasswort", () => {
-  it("nimmt eine lange Wortfolge an — ohne Sonderzeichen zu verlangen", () => {
+  it("nimmt eine lange Wortfolge an - ohne Sonderzeichen zu verlangen", () => {
     expect(pruefePasswort("korrektes pferd batterie klammer")).toEqual([]);
   });
 

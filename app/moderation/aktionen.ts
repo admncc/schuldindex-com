@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { sitzungscookie, SITZUNGSCOOKIE_NAMEN } from "@/domain/anmeldung";
 import { melde } from "@/dienste/moderationsanmeldung";
 import { zweiterFaktorPflicht } from "@/domain/zweiterfaktor";
+import { holeEinstellungen } from "@/db/einstellungen";
 import {
   beendeSitzung,
   entscheide,
@@ -24,7 +25,7 @@ export interface Anmeldezustand {
    * Die zuletzt eingegebene Kennung.
    *
    * React setzt ein Formular nach einer Aktion zurück. Ohne dieses Feld stünde
-   * nach jedem Fehlversuch auch die Kennung wieder leer da — und der zweite
+   * nach jedem Fehlversuch auch die Kennung wieder leer da - und der zweite
    * Versuch scheiterte an einer leeren Eingabe statt am Kennwort.
    * Kennwort und Code kommen bewusst **nicht** zurück.
    */
@@ -41,7 +42,7 @@ export async function anmelden(_vorher: Anmeldezustand, formular: FormData): Pro
       code: String(formular.get("code") ?? ""),
     },
     new Date(),
-    { zweiterFaktorPflicht: zweiterFaktorPflicht() },
+    { zweiterFaktorPflicht: zweiterFaktorPflicht(await holeEinstellungen()) },
   );
 
   if (!ergebnis.ok) return { meldung: ergebnis.meldung, kennung };
@@ -141,7 +142,7 @@ export async function entscheiden(
   return { erledigt: true };
 }
 
-/** Zeigt den Kontakt im Klartext — und schreibt die Einsicht ins Protokoll. */
+/** Zeigt den Kontakt im Klartext - und schreibt die Einsicht ins Protokoll. */
 export async function kontaktZeigen(bewertungId: string): Promise<string | null> {
   const moderatorin = await holeAngemeldete();
   if (moderatorin === null) return null;
@@ -158,7 +159,7 @@ export interface Sammelzustand {
 /**
  * Lehnt die ausgewählten Bewertungen ab.
  *
- * Nur Ablehnungen — eine Sammelfreigabe gibt es nicht. Wer hundert Bewertungen
+ * Nur Ablehnungen - eine Sammelfreigabe gibt es nicht. Wer hundert Bewertungen
  * auf einmal freigibt, hat keine davon angesehen, und die Freigabe ist die
  * Entscheidung, die niemandem auffällt, wenn sie falsch war.
  */

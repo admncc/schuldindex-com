@@ -3,7 +3,7 @@
 -- Bewusst ohne PostGIS. Geprüft wurde, was wir tatsächlich brauchen:
 -- Entfernung zwischen zwei Punkten (150-km-Prüfung) und Umkreissuche. Beides
 -- leisten `cube` und `earthdistance`, die in jeder verwalteten Postgres-Instanz
--- verfügbar sind — PostGIS ist es nicht überall. Polygone, Projektionen oder
+-- verfügbar sind - PostGIS ist es nicht überall. Polygone, Projektionen oder
 -- Routing braucht das Portal nirgends. Sollte sich das ändern, ist der Wechsel
 -- auf PostGIS eine Migration, keine Umkehr.
 

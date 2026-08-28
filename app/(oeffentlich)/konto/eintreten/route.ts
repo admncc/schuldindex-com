@@ -8,7 +8,7 @@ import { loeseAnmeldelinkEin } from "@/db/konto";
  *
  * Bewusst ein Route-Handler und keine Seite: ein Cookie lässt sich nur in einer
  * Server Action oder einem Route-Handler setzen. Der erste Entwurf hatte das
- * Einlösen in der Anmeldeseite — die Sitzung entstand, das Cookie kam nie an,
+ * Einlösen in der Anmeldeseite - die Sitzung entstand, das Cookie kam nie an,
  * und die Anmeldung endete wieder auf dem Formular.
  */
 export const dynamic = "force-dynamic";

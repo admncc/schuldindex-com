@@ -1,7 +1,7 @@
 import { getRequestConfig } from "next-intl/server";
 import nachrichten from "../messages/de.json";
 
-/** Eine Sprache, fest verdrahtet — der Umschalter kommt erst mit Phase 7. */
+/** Eine Sprache, fest verdrahtet - der Umschalter kommt erst mit Phase 7. */
 export const LOCALE = "de-DE" as const;
 
 export default getRequestConfig(async () => ({

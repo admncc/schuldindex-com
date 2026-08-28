@@ -88,7 +88,7 @@ describe("Zuordnung aus dem Schulnamen", () => {
 
   it("bleibt bei reinen Eigennamen ehrlich unbestimmt", () => {
     // „Kahlhorst-Schule“ trägt die Schulart nirgends. Raten wäre schlechter als
-    // die Kategorie „Sonstige“ — ein falsches Gymnasium fiele Nutzer:innen auf.
+    // die Kategorie „Sonstige“ - ein falsches Gymnasium fiele Nutzer:innen auf.
     const z = ordneSchulartZu(null, "Kahlhorst-Schule");
     expect(z.arten).toEqual(["sonstige"]);
     expect(z.quelle).toBe("unbekannt");

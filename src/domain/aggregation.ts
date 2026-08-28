@@ -11,7 +11,7 @@
  *     einmal auf die Kategoriemittel anwenden.
  *
  * Sie liefern **unterschiedliche Ergebnisse**, sobald nicht alle Bewertungen
- * dieselben optionalen Kategorien beantworten — und das ist der Regelfall, weil
+ * dieselben optionalen Kategorien beantworten - und das ist der Regelfall, weil
  * D, E und F freiwillig sind. Weg (a) mittelt dann Zahlen, die unter
  * verschiedenen Gewichtungen entstanden sind: eine Bewertung nur zu A–C zählt
  * Kategorie A mit 3/7, eine vollständige mit 3/11. Dieselbe Antwort wiegt je
@@ -47,7 +47,7 @@ export interface EinzelneBewertung {
 
 export interface Schulaggregat {
   /**
-   * Öffentlicher Anzeigewert 0–10 — **null**, solange die Mindestzahl nicht
+   * Öffentlicher Anzeigewert 0–10 - **null**, solange die Mindestzahl nicht
    * erreicht ist. Bewusst so herum: wer dieses Feld rendert, kann eine Schule
    * nicht versehentlich mit einer Zahl versehen, die auf drei Stimmen beruht.
    */
@@ -116,7 +116,7 @@ export function aggregiere(bewertungen: readonly EinzelneBewertung[]): Schulaggr
   const sichtbar = anzahl >= MINDESTZAHL_PROFIL;
 
   return {
-    // Unterhalb der Mindestzahl wird kein Score veröffentlicht — die Zahl
+    // Unterhalb der Mindestzahl wird kein Score veröffentlicht - die Zahl
     // existiert intern, taugt aber nicht als Aussage über eine Schule.
     gesamtscore: sichtbar ? gesamtscore : null,
     gesamtscoreIntern: gesamtscore,

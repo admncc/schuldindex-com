@@ -93,11 +93,11 @@ describe("Wertebereich des Gesamtscores", () => {
   });
 
   it("ergibt bei durchweg Rohwert 5 nicht 10, weil die Aggressionsfragen invertiert werden", () => {
-    // Rohwert 5 heißt bei A2/A3 „Sehr häufig“ — das ist das Gegenteil von gut.
+    // Rohwert 5 heißt bei A2/A3 „Sehr häufig“ - das ist das Gegenteil von gut.
     // Score_A = 0,7 × 5 + 0,3 × 1 = 3,8
-    // Gesamt  = (3,8×3 + 5×2 + 5×2 + 5×2 + 5×1 + 5×1) ÷ 11 = 4,6727… → 9,1818
+    // Gesamt  = (3,8×4 + 5×2 + 5×2 + 5×1 + 5×1 + 5×1) ÷ 11 = 4,5636… → 8,9091
     const score = bewerte(roh({ A: 5, B: 5, C: 5, D: 5, E: 5, F: 5 })).gesamtscore;
-    expect(score).toBeCloseTo(9.1818, 3);
+    expect(score).toBeCloseTo(8.9091, 3);
     expect(score).not.toBeCloseTo(10, 1);
   });
 
@@ -183,15 +183,16 @@ describe("Optionale Kategorien", () => {
   });
 
   it("nimmt eine optionale Kategorie samt Gewicht auf, sobald sie beantwortet ist", () => {
-    // wie oben, zusätzlich D = 2:  (28 + 2×2) ÷ 9 = 32 ÷ 9 = 3,5556… → 6,3889
+    // wie oben, zusätzlich D = 2:  (34) ÷ 9 = 3,7778… → 6,9444
+    // (A 4×4 + B 3×2 + C 5×2 + D 2×1 = 16 + 6 + 10 + 2)
     const antworten: Record<string, Antwort> = { ...roh({ B: 3, C: 5, D: 2 }) };
     for (const f of fragenDerKategorie("A")) {
       antworten[f.id] = f.teilbereich === "aggression" ? 2 : 4;
     }
-    expect(bewerte(antworten).gesamtscore).toBeCloseTo(6.3889, 3);
+    expect(bewerte(antworten).gesamtscore).toBeCloseTo(6.9444, 3);
   });
 
-  it("verlangt A, B und C — eine fehlende Pflichtkategorie ist ein Fehler", () => {
+  it("verlangt A, B und C - eine fehlende Pflichtkategorie ist ein Fehler", () => {
     expect(() => bewerte(roh({ A: 4, B: 4 }))).toThrow(UnvollstaendigeBewertung);
     try {
       bewerte(roh({ A: 4, B: 4 }));
@@ -254,7 +255,7 @@ describe("Ampelstufen", () => {
   it("lässt keine Lücke zwischen den Stufen (E8)", () => {
     // Die Spec nennt ≤ 2,0 / 2,1–3,4 / ≥ 3,5 und lässt damit 2,0–2,1 sowie
     // 3,4–3,5 undefiniert. Der Index ist ein Mittelwert und trifft diese
-    // Zwischenwerte regelmäßig — etwa bei A2 = 2, A3 = 3 → 2,5.
+    // Zwischenwerte regelmäßig - etwa bei A2 = 2, A3 = 3 → 2,5.
     expect(ampelstufe(2.05)).toBe("mittel");
     expect(ampelstufe(3.45)).toBe("mittel");
     expect(ampelstufe(2.5)).toBe("mittel");

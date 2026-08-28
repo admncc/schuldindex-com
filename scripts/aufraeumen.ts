@@ -30,7 +30,7 @@ try {
 
     console.log(
       trocken
-        ? "Nur gezählt — es wurde nichts gelöscht. Zum Löschen: --loeschen\n"
+        ? "Nur gezählt - es wurde nichts gelöscht. Zum Löschen: --loeschen\n"
         : "Es wurde gelöscht.\n",
     );
     for (const b of ergebnis.bilanzen) {

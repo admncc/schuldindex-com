@@ -120,7 +120,7 @@ describe("Slug-Vergabe", () => {
 
   it("liefert dasselbe Ergebnis, egal in welcher Reihenfolge die Quelle liefert", () => {
     // Der wichtigste Test dieser Datei. Ein Slug steht in URLs und in
-    // Suchmaschinen — ändert er sich beim nächsten Import, brechen alle
+    // Suchmaschinen - ändert er sich beim nächsten Import, brechen alle
     // geteilten Links. Ein Verfahren nach „wer zuerst kommt“ scheitert hier.
     const menge = [kiel, luebeck, { name: "Grundschule Nord", ort: "Kiel", plz: "24106", quellId: "SH-3" }];
     const vorwaerts = vergebeSlugs(menge);

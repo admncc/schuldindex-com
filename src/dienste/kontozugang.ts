@@ -1,5 +1,5 @@
 /**
- * Anmeldung am eigenen Konto — der Ablauf, ohne Datenbank.
+ * Anmeldung am eigenen Konto - der Ablauf, ohne Datenbank.
  *
  * Der Kern ist eine einzige Eigenschaft, und sie ist leicht zu verlieren: **die
  * Antwort muss gleich aussehen, ob es das Konto gibt oder nicht.** Sonst wird
@@ -32,7 +32,7 @@ export interface Anforderung {
 }
 
 export interface Anforderungsergebnis {
-  /** Immer derselbe Text — siehe oben. */
+  /** Immer derselbe Text - siehe oben. */
   readonly meldung: string;
   /**
    * Nur für Protokoll und Tests. Gehört **nicht** in die Antwort an den

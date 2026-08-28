@@ -27,17 +27,17 @@ export default async function Aufbewahrungsseite() {
     <section className="abschnitt">
       <h1>Aufbewahrung</h1>
       <p className="hinweis">
-        Die Fristen aus der Datenschutzerklärung. Beide Seiten lesen denselben Katalog — eine
+        Die Fristen aus der Datenschutzerklärung. Beide Seiten lesen denselben Katalog - eine
         Frist, die dort steht und hier nicht ausgeführt wird, gäbe es nicht.
       </p>
 
       {/* Kein Alarm mehr über ausbleibende Läufe: Es gibt keinen Zeitplan, der
-          laufen könnte. Stattdessen steht hier, was liegt — und wer es löschen
+          laufen könnte. Stattdessen steht hier, was liegt - und wer es löschen
           will, tut es unten einzeln. */}
       <div className="karte">
         <span className="beschriftung">Keine automatische Löschung</span>
         <p>
-          Gelöscht wird nur, wenn eine Person es hier auslöst — Vorgabe des Auftraggebers vom
+          Gelöscht wird nur, wenn eine Person es hier auslöst - Vorgabe des Auftraggebers vom
           27.08.2026. Die Fristen der Datenschutzerklärung gelten weiter; was sich ändert, ist,
           wer sie ausführt. Jede Ausführung steht danach im Moderationsprotokoll.
         </p>
@@ -84,7 +84,7 @@ export default async function Aufbewahrungsseite() {
         </tbody>
       </table>
       <p className="fussnote">
-        Diese Zahlen stammen aus einem Zähllauf — er ändert nichts.
+        Diese Zahlen stammen aus einem Zähllauf - er ändert nichts.
       </p>
 
       <h2>Bisherige Läufe</h2>
@@ -106,7 +106,7 @@ export default async function Aufbewahrungsseite() {
                 <td>{ZEIT.format(l.gelaufen_am)}</td>
                 <td>{l.trocken ? "trocken" : "gelöscht"}</td>
                 <td>{laufbericht(l.bilanz)}</td>
-                <td className="gedaempft">{l.dauer_ms === null ? "—" : `${l.dauer_ms} ms`}</td>
+                <td className="gedaempft">{l.dauer_ms === null ? "-" : `${l.dauer_ms} ms`}</td>
               </tr>
             ))}
           </tbody>
@@ -116,15 +116,15 @@ export default async function Aufbewahrungsseite() {
       <h2>Was nicht gelöscht wird</h2>
       <ul className="hinweisliste">
         <li>
-          <strong>Veröffentlichte Bewertungen</strong> — sie waren nie personenbezogen
+          <strong>Veröffentlichte Bewertungen</strong> - sie waren nie personenbezogen
           veröffentlicht und bleiben, auch wenn das zugehörige Konto stillgelegt wurde.
         </li>
         <li>
-          <strong>Das Moderationsprotokoll</strong> — der Nachweis, dass über jede Ablehnung ein
+          <strong>Das Moderationsprotokoll</strong> - der Nachweis, dass über jede Ablehnung ein
           Mensch entschieden hat (Art. 20 DSA). Es enthält keine Kontaktdaten.
         </li>
         <li>
-          <strong>Ziehungen der Verlosung</strong> — ohne sie ließe sich eine Ziehung nicht mehr
+          <strong>Ziehungen der Verlosung</strong> - ohne sie ließe sich eine Ziehung nicht mehr
           nachrechnen.
         </li>
       </ul>

@@ -72,12 +72,12 @@ describe("Aggregation", () => {
 
     const a = aggregiere([eine, andere]);
     // Kategoriemittel: A = 0,7×4 + 0,3×2 = 3,4 (die beiden Häufigkeitsfragen
-    // kehren sich um: Rohwert 4 wird zu 2), B = 4, C = 4, D = 1 — Letzteres
+    // kehren sich um: Rohwert 4 wird zu 2), B = 4, C = 4, D = 1 - Letzteres
     // beurteilte nur eine der beiden Personen.
-    // (3,4×3 + 4×2 + 4×2 + 1×2) ÷ 9 = 28,2 ÷ 9 = 3,133… → 5,33 auf der Zehnerskala
-    expect(a.gesamtscoreIntern).toBeCloseTo(5.33, 2);
+    // (3,4×4 + 4×2 + 4×2 + 1×1) ÷ 9 = 30,6 ÷ 9 = 3,4 → 6,00 auf der Zehnerskala
+    expect(a.gesamtscoreIntern).toBeCloseTo(6.0, 2);
 
-    // Der Mittelwert der Einzelscores läge daneben — das ist genau der
+    // Der Mittelwert der Einzelscores läge daneben - das ist genau der
     // Unterschied, um den es geht.
     const mittelDerEinzelnen =
       (eine.ergebnis.gesamtscore + andere.ergebnis.gesamtscore) / 2;
@@ -98,9 +98,9 @@ describe("Sichtbarkeitsschwellen", () => {
     expect(a.sichtbar).toBe(false);
     expect(a.gesamtscore).toBeNull();
     expect(a.stufe).toBeNull();
-    // Intern liegt der Wert vor — die Moderation braucht ihn.
+    // Intern liegt der Wert vor - die Moderation braucht ihn.
     expect(a.gesamtscoreIntern).not.toBeNull();
-    // Die Zahl der Bewertungen bleibt sichtbar — sie lädt zum Mitmachen ein.
+    // Die Zahl der Bewertungen bleibt sichtbar - sie lädt zum Mitmachen ein.
     expect(a.anzahl).toBe(9);
   });
 

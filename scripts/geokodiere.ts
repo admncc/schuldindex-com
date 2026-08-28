@@ -11,12 +11,12 @@
  * **Jeder Versuch wird vermerkt, auch der erfolglose.** Ohne diesen Vermerk
  * endet der Lauf nie: er fände beim nächsten Durchgang genau die Schulen
  * wieder, an denen er eben gescheitert ist. Nach `--erneut-nach` Tagen werden
- * auch erfolglose Schulen wieder aufgegriffen — OpenStreetMap wächst, und was
+ * auch erfolglose Schulen wieder aufgegriffen - OpenStreetMap wächst, und was
  * heute nicht auffindbar ist, kann es in einem Monat sein. Zusätzlich hält ein
  * Zwischenspeicher gleiche Anfragen innerhalb eines Laufs zusammen.
  *
  * **Zur Nebenläufigkeit:** Der Durchsatz hängt nicht am eigenen Takt, sondern
- * an Photons Antwortzeit — nacheinander kommt man auf rund 27 Schulen je
+ * an Photons Antwortzeit - nacheinander kommt man auf rund 27 Schulen je
  * Minute, was für 6.200 Schulen über drei Stunden bedeutet. Mehrere Anfragen
  * gleichzeitig lösen das; der Takt begrenzt weiterhin die Gesamtlast auf den
  * fremden Dienst.
@@ -123,7 +123,7 @@ try {
       }
       // Den Versuch vermerken, sonst greift der nächste Durchgang genau diese
       // Schule wieder auf und der Lauf endet nie. Die Schule wird nicht
-      // deaktiviert — sie ist echt, nur ohne Punkt auf der Karte.
+      // deaktiviert - sie ist echt, nur ohne Punkt auf der Karte.
       await sql`
         update schulen
         set geokodierung_versucht_am = now(), aktualisiert_am = now()

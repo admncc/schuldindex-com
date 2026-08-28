@@ -51,7 +51,7 @@ export interface Bewertungseingabe {
   readonly elternEinwilligung: boolean;
   readonly verlosungTeilnahme: boolean;
   /**
-   * Wie lange das Formular offenstand, in Sekunden — **vom Server** aus dem
+   * Wie lange das Formular offenstand, in Sekunden - **vom Server** aus dem
    * signierten Stempel errechnet, nicht vom Browser gemeldet
    * (`domain/formularstempel.ts`). Fehlt der Stempel oder ist er ungültig,
    * bleibt das Feld leer, und das Tempo-Signal entfällt.
@@ -66,7 +66,7 @@ export interface Bewertungseingabe {
   readonly klickabstaende?: readonly number[] | null | undefined;
 }
 
-/** Fehler mit dem Feld, zu dem er gehört — das Formular kann ihn dort anzeigen. */
+/** Fehler mit dem Feld, zu dem er gehört - das Formular kann ihn dort anzeigen. */
 export interface Eingabefehler {
   readonly feld: string;
   readonly meldung: string;
@@ -78,7 +78,7 @@ const JAHR_MIN = 1950;
  * Prüft eine Telefonnummer grob auf Form.
  *
  * Absichtlich großzügig: Menschen schreiben Nummern mit Leerzeichen, Schrägstrich
- * oder Klammern. Wer hier zu streng prüft, weist echte Nummern ab — die
+ * oder Klammern. Wer hier zu streng prüft, weist echte Nummern ab - die
  * eigentliche Prüfung ist ohnehin, ob die Nachricht ankommt.
  */
 export function sieht_aus_wie_telefonnummer(wert: string): boolean {
@@ -92,7 +92,7 @@ export function sieht_aus_wie_email(wert: string): boolean {
 
 /**
  * Zählt die beantworteten Fragen einer Kategorie.
- * „Kann ich nicht beurteilen“ zählt nicht mit — die Kategorie gilt damit nicht
+ * „Kann ich nicht beurteilen“ zählt nicht mit - die Kategorie gilt damit nicht
  * als bearbeitet.
  */
 export function beantwortet(kategorie: KategorieId, antworten: Bewertungseingabe["antworten"]): number {
@@ -114,7 +114,7 @@ export interface Pruefoptionen {
   /**
    * Bei einer Änderung sind Kontakt und Einwilligung schon erteilt und stehen
    * gar nicht mehr im Formular. Sie noch einmal zu verlangen hieße, jemanden
-   * bei jeder Korrektur erneut einwilligen zu lassen — und die Einwilligung
+   * bei jeder Korrektur erneut einwilligen zu lassen - und die Einwilligung
    * damit zur Formalität zu machen.
    */
   readonly kontaktNoetig?: boolean;

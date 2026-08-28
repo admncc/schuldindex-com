@@ -34,7 +34,7 @@ function alter(stunden: number): string {
  * Die Warteschlange mit Auswahl.
  *
  * Die Sammelaktion kann nur ablehnen. Sie ist für den Fall gedacht, für den sie
- * gebaut wurde — eine Welle gleichartiger Abgaben —, und sie zeigt vor dem Klick,
+ * gebaut wurde - eine Welle gleichartiger Abgaben -, und sie zeigt vor dem Klick,
  * wie viele Menschen die Begründung bekommen.
  */
 export default function Warteschlange({ eintraege }: { eintraege: readonly Warteschlangeneintrag[] }) {
@@ -103,7 +103,7 @@ export default function Warteschlange({ eintraege }: { eintraege: readonly Warte
                 </td>
                 <td>
                   <a href={`/moderation/${e.id}`}>{e.schule_name}</a>
-                  <span className="gedaempft"> · {e.schule_ort ?? "—"} ({e.bundesland})</span>
+                  <span className="gedaempft"> · {e.schule_ort ?? "-"} ({e.bundesland})</span>
                 </td>
                 <td>
                   {ROLLE_LABEL[e.rolle] ?? e.rolle}
@@ -114,13 +114,13 @@ export default function Warteschlange({ eintraege }: { eintraege: readonly Warte
                   {e.geo_unbekannt
                     ? "unbekannt"
                     : e.geo_entfernung_km === null
-                      ? "—"
+                      ? "-"
                       : `${Number(e.geo_entfernung_km).toLocaleString("de-DE", { maximumFractionDigits: 0 })} km`}
                 </td>
-                <td>{e.hat_freitext ? "ja" : "—"}</td>
+                <td>{e.hat_freitext ? "ja" : "-"}</td>
                 <td>
                   {e.gesamtscore === null
-                    ? "—"
+                    ? "-"
                     : Number(e.gesamtscore).toLocaleString("de-DE", {
                         minimumFractionDigits: 1,
                         maximumFractionDigits: 1,

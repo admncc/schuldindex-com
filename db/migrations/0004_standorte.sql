@@ -1,7 +1,7 @@
 -- Weitere Standorte einer Schule.
 --
 -- Beim Blick auf die fertige Trefferliste fiel auf, dass „Grundschule Tengen“
--- viermal untereinander stand — vier Außenstellen derselben Schule in
+-- viermal untereinander stand - vier Außenstellen derselben Schule in
 -- verschiedenen Ortsteilen. Für Suchende sieht das aus wie ein kaputtes Portal.
 --
 -- Sie werden jetzt zu einer Schule zusammengeführt. Die weiteren Adressen gehen

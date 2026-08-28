@@ -3,7 +3,7 @@
  *
  * Zwei Listen, bewusst gleichwertig nebeneinander: die bestbewerteten Schulen
  * und die mit dem höchsten Verbesserungsbedarf. Nur die erste zu zeigen wäre
- * bequemer, gäbe aber ein schiefes Bild — und die zweite ist für Eltern bei der
+ * bequemer, gäbe aber ein schiefes Bild - und die zweite ist für Eltern bei der
  * Schulwahl die nützlichere.
  *
  * Die Schwelle liegt höher als beim Schulprofil: **20** statt 10 Bewertungen.

@@ -18,7 +18,7 @@ export default function Anmeldeformular() {
       <div className="karte">
         <p>{zustand.meldung}</p>
         <p className="hinweis">
-          Nichts bekommen? Dann gibt es zu diesem Kontakt kein bestätigtes Konto — oder die
+          Nichts bekommen? Dann gibt es zu diesem Kontakt kein bestätigtes Konto - oder die
           Nachricht ist noch unterwegs.
         </p>
       </div>

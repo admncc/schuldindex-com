@@ -7,7 +7,7 @@ describe("REGELN", () => {
     expect(new Set(arten).size).toBe(arten.length);
   });
 
-  it("begründet jede Frist — die Begründung geht in die Datenschutzerklärung", () => {
+  it("begründet jede Frist - die Begründung geht in die Datenschutzerklärung", () => {
     for (const r of REGELN) {
       expect(r.begruendung.length, r.art).toBeGreaterThan(40);
       expect(r.gegenstand.length, r.art).toBeGreaterThan(5);
@@ -16,7 +16,7 @@ describe("REGELN", () => {
   });
 
   it("hält die Bewertungsfrist kürzer als die Kontofrist", () => {
-    // Abgelehnte Bewertungen sechs Monate, Konten 24 — andersherum ergäbe es
+    // Abgelehnte Bewertungen sechs Monate, Konten 24 - andersherum ergäbe es
     // keinen Sinn: die Ablehnung ist der abgeschlossene Vorgang.
     expect(regel("abgelehnte_loeschen").tage).toBeLessThan(regel("konto_stilllegen").tage);
   });

@@ -28,7 +28,7 @@ describe("monatszeitraum", () => {
   });
 
   it("rechnet in UTC, damit die Sommerzeit die Grenze nicht verschiebt", () => {
-    // Eine Abgabe am 1. August um 00:30 Uhr UTC gehört zum August — unabhängig
+    // Eine Abgabe am 1. August um 00:30 Uhr UTC gehört zum August - unabhängig
     // davon, ob in Deutschland gerade Sommerzeit gilt.
     const august = monatszeitraum(2026, 8);
     const abgabe = new Date("2026-08-01T00:30:00.000Z");
@@ -165,7 +165,7 @@ describe("pruefeZiehung", () => {
     const wert = erzeugeZufallswert();
     const e = ziehe(lose, wert)!;
     const gekuerzt = lose.slice(0, 10);
-    // Bei geänderter Liste passt der Gewinner nur noch zufällig — und dann
+    // Bei geänderter Liste passt der Gewinner nur noch zufällig - und dann
     // sagt die Prüfung eben nichts aus. Hier passt er nicht.
     expect(pruefeZiehung(gekuerzt, wert, e.gewinner.kontoId)).toBe(
       ziehe(gekuerzt, wert)!.gewinner.kontoId === e.gewinner.kontoId,

@@ -2,7 +2,7 @@
  * Projektion für die Schulkarte.
  *
  * **Warum keine Kartenkacheln.** Eine Karte von MapTiler, Mapbox oder direkt
- * von openstreetmap.org lädt beim Betrachter Bilder von einem fremden Server —
+ * von openstreetmap.org lädt beim Betrachter Bilder von einem fremden Server -
  * und schickt dabei dessen IP-Adresse dorthin. Für ein Portal, dessen Nutzerkreis
  * überwiegend minderjährig ist, ist das dieselbe Frage wie bei den
  * Google-Schriften, die aus genau diesem Grund geflogen sind (LG München I,
@@ -10,13 +10,13 @@
  * Gigabyte.
  *
  * Also andersherum gedacht: Wozu braucht die Karte einen Hintergrund? Um zu
- * zeigen, wo die Schulen sind. Das leisten 31.770 Punkte selbst — bei dieser
+ * zeigen, wo die Schulen sind. Das leisten 31.770 Punkte selbst - bei dieser
  * Dichte zeichnet der Schulbestand die Umrisse des Landes, die Ballungsräume
  * und die dünn besiedelten Gegenden von allein. Kein fremder Server, keine
  * Kachelkosten, kein Nachladen beim Verschieben.
  *
  * Gerechnet wird in Web-Mercator. Für Deutschland zwischen 47° und 55° Nord
- * wäre eine einfache Streckung fast ebenso gut — „fast“ heißt hier: das Land
+ * wäre eine einfache Streckung fast ebenso gut - „fast“ heißt hier: das Land
  * sähe rund fünf Prozent zu breit aus, und jeder, der eine Deutschlandkarte
  * kennt, sieht das.
  */
@@ -34,7 +34,7 @@ export interface Ausschnitt {
  * Ganz Deutschland, mit etwas Luft an den Rändern.
  *
  * Die Ränder sind so gewählt, dass jeder Landesausschnitt samt seiner Luft noch
- * hineinpasst — sonst ragte Bayern unten heraus.
+ * hineinpasst - sonst ragte Bayern unten heraus.
  */
 export const DEUTSCHLAND: Ausschnitt = { sued: 47.1, nord: 55.25, west: 5.7, ost: 15.25 };
 
@@ -48,7 +48,7 @@ export function ausschnittFuer(bundesland: Bundesland | null, luft = 0.15): Auss
  * Mercator-Abszisse: der Längengrad im Bogenmaß.
  *
  * Das Bogenmaß ist hier keine Förmlichkeit. `mercatorY` liefert Bogenmaß, und
- * beide Achsen müssen dieselbe Einheit haben — sonst stimmt das Seitenverhältnis
+ * beide Achsen müssen dieselbe Einheit haben - sonst stimmt das Seitenverhältnis
  * nicht, und die Karte ist in der Höhe gestaucht.
  */
 export function mercatorX(lon: number): number {
@@ -74,7 +74,7 @@ export interface Punkt {
 /**
  * Passt die Bildhöhe an den Ausschnitt an.
  *
- * Damit bleibt das Seitenverhältnis das der Projektion — Deutschland ist höher
+ * Damit bleibt das Seitenverhältnis das der Projektion - Deutschland ist höher
  * als breit, Nordrhein-Westfalen breiter als hoch. Eine feste Höhe würde beides
  * in dasselbe Rechteck quetschen.
  */
@@ -91,7 +91,7 @@ export function projiziere(lat: number, lon: number, ausschnitt: Ausschnitt, fel
   const x = ((mercatorX(lon) - links) / (rechts - links)) * feld.breite;
   const oben = mercatorY(ausschnitt.nord);
   const unten = mercatorY(ausschnitt.sued);
-  // y wächst im Bild nach unten, die Breite nach oben — daher die Umkehrung.
+  // y wächst im Bild nach unten, die Breite nach oben - daher die Umkehrung.
   const y = ((oben - mercatorY(lat)) / (oben - unten)) * feld.hoehe;
   return { x, y };
 }
@@ -105,7 +105,7 @@ export function liegtImAusschnitt(lat: number, lon: number, a: Ausschnitt): bool
  *
  * 31.770 einzelne Kreise wären eine SVG-Datei von mehreren Megabyte, die jeder
  * Aufruf neu überträgt. Gebündelt auf ein Raster bleiben je nach Ausschnitt
- * wenige tausend Punkte — und weil die Punktgröße mit der Zahl der Schulen
+ * wenige tausend Punkte - und weil die Punktgröße mit der Zahl der Schulen
  * wächst, sieht man die Ballungsräume danach besser als vorher.
  */
 export function rasterweite(ausschnitt: Ausschnitt): number {

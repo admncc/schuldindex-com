@@ -34,7 +34,7 @@ const ROLLE_LABEL: Readonly<Record<string, string>> = {
  * Was hier **nicht** steht, ist die eigentliche Entscheidung: keine einzelne
  * Bewertung, kein Freitext im Wortlaut, keine Klassenstufe, kein Zeitpunkt einer
  * Abgabe. An einer kleinen Schule genügt „Bewertung einer Achtklässlerin von
- * gestern“, um den Kreis auf wenige Personen einzugrenzen — und die Zusage der
+ * gestern“, um den Kreis auf wenige Personen einzugrenzen - und die Zusage der
  * Anonymität wäre nichts mehr wert.
  */
 export default async function Schulsupportseite() {
@@ -115,7 +115,7 @@ export default async function Schulsupportseite() {
                 <span className="beschriftung">Verlauf</span>
                 <p>
                   {trend.richtung === "unbekannt"
-                    ? `Für einen Vergleich mit dem Vorhalbjahr fehlen noch Bewertungen — nötig sind ${MINDESTZAHL_PROFIL} in beiden Zeiträumen.`
+                    ? `Für einen Vergleich mit dem Vorhalbjahr fehlen noch Bewertungen - nötig sind ${MINDESTZAHL_PROFIL} in beiden Zeiträumen.`
                     : `Gegenüber dem Vorhalbjahr ${TREND_LABEL[trend.richtung]}${
                         trend.veraenderung === null
                           ? ""
@@ -140,10 +140,10 @@ export default async function Schulsupportseite() {
                 return (
                   <li key={k.id}>
                     <span className="name">
-                      {k.id} — {k.titel}
+                      {k.id} - {k.titel}
                     </span>
                     <span className="wert">
-                      {anzeige === null ? "—" : `${WERT.format(anzeige)} von 10`}
+                      {anzeige === null ? "-" : `${WERT.format(anzeige)} von 10`}
                     </span>
                     <span className="balken">
                       <span
@@ -192,13 +192,13 @@ export default async function Schulsupportseite() {
       <section className="abschnitt">
         <h2>Etwas stimmt nicht?</h2>
         <p className="hinweis">
-          Falsche Stammdaten korrigieren wir auf Zuruf — schreib uns über die Adresse im{" "}
+          Falsche Stammdaten korrigieren wir auf Zuruf - schreib uns über die Adresse im{" "}
           <a href="/impressum">Impressum</a>. Hältst du einen veröffentlichten Inhalt für
           rechtswidrig, nutz das <a href="/inhalt-melden">Meldeformular</a>; wir prüfen jede
           Meldung und teilen die Entscheidung mit.
         </p>
         <p className="hinweis">
-          Einzelne Bewertungen geben wir auch auf Nachfrage nicht heraus — weder Wortlaut noch
+          Einzelne Bewertungen geben wir auch auf Nachfrage nicht heraus - weder Wortlaut noch
           Zeitpunkt noch Klassenstufe.
         </p>
       </section>

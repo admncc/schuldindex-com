@@ -5,7 +5,7 @@
  *
  * Der Kerngedanke: **die Quelle prüft sich selbst.** Für die meisten Postleitzahlen
  * kennen wir bereits Koordinaten aus der Quelle. Eine nachgeocodierte Schule muss
- * in deren Nähe liegen — tut sie das nicht, hat der Geocoder danebengegriffen.
+ * in deren Nähe liegen - tut sie das nicht, hat der Geocoder danebengegriffen.
  * Das findet Fehler, die keine Bereichsprüfung findet: die richtige Straße in der
  * falschen Stadt desselben Bundeslandes.
  */
@@ -110,7 +110,7 @@ describe.skipIf(!vorhanden)("Entfernungsrechnung", () => {
     // Abgabe einer Bewertung (beide Punkte liegen ohnehin vor, ein
     // Datenbankbesuch wäre reine Latenz) und earth_distance in Postgres bei
     // der Umkreissuche. Laufen sie auseinander, prüft die Anwendung anders als
-    // die Datenbank — dieser Test hält beide zusammen.
+    // die Datenbank - dieser Test hält beide zusammen.
     const { entfernungKm } = await import("../src/domain/geopruefung");
     const sql = postgres(URL, { onnotice: () => {} });
     try {

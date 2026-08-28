@@ -2,7 +2,7 @@
 --
 -- Wer bewertet, bekommt kein Kennwort: der Kontakt ist die Kennung, und der
 -- Zugang läuft über einen Link, wie schon die Bestätigung. Ein Kennwort wäre
--- ein weiteres Geheimnis, das Jugendliche verwalten müssten — und der häufigste
+-- ein weiteres Geheimnis, das Jugendliche verwalten müssten - und der häufigste
 -- Weg, wie ein Konto verlorengeht.
 --
 -- Der Anmeldelink selbst braucht keine eigene Tabelle: `verifizierungstoken`

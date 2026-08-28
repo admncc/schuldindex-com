@@ -123,7 +123,7 @@ describe("Gesamtprüfung", () => {
 
   it("summiert schwache Signale, statt sie einzeln zu verwerfen", () => {
     // Vier Schulen an einem Tag (2) plus Konto ohne Telefonnummer (1) plus
-    // durchgehend gleiche Antworten (2) — jedes für sich harmlos, zusammen
+    // durchgehend gleiche Antworten (2) - jedes für sich harmlos, zusammen
     // auffällig genug für einen Blick durch einen Menschen.
     const e = pruefe({
       ...RUHIG,
@@ -240,7 +240,7 @@ describe("pruefeAbweichung", () => {
 
   it("wiegt vorgabegemäß leicht", () => {
     // Die abweichende Meinung ist der Normalfall, den ein Bewertungsportal
-    // aushalten muss — nicht der Verdachtsfall.
+    // aushalten muss - nicht der Verdachtsfall.
     expect(pruefeAbweichung(9.5, 4.0, 40)[0]?.gewicht).toBe(1);
   });
 
@@ -277,7 +277,7 @@ describe("pruefe mit den neuen Signalen", () => {
   });
 
   it("lässt eine abweichende, aber in Ruhe ausgefüllte Bewertung durch", () => {
-    // Die einzelne starke Abweichung allein genügt nicht — sie wiegt 1, die
+    // Die einzelne starke Abweichung allein genügt nicht - sie wiegt 1, die
     // Halteschwelle liegt bei 3.
     const ergebnis = pruefe({
       ...grundlage,

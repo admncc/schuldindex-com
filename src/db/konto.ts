@@ -1,7 +1,7 @@
 /**
  * Abfragen des Kontobereichs.
  *
- * Hier steht auch das Löschen — und das ist die Stelle, an der Art. 17 DSGVO
+ * Hier steht auch das Löschen - und das ist die Stelle, an der Art. 17 DSGVO
  * praktisch wird: eine gelöschte Bewertung muss aus dem Schulscore und aus der
  * KI-Zusammenfassung verschwinden, nicht nur aus der Liste. Beides passiert in
  * derselben Transaktion.
@@ -51,7 +51,7 @@ export function kontoumgebung(basisUrl: string): Kontoumgebung {
       `;
       if (!zeile) return false;
 
-      // Lässt sich der Kontakt nicht lesen, gibt es nichts zu senden — das gilt
+      // Lässt sich der Kontakt nicht lesen, gibt es nichts zu senden - das gilt
       // auch für ein stillgelegtes Konto, dessen Kontakt nach Ablauf der
       // Aufbewahrungsfrist gelöscht wurde. Der Aufrufer meldet trotzdem den
       // immer gleichen Text nach außen.
@@ -73,7 +73,7 @@ export function kontoumgebung(basisUrl: string): Kontoumgebung {
  *
  * In einer Transaktion, und das Token wird beim Verbrauchen mit
  * `verbraucht_am is null` gesperrt: zwei gleichzeitige Aufrufe desselben Links
- * — etwa weil ein Messenger die Vorschau lädt und die Person kurz darauf tippt —
+ * - etwa weil ein Messenger die Vorschau lädt und die Person kurz darauf tippt -
  * dürfen nicht zwei Sitzungen ergeben.
  */
 export async function loeseAnmeldelinkEin(
@@ -145,7 +145,7 @@ export async function beendeKontositzung(klartext: string): Promise<void> {
   `;
 }
 
-/** Meldet alle Geräte ab — der Weg, wenn ein Telefon verlorengeht. */
+/** Meldet alle Geräte ab - der Weg, wenn ein Telefon verlorengeht. */
 export async function beendeAlleSitzungen(kontoId: string): Promise<number> {
   const ergebnis = await sql`
     update konto_sitzungen set beendet_am = now()
@@ -189,7 +189,7 @@ export async function eigeneBewertungen(kontoId: string): Promise<EigeneBewertun
  * Löscht eine einzelne Bewertung (Art. 17 DSGVO).
  *
  * Die Versionen gehen über `on delete cascade` mit. Danach wird das Aggregat
- * der Schule neu gerechnet — sonst bliebe die gelöschte Stimme im Score stehen.
+ * der Schule neu gerechnet - sonst bliebe die gelöschte Stimme im Score stehen.
  *
  * Die Zusammenfassung bleibt zunächst, wie sie ist: sie neu zu erzeugen
  * verlangt einen Modellaufruf. Der nächste Lauf holt das nach, und er erkennt
@@ -239,7 +239,7 @@ export interface FassungZumAendern {
  *
  * Die Schule steht mit in der Bedingung: eine Bewertung soll nicht über eine
  * fremde Adresse an einer anderen Schule geöffnet werden können. `null` heißt
- * in jedem Fall dasselbe — gibt es nicht, gehört jemand anderem, oder ist
+ * in jedem Fall dasselbe - gibt es nicht, gehört jemand anderem, oder ist
  * abgelehnt und damit endgültig.
  */
 export async function holeFassungZumAendern(

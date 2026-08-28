@@ -5,13 +5,13 @@
 -- der Vorteil der Sparsamkeit: Ob 400 ms und 15 % die richtigen Schwellen sind,
 -- weiß vor dem Betrieb niemand, und ein Detektor lässt sich nicht an Zahlen
 -- verbessern, die man schon zusammengefasst hat. Für den Vergleich ganzer
--- Verläufe untereinander — dieselbe Handschrift über viele Abgaben hinweg —
+-- Verläufe untereinander - dieselbe Handschrift über viele Abgaben hinweg -
 -- braucht es ohnehin die Folge.
 --
 -- Was damit entsteht, steht hier ausdrücklich, damit es niemand später
 -- überrascht: Die Fragen erscheinen in fester Reihenfolge. Aus dem n-ten
 -- Abstand lässt sich also ablesen, wie lange jemand vor der n-ten Frage
--- gezögert hat — auch vor den Fragen zu Mobbing, Gewalt und Angst. Diese Spalte
+-- gezögert hat - auch vor den Fragen zu Mobbing, Gewalt und Angst. Diese Spalte
 -- ist damit eine personenbezogene Verhaltensspur und kein Messrauschen.
 --
 -- Daraus folgt dreierlei, und alles drei ist umgesetzt:

@@ -6,7 +6,7 @@
  * (Kategorie F) und den Festlegungen vom 26.08.2026: Anzeige auf einer Skala
  * von 0 bis 10, Farbgrenzen an den Antwortstufen des Fragebogens.
  *
- * Leitsatz aus Entscheidung E18: Zahlen entstehen hier — deterministisch,
+ * Leitsatz aus Entscheidung E18: Zahlen entstehen hier - deterministisch,
  * getestet und Zeile für Zeile herleitbar. Kein Modellaufruf berührt diese Datei.
  */
 
@@ -99,7 +99,7 @@ function punktwerteFuer(fragen: readonly Frage[], antworten: Antworten): number[
  *   Score_A = 0,7 × Ø(Sicherheit & Klima) + 0,3 × Ø(invertierte Aggressionsfragen)
  *
  * Fehlt einer der beiden Teilbereiche vollständig, wird der vorhandene allein
- * gewertet — sonst würde eine einzelne unbeantwortete Frage die ganze
+ * gewertet - sonst würde eine einzelne unbeantwortete Frage die ganze
  * Pflichtkategorie entwerten.
  */
 function scoreKategorieA(antworten: Antworten): KategorieErgebnis {
@@ -124,7 +124,9 @@ function scoreKategorieA(antworten: Antworten): KategorieErgebnis {
     kategorie: "A",
     score,
     anzeige: score === null ? null : aufZehnerskala(score),
-    gewichtung: 3,
+    // Aus dem Katalog, nicht als Zahl hier: Sonst ändert eine Gewichtung in
+    // `fragebogen.ts` alles außer der Rechnung, die sie betrifft.
+    gewichtung: KATEGORIEN.find((k) => k.id === "A")!.gewichtung,
     beantwortet: klima.length + aggression.length,
   };
 }
@@ -147,7 +149,7 @@ export function scoreKategorie(kategorie: KategorieId, antworten: Antworten): Ka
 }
 
 /**
- * Aggressionsindex — Mittelwert der ROHEN Häufigkeitswerte, bewusst nicht invertiert.
+ * Aggressionsindex - Mittelwert der ROHEN Häufigkeitswerte, bewusst nicht invertiert.
  * Er misst, wie oft berichtet wird, nicht wie gut die Schule dasteht.
  *
  * Ampelgrenzen lückenlos (E8): ≤ 2,0 grün · > 2,0 und < 3,5 gelb · ≥ 3,5 rot.
@@ -193,9 +195,9 @@ export function aufZehnerskala(mittelwert: number): number {
  * Farbstufe des Gesamtscores, verankert an den Antwortstufen statt an
  * rechnerischen Dritteln (Entscheidung vom 26.08.2026):
  *
- *   ≥ 7,5  grün    — im Schnitt mindestens „Gut“
- *   ≥ 5,0  gelb    — zwischen „Befriedigend“ und „Gut“
- *   < 5,0  rot     — schlechter als „Befriedigend“
+ *   ≥ 7,5  grün    - im Schnitt mindestens „Gut“
+ *   ≥ 5,0  gelb    - zwischen „Befriedigend“ und „Gut“
+ *   < 5,0  rot     - schlechter als „Befriedigend“
  *
  * Gleiche Drittel wären hier irreführend: Bewertungsverteilungen liegen im
  * oberen Bereich, Rot käme praktisch nie vor und die Farbe sagte nichts aus.

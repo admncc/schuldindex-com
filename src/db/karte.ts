@@ -4,7 +4,7 @@
  * Zwei Ebenen, zwei Abfragen:
  *
  *  - **Der Bestand**, gebündelt auf ein Raster. Er ist der Hintergrund der
- *    Karte — statt Kacheln von einem fremden Server (siehe `domain/karte.ts`).
+ *    Karte - statt Kacheln von einem fremden Server (siehe `domain/karte.ts`).
  *  - **Die bewerteten Schulen**, einzeln und mit Namen. Davon gibt es zunächst
  *    wenige; sie sind das, worauf jemand klickt.
  */

@@ -2,7 +2,7 @@
 --
 -- Setzt die Entscheidungen vom 26.08.2026 um:
 --   E10/E13  Konten für alle Altersgruppen, Verifizierung am Konto statt an
---            jeder Bewertung — dafür je Konto nur eine Bewertung pro Schule
+--            jeder Bewertung - dafür je Konto nur eine Bewertung pro Schule
 --   E2       Bearbeitung über das Konto, Sperrfrist sechs Monate
 --   E6       Telefon als primärer Kontaktweg, E-Mail als Rückfall
 --   E11      Elterneinwilligung bei unter 16-Jährigen, protokolliert
@@ -40,7 +40,7 @@ create table konten (
 );
 
 comment on column konten.kontaktart is
-  'Telefon ist der primäre Weg (WhatsApp, dann SMS). E-Mail nur als Rückfall, wenn keine Nummer vorhanden ist — solche Konten werden bei der Betrugserkennung strenger behandelt, weil eine Adresse in Sekunden neu angelegt ist.';
+  'Telefon ist der primäre Weg (WhatsApp, dann SMS). E-Mail nur als Rückfall, wenn keine Nummer vorhanden ist - solche Konten werden bei der Betrugserkennung strenger behandelt, weil eine Adresse in Sekunden neu angelegt ist.';
 
 create table bewertungen (
   id                    uuid primary key default gen_random_uuid(),
@@ -58,7 +58,7 @@ create table bewertungen (
   eltern_einwilligung_am      timestamptz,
   einwilligung_fassung        text,
 
-  -- Ergebnis der Geo-Prüfung. Die IP selbst wird nie gespeichert (E3) —
+  -- Ergebnis der Geo-Prüfung. Die IP selbst wird nie gespeichert (E3) -
   -- die Moderation braucht die Entfernung, nicht die Adresse.
   geo_entfernung_km     numeric(7,1),
   geo_bundesland        bundesland,
@@ -72,7 +72,7 @@ create table bewertungen (
   aktualisiert_am       timestamptz not null default now(),
   zuletzt_bearbeitet_am timestamptz,
 
-  -- E13: Kontoverifizierung statt Verifizierung je Bewertung — die Begrenzung
+  -- E13: Kontoverifizierung statt Verifizierung je Bewertung - die Begrenzung
   -- auf eine Bewertung je Schule und Konto ist die Gegenleistung dafür.
   constraint eine_bewertung_je_schule unique (schule_id, konto_id),
 

@@ -6,7 +6,7 @@
  * eingedampft, was über die Leitung gehen soll.
  *
  * Bewusst wenige Felder: Die Antwort geht bei jedem Tastendruck raus. Alles,
- * was nicht in der Liste erscheint, hat darin nichts zu suchen — Koordinaten
+ * was nicht in der Liste erscheint, hat darin nichts zu suchen - Koordinaten
  * etwa gehören zur Umkreissuche, nicht in ein Vorschlagsfeld.
  */
 

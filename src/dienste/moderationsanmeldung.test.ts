@@ -64,8 +64,8 @@ function konto(abweichung: Partial<Moderatorkonto> = {}): Moderatorkonto {
 const richtig = () => ({ kennung: "anna", passwort: PASSWORT, code: totp(GEHEIMNIS, JETZT) });
 
 describe("Ohne zweiten Faktor", () => {
-  // Abschaltbar für den Testbetrieb (MODERATION_OHNE_2FA=1). Was dann noch
-  // greifen muss: Kennwort, Sperre, Stilllegung — und der gespeicherte
+  // Abschaltbar im Panel (Einstellung `zweiter_faktor`). Was dann noch
+  // greifen muss: Kennwort, Sperre, Stilllegung - und der gespeicherte
   // TOTP-Schritt darf nicht überschrieben werden.
   const ohne = { zweiterFaktorPflicht: false };
 

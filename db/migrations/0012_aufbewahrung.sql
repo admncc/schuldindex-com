@@ -7,7 +7,7 @@
 -- hängt und mit ihm fällt.
 --
 -- Aufgelöst wird das, indem das Konto nicht gelöscht, sondern stillgelegt wird:
--- Kontakt weg, Zeile bleibt. Was übrig bleibt, ist ein Anker ohne Person — die
+-- Kontakt weg, Zeile bleibt. Was übrig bleibt, ist ein Anker ohne Person - die
 -- Bewertung ist weiter anonym veröffentlicht, und niemand kann sich mehr auf
 -- sie berufen, wir eingeschlossen.
 
@@ -33,7 +33,7 @@ create index konten_ruhend on konten (greatest(
 )) where stillgelegt_am is null;
 
 -- Protokoll der Aufräumläufe. Ein Lauf, der nichts hinterlässt, ist von einem,
--- der nie lief, nicht zu unterscheiden — und das ist der Fehler, der jahrelang
+-- der nie lief, nicht zu unterscheiden - und das ist der Fehler, der jahrelang
 -- unbemerkt bleibt.
 create table aufraeumlaeufe (
   id          uuid primary key default gen_random_uuid(),

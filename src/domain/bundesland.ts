@@ -1,5 +1,5 @@
 /**
- * Die 16 Bundesländer als Domänenbegriff — Filter, Ranglisten, Anzeige.
+ * Die 16 Bundesländer als Domänenbegriff - Filter, Ranglisten, Anzeige.
  *
  * Die Kürzel entsprechen den amtlichen ISO-3166-2:DE-Codes und zugleich dem
  * Präfix der Schul-IDs aus jedeschule.codefor.de („NI-43424“).
@@ -47,7 +47,7 @@ export function bundeslandAusId(id: string): Bundesland | null {
  * Grobe Umrisskästen je Bundesland: [südlichster, nördlichster, westlichster,
  * östlichster Punkt].
  *
- * Kästen, keine Polygone — zwei Verwendungen kommen damit aus: die
+ * Kästen, keine Polygone - zwei Verwendungen kommen damit aus: die
  * Plausibilitätsprüfung beim Geokodieren (liegt der Treffer überhaupt im
  * richtigen Land?) und der Bildausschnitt der Karte. Für beides wären Polygone
  * genauer und teurer; für keines von beidem genau genug, um den Unterschied zu

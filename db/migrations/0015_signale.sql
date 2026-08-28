@@ -2,7 +2,7 @@
 --
 -- Bisher wurden sie bei der Abgabe berechnet, entschieden über den Status und
 -- waren danach weg. In der Moderation stand deshalb nur, was sich aus den
--- gespeicherten Antworten neu berechnen ließ — Tempo und Abweichung vom
+-- gespeicherten Antworten neu berechnen ließ - Tempo und Abweichung vom
 -- Schulmittel gehören nicht dazu.
 --
 -- Die Signale nachträglich neu zu rechnen ginge ohnehin nicht: Die Grenzwerte
@@ -15,4 +15,4 @@ alter table bewertungen
   add column signalpunkte int;
 
 comment on column bewertungen.signale is
-  'Die Signale der Betrugspruefung zum Zeitpunkt der Abgabe, samt Gewicht und Erlaeuterung. Historischer Befund — nicht neu berechnen.';
+  'Die Signale der Betrugspruefung zum Zeitpunkt der Abgabe, samt Gewicht und Erlaeuterung. Historischer Befund - nicht neu berechnen.';

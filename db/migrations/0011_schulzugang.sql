@@ -3,7 +3,7 @@
 -- Eine Schule sieht ihre eigenen Werte, aber keine Einzelbewertungen. Die
 -- schwierige Frage ist der Nachweis, und der scheitert am echten Datenbestand,
 -- wenn man ihn über die E-Mail-Domäne führt: `schule.nrw.de` gehört 5.447
--- Schulen, `t-online.de` 805. Deshalb drei Wege — siehe `domain/schulzugang.ts`.
+-- Schulen, `t-online.de` 805. Deshalb drei Wege - siehe `domain/schulzugang.ts`.
 --
 -- Gemessen am Bestand vom 27.08.2026: 22.643 Schulen über die hinterlegte
 -- Adresse, 2.108 über eine Domäne, die nur ihnen gehört, 7.019 über eine

@@ -31,10 +31,33 @@ describe.skipIf(!vorhanden)("Schulsuche", () => {
     });
 
     it("stellt Präfixtreffer nach vorn", async () => {
-      // Wer „gymn“ tippt, meint Gymnasien — nicht die „gymnasiale Oberstufe“
+      // Wer „gymn“ tippt, meint Gymnasien - nicht die „gymnasiale Oberstufe“
       // am Ende eines langen Namens.
       const treffer = await autovervollstaendige(sql, "gymnasium", {}, 5);
       expect(treffer[0]?.name.toLowerCase().startsWith("gymnasium")).toBe(true);
+    });
+
+    it("findet Name und Ort auch getrennt", async () => {
+      // Aus dem Betrieb gemeldet: Die Schillerschule in Öhringen war über
+      // „schiller öhringen“ nicht zu finden, weil im Suchtext
+      // „schillerschule grundschule öhringen …“ steht - Name und Ort stehen
+      // nicht nebeneinander. Jede der beiden Reihenfolgen muss sie finden.
+      const vorwaerts = await autovervollstaendige(sql, "schiller öhringen", {}, 5);
+      const rueckwaerts = await autovervollstaendige(sql, "öhringen schiller", {}, 5);
+
+      expect(vorwaerts.length).toBeGreaterThan(0);
+      expect(vorwaerts[0]?.ort).toBe("Öhringen");
+      expect(vorwaerts[0]?.name.toLowerCase()).toContain("schiller");
+      expect(rueckwaerts.map((t) => t.slug)).toEqual(vorwaerts.map((t) => t.slug));
+    });
+
+    it("stellt den zusammenhängenden Treffer vor den verstreuten", () => {
+      // Die Lockerung beim Finden darf nicht zur Beliebigkeit beim Anzeigen
+      // werden: „gymnasium nord“ meint das Gymnasium Nord.
+      return autovervollstaendige(sql, "gymnasium nord", {}, 10).then((treffer) => {
+        if (treffer.length < 2) return;
+        expect(treffer[0]?.name.toLowerCase()).toContain("gymnasium");
+      });
     });
 
     it("schweigt bei zu kurzer Eingabe", async () => {

@@ -18,7 +18,7 @@ export interface NeueMeldung {
 /**
  * Nimmt eine Meldung entgegen.
  *
- * Die Kontaktadresse wird verschlüsselt abgelegt — wie jeder andere Kontakt im
+ * Die Kontaktadresse wird verschlüsselt abgelegt - wie jeder andere Kontakt im
  * System. Wer eine Bewertung meldet, ist häufig die betroffene Lehrkraft; eine
  * Klartextliste solcher Adressen neben den Bewertungen wäre genau die
  * Verknüpfung, die dieses Portal nicht anlegen will.
@@ -68,7 +68,7 @@ export interface Meldungsuebersicht {
   schule_name: string | null;
   schule_slug: string | null;
   bewertung_id: string | null;
-  /** Wie viele Meldungen dieselbe Adresse schon geschickt hat — Art. 23 DSA. */
+  /** Wie viele Meldungen dieselbe Adresse schon geschickt hat - Art. 23 DSA. */
   vom_selben_melder: number;
 }
 

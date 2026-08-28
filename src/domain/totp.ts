@@ -5,7 +5,7 @@
  * ist dreißig Zeilen, die Bausteine (HMAC-SHA1) stehen in `node:crypto`, und
  * jede Bibliothek an dieser Stelle ist eine, die den zweiten Faktor der
  * Moderation lesen könnte. Der Prüfstand unten geht gegen die Testvektoren aus
- * RFC 6238 — wenn die stimmen, stimmt die Umsetzung.
+ * RFC 6238 - wenn die stimmen, stimmt die Umsetzung.
  *
  * SHA-1 ist hier kein Versäumnis: Google Authenticator, Aegis, 1Password und
  * die übrigen gängigen Apps können nur SHA-1 mit sechs Stellen. Ein stärkerer
@@ -25,7 +25,7 @@ export const STELLEN = 6;
 /**
  * Wie viele Schritte in jede Richtung akzeptiert werden.
  *
- * Eins — das sind ±30 Sekunden. Ohne Toleranz scheitert jeder, dessen Uhr ein
+ * Eins - das sind ±30 Sekunden. Ohne Toleranz scheitert jeder, dessen Uhr ein
  * paar Sekunden nachgeht; mit zu viel Toleranz verlängert sich das Zeitfenster,
  * in dem ein abgefangener Code noch etwas wert ist.
  */
@@ -33,7 +33,7 @@ export const TOLERANZ_SCHRITTE = 1;
 
 const BASE32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
-/** Base32 nach RFC 4648, ohne Auffüllzeichen — so erwarten es die Apps. */
+/** Base32 nach RFC 4648, ohne Auffüllzeichen - so erwarten es die Apps. */
 export function base32Kodiere(daten: Buffer): string {
   let bits = 0;
   let wert = 0;
@@ -72,7 +72,7 @@ export function base32Dekodiere(text: string): Buffer {
  * Erzeugt ein neues Geheimnis.
  *
  * 20 Byte, weil RFC 4226 das als Mindestmaß nennt und weil es genau 32 Zeichen
- * Base32 ergibt — eine Länge, die sich noch abtippen lässt.
+ * Base32 ergibt - eine Länge, die sich noch abtippen lässt.
  */
 export function erzeugeGeheimnis(): string {
   return base32Kodiere(randomBytes(20));
@@ -110,7 +110,7 @@ export type Pruefergebnis =
 /**
  * Prüft einen vorgelegten Code.
  *
- * Zurück kommt der Schritt, in dem er gepasst hat — nicht aus Neugier: der
+ * Zurück kommt der Schritt, in dem er gepasst hat - nicht aus Neugier: der
  * Aufrufer muss ihn speichern, sonst lässt sich derselbe Code innerhalb seines
  * Fensters ein zweites Mal einlösen. Genau das macht jemand, der einem
  * Moderator über die Schulter geschaut hat.
@@ -145,7 +145,7 @@ export function pruefeCode(
 /**
  * Einrichtungs-URL für die Authenticator-App.
  *
- * Der Aussteller steht sowohl im Pfad als auch als Parameter — ältere Apps
+ * Der Aussteller steht sowohl im Pfad als auch als Parameter - ältere Apps
  * lesen das eine, neuere das andere.
  */
 export function otpauthUrl(kennung: string, geheimnisBase32: string, aussteller = "SCHULINDEX"): string {

@@ -6,13 +6,13 @@ import "./globals.css";
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("allgemein");
   return {
-    title: { default: t("portalname"), template: `%s – ${t("portalname")}` },
+    title: { default: t("portalname"), template: `%s - ${t("portalname")}` },
     description: t("beschreibung"),
   };
 }
 
 /**
- * Wurzellayout — nur die Hülle.
+ * Wurzellayout - nur die Hülle.
  *
  * Kopf- und Fußzeile stehen in der Gruppe `(oeffentlich)`. Die Moderation
  * bekommt sie nicht: eine interne Oberfläche mit „Schule finden“ und

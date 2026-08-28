@@ -28,7 +28,7 @@ describe("auswerteKlicks", () => {
 
   it("kappt Unterbrechungen bei einer Minute", () => {
     // Wer zwischendurch eine Stunde Pause macht, soll dadurch nicht als
-    // besonders unregelmäßig gelten — sonst wäre jede Mittagspause ein Signal.
+    // besonders unregelmäßig gelten - sonst wäre jede Mittagspause ein Signal.
     const mitPause = auswerteKlicks([1000, 1000, 3_600_000, 1000])!;
     const mitKappung = auswerteKlicks([1000, 1000, 60_000, 1000])!;
     expect(mitPause).toEqual(mitKappung);
@@ -65,7 +65,7 @@ describe("pruefeKlickmuster", () => {
   });
 
   it("schweigt bei zu wenigen Klicks", () => {
-    // Drei Abstände sagen nichts — auch drei schnelle nicht.
+    // Drei Abstände sagen nichts - auch drei schnelle nicht.
     const e = pruefeKlickmuster([100, 110, 105], 5);
     expect(e.signale).toEqual([]);
     expect(e.auswertung?.anzahl).toBe(3);
@@ -89,7 +89,7 @@ describe("pruefeKlickmuster", () => {
   });
 
   it("findet auch das langsame Skript an der Gleichmäßigkeit", () => {
-    // Zehn Sekunden je Frage ist unauffällig langsam — die immer gleichen
+    // Zehn Sekunden je Frage ist unauffällig langsam - die immer gleichen
     // Abstände sind es nicht. Genau dafür gibt es das zweite Signal.
     const e = pruefeKlickmuster(skript(10_000), 320);
     expect(e.signale.map((s) => s.art)).toEqual(["gleichmaessige_klicks"]);
@@ -102,7 +102,7 @@ describe("pruefeKlickmuster", () => {
   });
 
   it("folgt den eingestellten Grenzwerten", () => {
-    // Der Höchstwert des Katalogs — mehr ließe das Panel gar nicht zu.
+    // Der Höchstwert des Katalogs - mehr ließe das Panel gar nicht zu.
     const streng = mitVorgaben({ klick_mindestabstand_ms: 5000 });
     const abstaende = menschlich();
     const dauer = Math.ceil(abstaende.reduce((s, a) => s + a, 0) / 1000);

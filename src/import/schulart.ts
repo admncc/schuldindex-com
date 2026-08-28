@@ -8,7 +8,7 @@
  *
  * Vier Eigenheiten der Quelle, die hier behandelt werden:
  *   1. Baden-Württemberg liefert englische Codes (`primaryEducation`,
- *      `lowerSecondaryEduction` — Tippfehler im Original) statt Klartext.
+ *      `lowerSecondaryEduction` - Tippfehler im Original) statt Klartext.
  *   2. Bayern liefert Pluralformen („Grundschulen“, „Gymnasien“).
  *   3. Hamburg liefert Mehrfachwerte mit `|`, das Saarland mit `;` und Tabs.
  *   4. Rund 400 Datensätze sind gar keine Schulen, sondern Schulämter,
@@ -45,12 +45,12 @@ export interface Schulartzuordnung {
   /** Taxonomie-Arten, aufsteigend sortiert und ohne Dubletten. Für Filter und Ranglisten. */
   readonly arten: readonly Schulart[];
   /**
-   * Originalbezeichnung des Bundeslandes, bereinigt — für die Anzeige.
+   * Originalbezeichnung des Bundeslandes, bereinigt - für die Anzeige.
    * Eine Schleswig-Holsteiner „Gemeinschaftsschule“ wird als Gesamtschule
    * gefiltert, heißt auf ihrem Profil aber weiterhin Gemeinschaftsschule.
    */
   readonly bezeichnung: string | null;
-  /** false bei Schulamt, Studienseminar, Hochschule — diese Datensätze gehören nicht ins Portal. */
+  /** false bei Schulamt, Studienseminar, Hochschule - diese Datensätze gehören nicht ins Portal. */
   readonly istSchule: boolean;
   /** Woher die Zuordnung stammt. `name` heißt: aus dem Schulnamen erschlossen. */
   readonly quelle: "schulart" | "name" | "unbekannt";
@@ -67,7 +67,7 @@ function normalisiere(text: string): string {
     .trim();
 }
 
-/** Hamburg trennt mit `|`, das Saarland mit `;` — beides plus Leereinträge behandeln. */
+/** Hamburg trennt mit `|`, das Saarland mit `;` - beides plus Leereinträge behandeln. */
 export function teileBezeichnung(rohwert: string): string[] {
   return rohwert
     .split(/[|;]/)
@@ -78,7 +78,7 @@ export function teileBezeichnung(rohwert: string): string[] {
 /**
  * Bezeichnungen, die keine Schulart sind: Rechtsform, Vorschulangebote,
  * generische Platzhalter. Sie werden übersprungen, ohne die Zuordnung zu
- * verhindern — „Grundschule|Vorschulklasse“ ist eine Grundschule.
+ * verhindern - „Grundschule|Vorschulklasse“ ist eine Grundschule.
  */
 const OHNE_AUSSAGE = [
   /^freie tr[äa]gerschaft$/,
@@ -110,7 +110,7 @@ const KEINE_SCHULE = [
 // Achtung, kein Ausschlusskriterium: „Sonderpädagogisches Bildungs- und
 // Beratungszentrum“ (SBBZ) ist Baden-Württembergs amtliche Bezeichnung für die
 // Förderschule. Ein Filter auf „Beratungszentrum“ hätte 685 reale Schulen
-// verworfen — aufgefallen bei der Messung am Gesamtbestand.
+// verworfen - aufgefallen bei der Messung am Gesamtbestand.
 
 /**
  * Zuordnungsregeln, **der Reihe nach** geprüft. Die Reihenfolge trägt Bedeutung:
@@ -118,7 +118,7 @@ const KEINE_SCHULE = [
  * als Oberschule durchgehen.
  */
 const REGELN: ReadonlyArray<readonly [RegExp, Schulart]> = [
-  // Förderschulen zuerst — sie tragen oft zusätzlich einen anderen Schultyp im Namen
+  // Förderschulen zuerst - sie tragen oft zusätzlich einen anderen Schultyp im Namen
   [/f[öo]rderschule|f[öo]rderzentr|f[öo]rderschwerp|f[öo]z\b|sonderschule|sonderp[äa]d|klinik|krankenhausschule|lernbehinderte|geistigbehinderte|schulkindergarten|sprachheil|bildungs- und beratungszentrum|^sbbz\b/, "foerderschule"],
   [/waldorf|freie schule/, "waldorfschule"],
   // Berufliche Schulen vor Gymnasium, damit „Berufliches Gymnasium“ beide bekommt
@@ -143,17 +143,17 @@ const KURZFORM_STAEMME = "grund|haupt|real|ober|mittel|f[öo]rder|gesamt|werkrea
  * Löst die deutsche Bindestrich-Ellipse auf: „Grund- und Oberschule“ meint eine
  * Grundschule **und** eine Oberschule, enthält den ersten Begriff aber nur
  * verkürzt. Ohne diese Auflösung verliert jede zusammengezogene Bezeichnung
- * ihren ersten Bestandteil — im Bestand betrifft das mehrere hundert Schulen.
+ * ihren ersten Bestandteil - im Bestand betrifft das mehrere hundert Schulen.
  */
 export function loeseKurzformenAuf(text: string): string {
   const n = normalisiere(text);
   const ergaenzungen: string[] = [];
 
-  // „Grund- und …“, „Grund-, Haupt…“ — Bindestrich als Auslassungszeichen
+  // „Grund- und …“, „Grund-, Haupt…“ - Bindestrich als Auslassungszeichen
   for (const treffer of n.matchAll(new RegExp(`\\b(${KURZFORM_STAEMME})-(?=\\s|,|$)`, "gu"))) {
     ergaenzungen.push(treffer[1] + "schule");
   }
-  // „…, Haupt und Realschule“ — dieselbe Auslassung ohne Bindestrich
+  // „…, Haupt und Realschule“ - dieselbe Auslassung ohne Bindestrich
   for (const treffer of n.matchAll(new RegExp(`\\b(${KURZFORM_STAEMME})\\s+und\\b`, "gu"))) {
     ergaenzungen.push(treffer[1] + "schule");
   }
@@ -183,7 +183,7 @@ function istKeineSchule(token: string): boolean {
 /**
  * Erschließt die Schulart aus dem Schulnamen.
  *
- * Nötig für rund 2.100 Datensätze ohne Schulartangabe — vor allem
+ * Nötig für rund 2.100 Datensätze ohne Schulartangabe - vor allem
  * Schleswig-Holstein, Sachsen-Anhalt und Baden-Württemberg. Deren Namen tragen
  * die Art fast immer mit: „Marschenschool an’t Wattenmeer, Grundschule des
  * Amtes Marne-Nordsee“.
@@ -216,7 +216,7 @@ export function ordneSchulartZu(rohwert: string | null | undefined, name: string
     return { arten: sortiere(ausSchulart), bezeichnung, istSchule: true, quelle: "schulart" };
   }
 
-  // Erst wenn die Schulart nichts hergibt, wird der Name herangezogen — und
+  // Erst wenn die Schulart nichts hergibt, wird der Name herangezogen - und
   // zwar auch für den Ausschluss. Andersherum verlöre man eine „Berufsfachschule
   // für Physiotherapie am Universitätsklinikum“, weil im Namen „Universität“ steht.
   if (istKeineSchule(name)) {

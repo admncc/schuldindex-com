@@ -19,13 +19,13 @@ export default async function Schulzugangsseite() {
       <h1>Schulzugänge</h1>
       <p className="hinweis">
         Anfragen, bei denen sich der Zugang nicht automatisch belegen ließ. Das betrifft vor allem
-        Schulen ohne hinterlegte Adresse und solche an gemeinsamen Landesdomänen — unter{" "}
+        Schulen ohne hinterlegte Adresse und solche an gemeinsamen Landesdomänen - unter{" "}
         <code>schule.nrw.de</code> liegen über fünftausend Schulen, eine Adresse dort sagt nichts
         darüber aus, für welche davon jemand spricht.
       </p>
       <p className="hinweis">
         <strong>Vor der Freigabe prüfen:</strong> Ruf die Schule unter der Nummer aus dem
-        Schulverzeichnis an — nicht unter einer, die in der Anfrage steht.
+        Schulverzeichnis an - nicht unter einer, die in der Anfrage steht.
       </p>
 
       {anfragen.length === 0 ? (

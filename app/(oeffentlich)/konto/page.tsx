@@ -64,7 +64,7 @@ export default async function Kontoseite() {
 
                   <p className="hinweis">{ZUSTAND_HINWEIS[status]}</p>
 
-                  {/* Der Ablehnungsgrund gehört der bewertenden Person — sie
+                  {/* Der Ablehnungsgrund gehört der bewertenden Person - sie
                       muss wissen, woran es lag, sonst gibt sie dieselbe
                       Bewertung morgen noch einmal ab. */}
                   {status === "abgelehnt" && b.ablehnungsgrund ? (
@@ -102,7 +102,7 @@ export default async function Kontoseite() {
             <span className="beschriftung">Angemeldet bleiben</span>
             <p>
               Diese Anmeldung gilt {KONTO_SITZUNG_TAGE} Tage. Hast du dein Telefon verloren oder
-              den Anmeldelink weitergegeben, meld alle Geräte ab — danach kommt nur noch hinein,
+              den Anmeldelink weitergegeben, meld alle Geräte ab - danach kommt nur noch hinein,
               wer einen neuen Link anfordern kann.
             </p>
             <form action={ueberallAbmelden}>

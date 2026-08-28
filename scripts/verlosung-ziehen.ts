@@ -46,11 +46,11 @@ try {
           : "Keine Lose vorhanden.",
       );
     } else if (ergebnis.ziehung.gewinner_konto_id === null) {
-      console.log("Keine Teilnahmen — es wurde nichts gezogen, der Monat ist aber vermerkt.");
+      console.log("Keine Teilnahmen - es wurde nichts gezogen, der Monat ist aber vermerkt.");
     } else {
       const kontakt = await gewinnerkontakt(ergebnis.ziehung.id);
       console.log(`Gezogen: Los ${ergebnis.ziehung.gewinner_index! + 1} von ${ergebnis.ziehung.lose_gesamt}`);
-      console.log(`Kontakt: ${kontakt?.verschleiert ?? "unbekannt"} (${kontakt?.art ?? "—"})`);
+      console.log(`Kontakt: ${kontakt?.verschleiert ?? "unbekannt"} (${kontakt?.art ?? "-"})`);
       console.log(`Zufallswert: ${ergebnis.ziehung.zufallswert}`);
       console.log("\nDie Benachrichtigung geht heraus, sobald ein Versandweg eingerichtet ist.");
     }

@@ -6,7 +6,7 @@
  * die Nachricht in die Serverausgabe, statt sie zu verschicken.
  *
  * Das ist kein Platzhalter aus Bequemlichkeit. Der Protokollweg macht den
- * gesamten Ablauf lauffähig, bevor die Meta-Verifizierung durch ist — und die
+ * gesamten Ablauf lauffähig, bevor die Meta-Verifizierung durch ist - und die
  * hat ein bis drei Wochen Vorlauf.
  */
 
@@ -15,7 +15,7 @@ import { telefonZustaendig, type Nachricht, type Versandweg, type Zustellergebni
 /**
  * Schreibt die Nachricht ins Protokoll.
  *
- * **Niemals in der Produktion einsetzen** — der Bestätigungslink stünde damit
+ * **Niemals in der Produktion einsetzen** - der Bestätigungslink stünde damit
  * in den Serverprotokollen und jede Person mit Protokollzugriff könnte fremde
  * Konten bestätigen.
  */

@@ -8,11 +8,11 @@
  *
  * Deshalb stellt der Server den Stempel aus, wenn er das Formular ausliefert,
  * und signiert ihn. Beim Absenden rechnet er die Dauer selbst aus der eigenen
- * Uhr. Ein Angreifer kann den Stempel nicht vordatieren — er kann nur warten,
+ * Uhr. Ein Angreifer kann den Stempel nicht vordatieren - er kann nur warten,
  * und Warten ist genau das, was wir sehen wollen.
  *
  * Was das **nicht** leistet: Wer den Stempel früh holt und das Formular später
- * abschickt, sieht langsam aus. Das ist hingenommen — das Signal soll die
+ * abschickt, sieht langsam aus. Das ist hingenommen - das Signal soll die
  * unbedachte Massenabgabe finden, nicht den geduldigen Angreifer.
  */
 
@@ -28,7 +28,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 export const STEMPEL_STUNDEN = 2;
 
 export interface Stempel {
-  /** Sekunden seit Epoche — im Klartext, damit der Server nicht raten muss. */
+  /** Sekunden seit Epoche - im Klartext, damit der Server nicht raten muss. */
   readonly ausgestellt: number;
   readonly signatur: string;
 }
@@ -90,6 +90,6 @@ export function pruefeStempel(text: string, jetzt = new Date()): Stempelpruefung
 
 export const STEMPEL_HINWEIS: Readonly<Record<"ungueltig" | "abgelaufen" | "aus_der_zukunft", string>> = {
   ungueltig: "Bitte lade die Seite neu und schick die Bewertung noch einmal ab.",
-  abgelaufen: `Das Formular stand länger als ${STEMPEL_STUNDEN} Stunden offen. Lade die Seite neu — deine Antworten bleiben erhalten.`,
+  abgelaufen: `Das Formular stand länger als ${STEMPEL_STUNDEN} Stunden offen. Lade die Seite neu - deine Antworten bleiben erhalten.`,
   aus_der_zukunft: "Bitte lade die Seite neu und schick die Bewertung noch einmal ab.",
 };

@@ -1,7 +1,7 @@
 /**
  * Zugang zum eigenen Konto.
  *
- * Kein Kennwort, sondern ein Link an den hinterlegten Kontakt — dieselbe
+ * Kein Kennwort, sondern ein Link an den hinterlegten Kontakt - dieselbe
  * Mechanik wie bei der Bestätigung einer Bewertung. Das ist keine Bequemlichkeit:
  * ein Kennwort wäre ein weiteres Geheimnis, das ein Vierzehnjähriger verwalten
  * müsste, und der häufigste Weg, wie ein Konto verlorengeht. Der Kontakt ist
@@ -13,7 +13,7 @@ import { createHmac, randomBytes } from "node:crypto";
 /**
  * Wie lange eine Sitzung gilt.
  *
- * Dreißig Tage — deutlich länger als in der Moderation (zwölf Stunden). Der
+ * Dreißig Tage - deutlich länger als in der Moderation (zwölf Stunden). Der
  * Unterschied ist Absicht: hier kann jemand die eigenen Bewertungen ändern, dort
  * fremde freigeben. Wer sein Telefon verliert, kann die Sitzung über einen neuen
  * Anmeldelink beenden.
@@ -27,7 +27,7 @@ export const ANMELDELINK_STUNDEN = 2;
  * Wie viele Anmeldelinks je Konto und Stunde.
  *
  * Ohne Begrenzung ließe sich das Telefon einer beliebigen Nummer mit
- * Anmeldelinks zuschütten — die Nummer muss dafür nicht einmal ein Konto haben,
+ * Anmeldelinks zuschütten - die Nummer muss dafür nicht einmal ein Konto haben,
  * denn die Antwort ist in beiden Fällen dieselbe.
  */
 export const LINKS_JE_STUNDE = 3;
@@ -50,7 +50,7 @@ function schluessel(): Buffer {
  * Hash mit eigenem Verwendungszweck.
  *
  * Der Zweck geht in den Hash ein, damit ein Sitzungstoken nicht als Anmeldelink
- * durchgeht und umgekehrt — auch dann nicht, wenn beide denselben Schlüssel
+ * durchgeht und umgekehrt - auch dann nicht, wenn beide denselben Schlüssel
  * benutzen.
  */
 export function hasheKontotoken(klartext: string, zweck: "sitzung" | "anmeldung"): string {
@@ -89,7 +89,7 @@ export const KONTOCOOKIE_NAMEN: readonly string[] = [`__Host-${COOKIE_BASIS}`, C
  *
  * **Immer derselbe Text**, ob es das Konto gibt oder nicht. Sonst ließe sich mit
  * diesem Formular herausfinden, ob eine bestimmte Handynummer schon einmal eine
- * Schule bewertet hat — genau die Auskunft, die dieses Portal niemandem geben
+ * Schule bewertet hat - genau die Auskunft, die dieses Portal niemandem geben
  * darf.
  */
 export const LINK_ANGEFORDERT =

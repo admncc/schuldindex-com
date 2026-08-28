@@ -2,7 +2,7 @@
  * Die Umgebung des Abgabedienstes, angebunden an Postgres.
  *
  * Hier und nur hier steht SQL. Der Ablauf selbst (`bewertungAbgeben`) kennt
- * keine Datenbank — deshalb ließ er sich vollständig prüfen, bevor es diese
+ * keine Datenbank - deshalb ließ er sich vollständig prüfen, bevor es diese
  * Datei gab.
  */
 
@@ -85,7 +85,7 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
      *
      * Bewusst grob und großzügig im Auslösen: sie entscheidet nichts, sie holt
      * einen Menschen dazu. Erkannt werden Anreden mit Namen („Frau Müller“),
-     * Verweise ins Netz und Adressen — die drei Muster, die den Freitext
+     * Verweise ins Netz und Adressen - die drei Muster, die den Freitext
      * unbrauchbar machen.
      */
     async pruefeFreitext(texte) {
@@ -172,7 +172,7 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
 /**
  * Die Umgebung des Änderungsdienstes.
  *
- * Sie teilt sich die Freitextvorprüfung mit der Erstabgabe — dieselben Muster,
+ * Sie teilt sich die Freitextvorprüfung mit der Erstabgabe - dieselben Muster,
  * dieselbe Wirkung. Neu ist nur das Schreiben einer weiteren Fassung.
  */
 export function aenderungsumgebungMitDatenbank(): Aenderungsumgebung {
@@ -241,7 +241,7 @@ export function aenderungsumgebungMitDatenbank(): Aenderungsumgebung {
         `;
 
         // Die vorherige Fassung war womöglich veröffentlicht und ist es jetzt
-        // nicht mehr — ohne diese Zeile stünde ihr Wert weiter im Schulscore.
+        // nicht mehr - ohne diese Zeile stünde ihr Wert weiter im Schulscore.
         await aktualisiereAggregat(daten.schuleId, tx);
       });
     },

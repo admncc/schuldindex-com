@@ -10,6 +10,27 @@ import {
   VORGABEN,
   zahl,
 } from "./einstellungen";
+import { zweiterFaktorPflicht } from "./zweiterfaktor";
+
+describe("Schalter", () => {
+  it("kennt nur 0 und 1", () => {
+    expect(pruefeWert("zweiter_faktor", 1)).toEqual({ ok: true, wert: 1 });
+    expect(pruefeWert("zweiter_faktor", 0)).toEqual({ ok: true, wert: 0 });
+    expect(pruefeWert("zweiter_faktor", 2).ok).toBe(false);
+    expect(pruefeWert("zweiter_faktor", 0.5).ok).toBe(false);
+  });
+
+  it("steht zurzeit auf aus - und das ist eine Entscheidung, keine Vorgabe von Haus aus", () => {
+    // Festgehalten, damit ein Wiedereinschalten eine bewusste Änderung ist und
+    // niemand den Zustand für einen Zufall hält.
+    expect(zahl(VORGABEN, "zweiter_faktor")).toBe(0);
+  });
+
+  it("wird als abgeschaltet erkannt, wenn nichts gespeichert ist", () => {
+    expect(zweiterFaktorPflicht(VORGABEN)).toBe(false);
+    expect(zweiterFaktorPflicht(mitVorgaben({ zweiter_faktor: 1 }))).toBe(true);
+  });
+});
 
 describe("KATALOG", () => {
   it("hat eindeutige Schlüssel", () => {
@@ -25,7 +46,7 @@ describe("KATALOG", () => {
   });
 
   it("gibt jeder Einstellung Grenzen, in denen die Vorgabe liegt", () => {
-    // Eine Halteschwelle von 0 hielte jede Bewertung an, eine von 99 keine —
+    // Eine Halteschwelle von 0 hielte jede Bewertung an, eine von 99 keine -
     // beides darf kein Tippfehler auslösen können.
     for (const e of KATALOG) {
       expect(e.min, e.schluessel).toBeLessThan(e.max);
@@ -92,7 +113,7 @@ describe("mitVorgaben", () => {
 
   it("übergeht unbrauchbare gespeicherte Werte", () => {
     // Ein Wert außerhalb der Grenzen kann nur aus einer früheren Fassung oder
-    // von Hand stammen — er darf die Prüfung nicht lahmlegen.
+    // von Hand stammen - er darf die Prüfung nicht lahmlegen.
     const e = mitVorgaben({ halteschwelle: 999, entfernung_km: -1 });
     expect(e["halteschwelle"]).toBe(VORGABEN["halteschwelle"]);
     expect(e["entfernung_km"]).toBe(VORGABEN["entfernung_km"]);

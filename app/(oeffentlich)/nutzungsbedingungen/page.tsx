@@ -37,7 +37,7 @@ export default function Nutzungsbedingungenseite() {
       <ul>
         <li>
           <strong>Namen.</strong> Schreib über die Schule, nicht über einzelne Menschen. Lehrkräfte,
-          Mitschülerinnen und Schulleitungen dürfen nicht erkennbar sein — auch nicht über Fach,
+          Mitschülerinnen und Schulleitungen dürfen nicht erkennbar sein - auch nicht über Fach,
           Klasse oder Funktion.
         </li>
         <li>
@@ -61,7 +61,7 @@ export default function Nutzungsbedingungenseite() {
       <h2>4. Wie wir prüfen</h2>
       <p>
         Jede Bewertung braucht eine Bestätigung über Telefon oder E-Mail. Automatische Prüfungen
-        halten Auffälliges zurück — etwa Abgaben aus mehr als {SCHWELLE_KM} Kilometern Entfernung,
+        halten Auffälliges zurück - etwa Abgaben aus mehr als {SCHWELLE_KM} Kilometern Entfernung,
         auffällige Antwortmuster oder viele Abgaben in kurzer Zeit. Über die Veröffentlichung
         entscheidet dann ein Mensch. Freitexte werden nie wörtlich veröffentlicht, sondern
         zusammengefasst.
@@ -99,7 +99,7 @@ export default function Nutzungsbedingungenseite() {
       <p>
         Für die Inhalte einzelner Bewertungen sind deren Verfasser verantwortlich. Für die von uns
         erstellten Zusammenfassungen und für die Schulstammdaten haften wir selbst. Wir bemühen
-        uns um Richtigkeit, können aber nicht ausschließen, dass Angaben veraltet sind — meld uns
+        uns um Richtigkeit, können aber nicht ausschließen, dass Angaben veraltet sind - meld uns
         Fehler, wir korrigieren sie.
       </p>
 

@@ -13,7 +13,7 @@ export default function Pruefung({ anfrageId }: { anfrageId: string }) {
       <div className="karte">
         <p className="erfolg">Freigegeben. Der Link gilt 24 Stunden und lässt sich einmal benutzen.</p>
         <p className="hinweis">
-          Schick ihn an die Schule — an die Adresse aus dem Schulverzeichnis, nicht an die
+          Schick ihn an die Schule - an die Adresse aus dem Schulverzeichnis, nicht an die
           angefragte.
           {frei.kontakt ? ` Angefragt wurde von: ${frei.kontakt}` : ""}
         </p>
@@ -42,7 +42,7 @@ export default function Pruefung({ anfrageId }: { anfrageId: string }) {
           <input type="hidden" name="anfrage" value={anfrageId} />
           <label className="feld">
             <span>Warum wird abgelehnt?</span>
-            <input name="grund" placeholder="Konnte nicht bestätigt werden — Rückruf ohne Ergebnis." required />
+            <input name="grund" placeholder="Konnte nicht bestätigt werden - Rückruf ohne Ergebnis." required />
           </label>
           {abgelehnt.meldung ? <p className="fehler">{abgelehnt.meldung}</p> : null}
           <button className="knopf gefahr klein" disabled={ablehnungLaeuft}>Ablehnen</button>

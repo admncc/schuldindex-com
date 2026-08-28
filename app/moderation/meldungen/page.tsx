@@ -21,7 +21,7 @@ export default async function Meldungsseite() {
       <h1>Meldungen</h1>
       <p className="hinweis">
         Meldungen nach Art. 16 DSA. Jede Entscheidung geht mit Begründung und Rechtsbehelfshinweis
-        an die meldende Person — auch die ablehnende.
+        an die meldende Person - auch die ablehnende.
       </p>
 
       {meldungen.length === 0 ? (

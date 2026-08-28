@@ -27,7 +27,7 @@ export default async function Verlosungsseite() {
     <section className="abschnitt">
       <h1>Verlosung</h1>
       <p className="hinweis">
-        Ein Los je Konto und Monat — nicht je Bewertung. Gezogen wird erst nach Ablauf des
+        Ein Los je Konto und Monat - nicht je Bewertung. Gezogen wird erst nach Ablauf des
         Monats, und jede Ziehung lässt sich aus Zufallswert und Losliste nachrechnen.
       </p>
 
@@ -59,7 +59,7 @@ export default async function Verlosungsseite() {
             </span>
 
             {z.gewinner_konto_id === null ? (
-              <p className="gedaempft">Keine Teilnahmen — es wurde nicht gezogen.</p>
+              <p className="gedaempft">Keine Teilnahmen - es wurde nicht gezogen.</p>
             ) : (
               <>
                 <dl className="angaben">
@@ -93,7 +93,7 @@ export default async function Verlosungsseite() {
       )}
 
       <p className="fussnote">
-        Die Benachrichtigung geht bis auf Weiteres von Hand hinaus — der Versandweg braucht
+        Die Benachrichtigung geht bis auf Weiteres von Hand hinaus - der Versandweg braucht
         Zugangsdaten. Der Vermerk hier hält fest, dass sie erledigt ist.
       </p>
     </section>

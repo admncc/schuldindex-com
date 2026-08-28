@@ -29,7 +29,7 @@ export default async function Verlosungsseite() {
       <ol>
         <li>
           <strong>Wer teilnehmen kann:</strong> Schülerinnen und Schüler, die eine Bewertung
-          abgegeben und bestätigt haben. Andere Rollen — Eltern, Lehrkräfte, Ehemalige — sind
+          abgegeben und bestätigt haben. Andere Rollen - Eltern, Lehrkräfte, Ehemalige - sind
           ausgeschlossen.
         </li>
         <li>
@@ -43,7 +43,7 @@ export default async function Verlosungsseite() {
         </li>
         <li>
           <strong>Die Ziehung ist nachrechenbar.</strong> Zu jeder Ziehung speichern wir einen
-          Zufallswert und die Liste der Lose. Aus beidem ergibt sich derselbe Gewinner — wer die
+          Zufallswert und die Liste der Lose. Aus beidem ergibt sich derselbe Gewinner - wer die
           Ziehung anzweifelt, kann sie nachrechnen lassen.
         </li>
         <li>
@@ -72,7 +72,7 @@ export default async function Verlosungsseite() {
 
       <h2>Was mit deinen Daten geschieht</h2>
       <p>
-        Für die Verlosung speichern wir nur, dass du teilnehmen möchtest — an deiner Bewertung,
+        Für die Verlosung speichern wir nur, dass du teilnehmen möchtest - an deiner Bewertung,
         die ohnehin gespeichert ist. Ein Los enthält keine weiteren Angaben, und die
         veröffentlichte Liste der Ziehungen nennt keine Namen, keine Nummern und keine Schulen.
         Näheres steht in der <a href="/datenschutz">Datenschutzerklärung</a>.

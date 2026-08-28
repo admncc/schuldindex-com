@@ -4,7 +4,7 @@
  * Die Zustandsmaschine (`bewertungsstatus.ts`) sagt, welcher Übergang möglich
  * ist. Hier steht, was eine Moderatorin dafür beibringen muss: eine Begründung
  * bei jeder Ablehnung, einen Text bei jeder Rückfrage. Beides ist keine
- * Förmlichkeit — die Begründung geht an die betroffene Person und muss im
+ * Förmlichkeit - die Begründung geht an die betroffene Person und muss im
  * Streitfall die Entscheidung tragen (DSA Art. 17).
  */
 
@@ -39,7 +39,7 @@ export const ABLEHNUNGSGRUENDE: readonly Ablehnungsgrund[] = [
   {
     id: "person",
     kurz: "Nennt eine Person",
-    text: "Deine Bewertung nennt eine einzelne Lehrkraft oder Mitschülerin erkennbar. Das veröffentlichen wir nicht — schreib bitte über die Schule, nicht über einzelne Menschen.",
+    text: "Deine Bewertung nennt eine einzelne Lehrkraft oder Mitschülerin erkennbar. Das veröffentlichen wir nicht - schreib bitte über die Schule, nicht über einzelne Menschen.",
   },
   {
     id: "beleidigung",
@@ -96,7 +96,7 @@ export interface Entscheidungsfehler {
 export interface GeprueftEntscheidung {
   readonly aktion: Aktion;
   readonly ausloeser: Ausloeser | null;
-  /** Zielzustand, `null` bei einer Rückfrage — die lässt den Zustand stehen. */
+  /** Zielzustand, `null` bei einer Rückfrage - die lässt den Zustand stehen. */
   readonly nach: Zustand | null;
   /** Vollständiger Text für die betroffene Person und das Protokoll. */
   readonly begruendung: string;
@@ -126,7 +126,7 @@ export function pruefeEntscheidung(zustand: Zustand, e: Entscheidung, jetzt = ne
       fehler.push({ feld: "aktion", meldung: "Eine Rückfrage ist nur zu einer Bewertung in Prüfung möglich." });
     }
     if (zusatz.length < RUECKFRAGE_MINDESTLAENGE) {
-      fehler.push({ feld: "zusatz", meldung: "Schreib die Rückfrage aus — mindestens ein vollständiger Satz." });
+      fehler.push({ feld: "zusatz", meldung: "Schreib die Rückfrage aus - mindestens ein vollständiger Satz." });
     }
     if (fehler.length > 0) return { ok: false, fehler };
     return {
@@ -166,7 +166,7 @@ export function pruefeEntscheidung(zustand: Zustand, e: Entscheidung, jetzt = ne
 /**
  * Wie viele Bewertungen eine Sammelaktion höchstens umfasst.
  *
- * Nicht aus technischen Gründen — die Datenbank schafft auch tausend. Die
+ * Nicht aus technischen Gründen - die Datenbank schafft auch tausend. Die
  * Grenze ist da, weil eine Sammelablehnung die einzige Stelle im ganzen Portal
  * ist, an der ein einzelner Klick hunderte Menschen trifft. Wer mehr ablehnen
  * will, muss es zweimal tun und sieht dazwischen, was er getan hat.
@@ -187,7 +187,7 @@ export type Sammelpruefung =
  * Prüft eine Sammelablehnung.
  *
  * Nur Ablehnungen: eine Sammelfreigabe gibt es nicht. Wer hundert Bewertungen
- * auf einmal freigibt, hat keine davon angesehen — und die Freigabe ist die
+ * auf einmal freigibt, hat keine davon angesehen - und die Freigabe ist die
  * Entscheidung, die niemand zurücknimmt, weil sie niemandem auffällt.
  */
 export function pruefeSammelaktion(a: Sammelaktion): Sammelpruefung {
@@ -224,7 +224,7 @@ export const ALARM_LAENGE = 100;
 export type Dringlichkeit = "neu" | "faellig" | "ueberfaellig";
 
 export const DRINGLICHKEIT_LABEL: Readonly<Record<Dringlichkeit, string>> = {
-  // Nicht „Neu“: ein Eintrag, der 46 Stunden liegt, ist nicht neu — er ist
+  // Nicht „Neu“: ein Eintrag, der 46 Stunden liegt, ist nicht neu - er ist
   // gerade noch in der Frist.
   neu: "In Frist",
   faellig: "Fällig",
@@ -252,7 +252,7 @@ export interface Warteschlangenlage {
  *
  * Bewusst zwei Auslöser: die Länge zeigt einen Ansturm, das Alter zeigt eine
  * unbesetzte Moderation. Eine kurze Schlange mit einem drei Tage alten Eintrag
- * ist der schlimmere Fall — und der, den eine reine Längenmessung übersieht.
+ * ist der schlimmere Fall - und der, den eine reine Längenmessung übersieht.
  */
 export function warteschlangenalarm(lage: Warteschlangenlage, jetzt = new Date()): readonly string[] {
   const alarme: string[] = [];

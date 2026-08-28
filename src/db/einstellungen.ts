@@ -13,7 +13,7 @@ import { beschreibung, mitVorgaben, pruefeWert, type Einstellungen } from "../do
  * Die geltenden Einstellungen.
  *
  * Wird bei jeder Abgabe gelesen. Das ist eine Abfrage über eine Tabelle mit
- * höchstens einem Dutzend Zeilen — ein Zwischenspeicher wäre schneller und
+ * höchstens einem Dutzend Zeilen - ein Zwischenspeicher wäre schneller und
  * brächte das Problem mit, dass eine Änderung erst nach dem Neustart wirkt.
  * Genau das darf bei einer Stellschraube der Betrugserkennung nicht passieren.
  */

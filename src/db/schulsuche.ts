@@ -1,12 +1,12 @@
 /**
- * Schulsuche — Autovervollständigung, Volltext und Umkreis.
+ * Schulsuche - Autovervollständigung, Volltext und Umkreis.
  *
  * Die Suche ist der erste Kontakt mit dem Portal. Findet jemand seine Schule
  * nicht, ist alles Weitere belanglos. Deshalb drei Wege nebeneinander:
  *
- *  1. **Präfix** — „gymn…“ soll sofort Gymnasien zeigen. Schnell und exakt.
- *  2. **Trigramme** — fängt Tippfehler und Wortdreher ab („mühlenweg gymnasium“).
- *  3. **Umkreis** — „Schulen in meiner Nähe“ über den räumlichen Index.
+ *  1. **Präfix** - „gymn…“ soll sofort Gymnasien zeigen. Schnell und exakt.
+ *  2. **Trigramme** - fängt Tippfehler und Wortdreher ab („mühlenweg gymnasium“).
+ *  3. **Umkreis** - „Schulen in meiner Nähe“ über den räumlichen Index.
  *
  * Umlaute funktionieren in beide Richtungen, weil `suchtext` jeden Begriff in
  * beiden Schreibweisen führt (siehe `import/normalisiere.ts`).
@@ -26,7 +26,7 @@ export interface Suchtreffer {
   readonly schulartOriginal: string | null;
   readonly lat: number | null;
   readonly lon: number | null;
-  /** Entfernung in Kilometern — nur bei der Umkreissuche gesetzt. */
+  /** Entfernung in Kilometern - nur bei der Umkreissuche gesetzt. */
   readonly entfernungKm?: number;
 }
 
@@ -44,11 +44,48 @@ export type SqlAusfuehrer = <T>(text: string, werte: readonly unknown[]) => Prom
  *
  * Wichtig: die Eingabe wird **nicht** umlautbereinigt. Der Suchtext in der
  * Datenbank führt bereits beide Schreibweisen, eine Bereinigung der Eingabe
- * würde „Gruenewald“ zu „gruenewald“ machen und damit weiterhin passen — aber
+ * würde „Gruenewald“ zu „gruenewald“ machen und damit weiterhin passen - aber
  * „Grünewald“ zu „Grunewald“, was dann *nicht* mehr passt.
  */
 export function normalisiereEingabe(eingabe: string): string {
   return eingabe.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/** Mehr Wörter wertet niemand aus - und jedes weitere kostet eine Bedingung. */
+const HOECHSTZAHL_WOERTER = 6;
+
+/**
+ * Zerlegt die Eingabe in einzelne Wörter.
+ *
+ * Der Grund ist ein Fehler aus dem Betrieb: Wer „schiller öhringen“ tippt,
+ * meint die Schillerschule in Öhringen. Im Suchtext steht aber
+ * `schillerschule grundschule öhringen …` - Name und Ort stehen nicht
+ * nebeneinander, und eine Suche nach der ganzen Zeichenkette findet nichts.
+ *
+ * Deshalb muss **jedes Wort** vorkommen, aber nicht zusammenhängend und nicht
+ * in dieser Reihenfolge. „öhringen schiller“ findet dieselbe Schule. Weil der
+ * Suchtext Name, Ort, Postleitzahl und Schulart in einem Feld führt, ist damit
+ * auch „grundschule 74613“ eine sinnvolle Anfrage.
+ */
+export function zerlegeEingabe(eingabe: string): string[] {
+  const begriff = normalisiereEingabe(eingabe);
+  if (begriff === "") return [];
+  return begriff.split(" ").filter((w) => w !== "").slice(0, HOECHSTZAHL_WOERTER);
+}
+
+/**
+ * `suchtext like` für jedes Wort, mit Platzhaltern in der richtigen Nummerierung.
+ *
+ * Die Werte werden angehängt, nicht eingesetzt: Ein Schulname aus der Eingabe
+ * darf niemals im Abfragetext landen.
+ */
+function wortbedingungen(woerter: readonly string[], werte: unknown[]): string {
+  return woerter
+    .map((wort) => {
+      werte.push(`%${wort}%`);
+      return `and suchtext like $${werte.length}`;
+    })
+    .join("\n       ");
 }
 
 function filterBedingungen(filter: Suchfilter, werte: unknown[]): string {
@@ -74,9 +111,17 @@ const SPALTEN = `
 /**
  * Autovervollständigung während der Eingabe.
  *
- * Präfixtreffer stehen vor Treffern mitten im Text: wer „gymn“ tippt, meint
- * Gymnasien und nicht das „…gymnasiale Oberstufe“ am Ende eines langen Namens.
- * Bei gleichem Rang entscheidet die Namenslänge — kurze Namen sind fast immer
+ * Gefunden wird, was **alle** eingegebenen Wörter enthält - verstreut und in
+ * beliebiger Reihenfolge (siehe `zerlegeEingabe`). Sortiert wird in drei
+ * Stufen, damit die Lockerung beim Finden nicht zu Beliebigkeit beim Anzeigen
+ * wird:
+ *
+ *  0. Der Suchtext **beginnt** mit der ganzen Eingabe. Wer „gymn“ tippt, meint
+ *     Gymnasien und nicht die „…gymnasiale Oberstufe“ am Ende eines Namens.
+ *  1. Die ganze Eingabe kommt zusammenhängend vor.
+ *  2. Nur die einzelnen Wörter kommen vor - „schiller öhringen“.
+ *
+ * Bei gleichem Rang entscheidet die Namenslänge; kurze Namen sind fast immer
  * die gesuchten.
  */
 export async function autovervollstaendige(
@@ -87,16 +132,21 @@ export async function autovervollstaendige(
 ): Promise<Suchtreffer[]> {
   const begriff = normalisiereEingabe(eingabe);
   if (begriff.length < 2) return [];
+  const woerter = zerlegeEingabe(begriff);
 
   const werte: unknown[] = [`${begriff}%`, `%${begriff}%`];
+  const wortteil = wortbedingungen(woerter, werte);
   const bedingungen = filterBedingungen(filter, werte);
   werte.push(grenze);
 
   const zeilen = await sql<Record<string, unknown>>(
     `select ${SPALTEN},
-            case when suchtext like $1 then 0 else 1 end as rang
+            case when suchtext like $1 then 0
+                 when suchtext like $2 then 1
+                 else 2 end as rang
      from schulen
-     where ist_aktiv and suchtext like $2
+     where ist_aktiv
+       ${wortteil}
        ${bedingungen}
      order by rang, length(name), name
      limit $${werte.length}`,
@@ -120,17 +170,24 @@ export async function suche(
 ): Promise<Suchtreffer[]> {
   const begriff = normalisiereEingabe(eingabe);
   if (begriff.length < 2) return [];
+  const woerter = zerlegeEingabe(begriff);
 
   const werte: unknown[] = [begriff, `%${begriff}%`];
+  // Jedes Wort für sich - sonst fällt „schiller öhringen“ durch, weil im
+  // Suchtext „grundschule“ dazwischensteht.
+  const wortteil = woerter.map((wort) => {
+    werte.push(`%${wort}%`);
+    return `suchtext like $${werte.length}`;
+  });
   const bedingungen = filterBedingungen(filter, werte);
   werte.push(grenze);
 
   const zeilen = await sql<Record<string, unknown>>(
     `select ${SPALTEN}, similarity(suchtext, $1) as guete
      from schulen
-     where ist_aktiv and (suchtext % $1 or suchtext like $2)
+     where ist_aktiv and (suchtext % $1 or suchtext like $2 or (${wortteil.join(" and ")}))
        ${bedingungen}
-     order by guete desc, length(name), name
+     order by case when suchtext like $2 then 0 else 1 end, guete desc, length(name), name
      limit $${werte.length}`,
     werte,
   );
@@ -141,7 +198,7 @@ export async function suche(
  * Schulen im Umkreis, nach Entfernung sortiert.
  *
  * `earth_box` grenzt über den räumlichen Index grob ein, `earth_distance`
- * rechnet danach genau nach — der Kasten allein wäre an den Ecken zu großzügig.
+ * rechnet danach genau nach - der Kasten allein wäre an den Ecken zu großzügig.
  */
 export async function imUmkreis(
   sql: SqlAusfuehrer,

@@ -8,7 +8,7 @@ import { MAX_ABSTAENDE } from "@/domain/klickmuster";
 type Anfragekoerper = Bewertungseingabe & { stempel?: string; klickabstaende?: unknown };
 
 /**
- * Nimmt die gemeldeten Klickabstände entgegen — und nur das, was auch eine
+ * Nimmt die gemeldeten Klickabstände entgegen - und nur das, was auch eine
  * Zahlenreihe ist.
  *
  * Alles hier kommt aus dem Browser und ist damit beliebig fälschbar. Geprüft
@@ -27,7 +27,7 @@ function klickabstaende(wert: unknown): number[] | null {
 /**
  * Nimmt eine Bewertung entgegen.
  *
- * Die eigentliche Prüfung steckt in `bewertungAbgeben` — hier steht nur, was
+ * Die eigentliche Prüfung steckt in `bewertungAbgeben` - hier steht nur, was
  * zur Anbindung gehört: Anfrage lesen, Umgebung bauen, Antwort formen.
  */
 export async function POST(anfrage: Request): Promise<NextResponse> {
@@ -44,11 +44,11 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
   const basis = process.env["BASIS_URL"] ?? new URL(anfrage.url).origin;
 
   // Die IP wird hier gelesen und nirgends gespeichert (Entscheidung E3). Ohne
-  // angebundenen Geo-Dienst bleibt der Standort unbekannt — die Bewertung geht
+  // angebundenen Geo-Dienst bleibt der Standort unbekannt - die Bewertung geht
   // dann in die Moderation, statt ungeprüft durchzugehen.
   const ortung = async () => null;
 
-  // Die Dauer rechnet der Server aus seinem eigenen Stempel — nicht aus einer
+  // Die Dauer rechnet der Server aus seinem eigenen Stempel - nicht aus einer
   // Zahl, die die Anfrage mitbringt. Ohne gültigen Stempel bleibt sie leer, und
   // das Tempo-Signal entfällt; abgewiesen wird deswegen niemand.
   const stempel = typeof eingabe.stempel === "string" ? pruefeStempel(eingabe.stempel) : null;

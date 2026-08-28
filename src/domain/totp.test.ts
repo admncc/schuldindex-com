@@ -26,7 +26,7 @@ describe("Base32", () => {
     }
   });
 
-  it("nimmt Leerzeichen und Auffüllzeichen hin — so steht es auf Ausdrucken", () => {
+  it("nimmt Leerzeichen und Auffüllzeichen hin - so steht es auf Ausdrucken", () => {
     expect(base32Dekodiere("GEZD GNBV GY3T QOJQ GEZD GNBV GY3T QOJQ")).toEqual(RFC_GEHEIMNIS);
     expect(base32Dekodiere("MZXW6YQ=")).toEqual(Buffer.from("foob", "ascii"));
   });
@@ -97,7 +97,7 @@ describe("pruefeCode", () => {
     expect(pruefeCode(RFC_BASE32, totp(RFC_BASE32, weit), JETZT).ok).toBe(false);
   });
 
-  it("weist alles ab, was nicht sechs Ziffern ist — ohne zu rechnen", () => {
+  it("weist alles ab, was nicht sechs Ziffern ist - ohne zu rechnen", () => {
     for (const müll of ["", "12345", "1234567", "abcdef", "12 34 56 78"]) {
       expect(pruefeCode(RFC_BASE32, müll, JETZT).ok).toBe(false);
     }

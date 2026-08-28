@@ -8,7 +8,7 @@ const BREMEN = { lat: 53.0758, lon: 8.8072 };
 
 describe("Entfernung", () => {
   it("rechnet bekannte Strecken richtig", () => {
-    // Werte gegengeprüft mit Postgres' earth_distance — beide Wege rechnen
+    // Werte gegengeprüft mit Postgres' earth_distance - beide Wege rechnen
     // mit demselben Erdradius, damit sie nicht auseinanderlaufen.
     expect(entfernungKm(HAMBURG_RATHAUS, MUENCHEN_MARIENPLATZ)).toBeCloseTo(612.716, 2);
     expect(entfernungKm(HAMBURG_RATHAUS, LUEBECK)).toBeCloseTo(57.67, 2);
@@ -56,7 +56,7 @@ describe("Prüfung einer Einreichung", () => {
   });
 
   it("hält zurück, wenn der Absender nicht lokalisierbar ist", () => {
-    // Proxy oder VPN — genau das Verhalten, das eine Kampagne zeigt.
+    // Proxy oder VPN - genau das Verhalten, das eine Kampagne zeigt.
     const befund = pruefeEinreichung({ absender: null, schule: HAMBURG_RATHAUS });
     expect(befund.haltenWegenEntfernung).toBe(true);
     expect(befund.unbekannt).toBe(true);

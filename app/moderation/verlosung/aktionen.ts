@@ -65,7 +65,7 @@ export async function monatZiehen(
   };
 }
 
-/** Zeigt den Kontakt der gewinnenden Person — für die Benachrichtigung von Hand. */
+/** Zeigt den Kontakt der gewinnenden Person - für die Benachrichtigung von Hand. */
 export async function kontaktZeigen(ziehungId: string): Promise<string | null> {
   const moderatorin = await verlangeAnmeldung();
   if (moderatorin.rolle !== "leitung") return null;

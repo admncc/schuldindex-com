@@ -49,7 +49,7 @@ export async function abmelden(): Promise<void> {
   redirect("/");
 }
 
-/** Meldet alle Geräte ab — für den Fall, dass ein Telefon verlorengeht. */
+/** Meldet alle Geräte ab - für den Fall, dass ein Telefon verlorengeht. */
 export async function ueberallAbmelden(): Promise<void> {
   const konto = await holeAngemeldetesKonto();
   if (konto !== null) await beendeAlleSitzungen(konto.id);
@@ -70,7 +70,7 @@ export async function bewertungLoeschen(
   const konto = await verlangeKonto();
   const id = String(formular.get("bewertung") ?? "");
 
-  // Die Konto-Kennung kommt aus der Sitzung, nicht aus dem Formular — sonst
+  // Die Konto-Kennung kommt aus der Sitzung, nicht aus dem Formular - sonst
   // ließe sich mit einer fremden Bewertungs-Kennung jede Bewertung löschen.
   const ok = await loescheBewertung(konto.id, id);
   if (!ok) return { meldung: "Diese Bewertung gibt es nicht mehr." };

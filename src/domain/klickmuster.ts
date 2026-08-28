@@ -5,9 +5,9 @@
  * den Abständen zwischen den Klicks entstehen zwei Signale, die sich in ihrer
  * Aussage unterscheiden:
  *
- *  - **Zu schnell** — der mittlere Abstand liegt unter dem, was Lesen und
+ *  - **Zu schnell** - der mittlere Abstand liegt unter dem, was Lesen und
  *    Entscheiden braucht. Findet das unbedachte Durchklicken.
- *  - **Zu gleichmäßig** — die Abstände streuen kaum. Das ist der eigentlich
+ *  - **Zu gleichmäßig** - die Abstände streuen kaum. Das ist der eigentlich
  *    verräterische Befund: Ein Mensch braucht für die eine Frage zwei Sekunden
  *    und für die nächste zehn; ein Skript klickt alle 300 Millisekunden. Sogar
  *    ein *langsames* Skript fällt darüber auf, ein schnelles Lesen dagegen nicht.
@@ -16,12 +16,12 @@
  * „maximale Auswertbarkeit“). Der Grund ist die Kalibrierung: Ob 400 ms und 15 %
  * die richtigen Schwellen sind, weiß vor dem Betrieb niemand, und ein Detektor
  * lässt sich nicht an Kennzahlen verbessern, die man schon zusammengefasst hat.
- * Auch der Vergleich ganzer Verläufe untereinander — dieselbe Handschrift über
- * viele Abgaben — geht nur mit der Folge.
+ * Auch der Vergleich ganzer Verläufe untereinander - dieselbe Handschrift über
+ * viele Abgaben - geht nur mit der Folge.
  *
  * Was das bedeutet, steht ausdrücklich hier, damit es niemand übersieht: Die
  * Fragen erscheinen in fester Reihenfolge, also lässt sich aus dem n-ten Abstand
- * ablesen, wie lange jemand vor der n-ten Frage gezögert hat — auch vor den
+ * ablesen, wie lange jemand vor der n-ten Frage gezögert hat - auch vor den
  * Fragen zu Mobbing und Gewalt. Die Folge ist damit eine personenbezogene
  * Verhaltensspur und **kein bloßes Messrauschen**. Sie gehört in die
  * Datenschutzerklärung (Abschnitt 3.2), unterliegt einer eigenen
@@ -32,13 +32,13 @@
  * Deshalb werden sie gegen die vom Server gemessene Gesamtdauer geprüft
  * (`plausibel`): Wer behauptet, acht Minuten geklickt zu haben, während der
  * signierte Stempel zwanzig Sekunden sagt, wird nicht geglaubt. Gespeichert wird
- * die Folge trotzdem — gerade eine erfundene Reihe ist ein Befund.
+ * die Folge trotzdem - gerade eine erfundene Reihe ist ein Befund.
  */
 
 import { VORGABEN, zahl, type Einstellungen } from "./einstellungen";
 import type { Signal } from "./betrugspruefung";
 
-/** Mehr Abstände nimmt niemand entgegen — 61 Fragen ergeben höchstens 60. */
+/** Mehr Abstände nimmt niemand entgegen - 61 Fragen ergeben höchstens 60. */
 export const MAX_ABSTAENDE = 200;
 
 export interface Klickauswertung {
@@ -75,7 +75,7 @@ function median(werte: readonly number[]): number {
  * Fasst die Abstände zu drei Kennzahlen zusammen.
  *
  * Ausreißer nach oben fliegen vorher heraus: Wer zwischendurch zehn Minuten
- * Pause macht — Türklingel, Bus, Unterrichtsende —, soll dadurch nicht als
+ * Pause macht - Türklingel, Bus, Unterrichtsende -, soll dadurch nicht als
  * besonders unregelmäßig gelten. Gekappt wird bei einer Minute; alles darüber
  * ist keine Antwortzeit mehr, sondern eine Unterbrechung.
  */
@@ -93,7 +93,7 @@ export function auswerteKlicks(abstaendeMs: readonly number[]): Klickauswertung 
   return {
     anzahl: brauchbar.length,
     medianMs: median(brauchbar),
-    // Bei einem Mittelwert von 0 — alle Klicks im selben Millisekundenfenster —
+    // Bei einem Mittelwert von 0 - alle Klicks im selben Millisekundenfenster -
     // ist die Streuung definitionsgemäß 0 und der Fall ohnehin auffällig.
     streuung: mittel === 0 ? 0 : Math.sqrt(varianz) / mittel,
   };
@@ -139,7 +139,7 @@ export function pruefeKlickmuster(
       art: "gleichmaessige_klicks",
       gewicht: gewicht(e, "klick_gleichmass_gewicht"),
       erlaeuterung:
-        `Abstände streuen nur um ${Math.round(auswertung.streuung * 100)} % — ` +
+        `Abstände streuen nur um ${Math.round(auswertung.streuung * 100)} % - ` +
         "so gleichmäßig klickt kein Mensch",
     });
   }

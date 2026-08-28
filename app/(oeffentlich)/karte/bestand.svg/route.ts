@@ -11,7 +11,7 @@ import { rasterpunkte } from "@/db/karte";
  *
  * Als eigene Datei wird sie einmal geladen, vom Browser zwischengespeichert und
  * beim nächsten Aufruf nicht erneut übertragen. Die Seite selbst bleibt klein
- * und trägt nur noch die bewerteten Schulen — die, auf die jemand klickt.
+ * und trägt nur noch die bewerteten Schulen - die, auf die jemand klickt.
  *
  * Gleicher Ursprung, kein fremder Server: die Datei kommt aus derselben
  * Anwendung wie die Seite.
@@ -34,7 +34,7 @@ export async function GET(anfrage: Request): Promise<Response> {
    * Ein `<circle>` kostet rund 45 Zeichen, ein Punkt in einem Pfad rund 14: ein
    * Nullstrich (`M x y h.01`) mit runder Strichkappe ist ein Kreis vom
    * Durchmesser der Strichbreite. Nach Größe gebündelt bleiben ein halbes
-   * Dutzend Pfade übrig — und ein Drittel der Dateigröße.
+   * Dutzend Pfade übrig - und ein Drittel der Dateigröße.
    */
   const nachGroesse = new Map<number, string[]>();
   for (const z of zellen) {

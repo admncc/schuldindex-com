@@ -17,7 +17,7 @@ const PROZENT = new Intl.NumberFormat("de-DE", { style: "percent", maximumFracti
  *
  * Ein Bewertungsportal, das nicht offenlegt, wie es rechnet, verlangt Vertrauen,
  * das es nicht begründet. Deshalb stehen hier die tatsächlichen Zahlen aus dem
- * Code — Gewichte, Schwellen, Grenzen —, nicht ihre ungefähre Beschreibung.
+ * Code - Gewichte, Schwellen, Grenzen -, nicht ihre ungefähre Beschreibung.
  */
 export default function Ueberseite() {
   const gewichtssumme = KATEGORIEN.reduce((s, k) => s + k.gewichtung, 0);
@@ -26,7 +26,7 @@ export default function Ueberseite() {
     <section className="abschnitt rechtstext">
       <h1>Über SCHULINDEX</h1>
       <p>
-        SCHULINDEX sammelt Bewertungen zu Schulen in Deutschland — anonym nach außen, aber
+        SCHULINDEX sammelt Bewertungen zu Schulen in Deutschland - anonym nach außen, aber
         geprüft. Wer bewertet, bleibt für alle anderen unerkannt; dass es sich um einen echten,
         einzelnen Menschen handelt, prüfen wir trotzdem.
       </p>
@@ -72,7 +72,7 @@ export default function Ueberseite() {
           {KATEGORIEN.map((k) => (
             <tr key={k.id}>
               <td>
-                {k.id} — {k.titel}
+                {k.id} - {k.titel}
               </td>
               <td>{k.gewichtung}</td>
               <td>{PROZENT.format(k.gewichtung / gewichtssumme)}</td>
@@ -93,7 +93,7 @@ export default function Ueberseite() {
         </li>
         <li>
           <strong>{MINDESTZAHL_RANGLISTE} Bewertungen</strong> für die Aufnahme in eine Rangliste.
-          Ein Rangplatz ist eine Aussage im Vergleich zu allen anderen Schulen — dafür muss die
+          Ein Rangplatz ist eine Aussage im Vergleich zu allen anderen Schulen - dafür muss die
           Zahl tragen.
         </li>
         <li>
@@ -139,13 +139,13 @@ export default function Ueberseite() {
         Aus dem offenen Datenbestand von jedeschule.codefor.de und den Schulverzeichnissen der
         Länder; fehlende Koordinaten ergänzen wir über Photon auf Grundlage von
         OpenStreetMap-Daten. Beim Import führen wir mehrfach gelieferte Schulen zusammen und
-        prüfen jede Koordinate gegen Postleitzahl und Bundesland — im ersten Durchlauf lagen 24
+        prüfen jede Koordinate gegen Postleitzahl und Bundesland - im ersten Durchlauf lagen 24
         Schulen hunderte Kilometer neben ihrem tatsächlichen Ort.
       </p>
 
       <h2>Etwas stimmt nicht?</h2>
       <p>
-        Falsche Stammdaten melden wir gern korrigiert — schreib uns über die Adresse im{" "}
+        Falsche Stammdaten melden wir gern korrigiert - schreib uns über die Adresse im{" "}
         <a href="/impressum">Impressum</a>. Für Inhalte, die du für rechtswidrig hältst, gibt es
         das <a href="/inhalt-melden">Meldeformular</a>.
       </p>

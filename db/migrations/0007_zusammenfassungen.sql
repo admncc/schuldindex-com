@@ -1,6 +1,6 @@
 -- KI-Zusammenfassungen der Freitexte (Entwicklungsplan, Abschnitt 10.2).
 --
--- Aufgehoben wird jeder Lauf, nicht nur der letzte — auch der eskalierte und der
+-- Aufgehoben wird jeder Lauf, nicht nur der letzte - auch der eskalierte und der
 -- fehlgeschlagene. Zwei Gründe: die Moderation muss sehen, was beanstandet
 -- wurde, und bei einem veröffentlichten Text, der später beanstandet wird, muss
 -- nachvollziehbar sein, aus wie vielen Bewertungen er wann entstanden ist. Für

@@ -69,7 +69,7 @@ describe("bewertungAendern", () => {
     expect(auf.gespeichert).toEqual([{ version: 2, status: "in_pruefung_betrug", schuleId: "s1" }]);
   });
 
-  it("verlangt weder Kontakt noch Einwilligung — die liegen längst vor", async () => {
+  it("verlangt weder Kontakt noch Einwilligung - die liegen längst vor", async () => {
     const { u } = umgebungMit(bestand());
     expect((await bewertungAendern("b1", "k1", EINGABE, u)).ok).toBe(true);
   });

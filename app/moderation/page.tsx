@@ -84,11 +84,11 @@ export default async function Warteschlangenseite({
 
       <p className="fussnote">
         Sortiert nach Alter, älteste zuerst. Ab {ALARM_ALTER_STUNDEN} Stunden gilt ein Eintrag als
-        überfällig. Mehrere auswählen geht nur zum Ablehnen — freigegeben wird einzeln.
+        überfällig. Mehrere auswählen geht nur zum Ablehnen - freigegeben wird einzeln.
       </p>
 
       {/* Zusammenfassungen, die die Nachprüfung aufgehalten hat. Sie stehen
-          hier und nicht in einer eigenen Ansicht, weil sonst niemand hinsieht —
+          hier und nicht in einer eigenen Ansicht, weil sonst niemand hinsieht -
           und weil eine aufgehaltene Zusammenfassung dasselbe bedeutet wie eine
           gehaltene Bewertung: es fehlt eine Entscheidung. */}
       {zusammenfassungen.length > 0 ? (

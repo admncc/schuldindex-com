@@ -52,7 +52,7 @@ describe("Vollständige Eingabe", () => {
 
 describe("Rolle und Folgefelder", () => {
   it("verlangt zuerst die Rolle", () => {
-    // Ohne sie lässt sich über die Folgefelder gar nichts sagen — die Prüfung
+    // Ohne sie lässt sich über die Folgefelder gar nichts sagen - die Prüfung
     // bricht deshalb ab, statt eine Fehlerwand zu erzeugen.
     const f = pruefeEingabe(eingabe({ rolle: null }), HEUTE);
     expect(f).toHaveLength(1);
@@ -66,7 +66,7 @@ describe("Rolle und Folgefelder", () => {
   it("lässt keine Klassenstufe außerhalb von 1 bis 13 zu", () => {
     expect(felder(eingabe({ klassenstufe: 14 }))).toContain("klassenstufe");
     expect(felder(eingabe({ klassenstufe: 0 }))).toContain("klassenstufe");
-    // Grundschule beginnt bei 1 — anders als bei schulen.de, das erst ab 5 fragt.
+    // Grundschule beginnt bei 1 - anders als bei schulen.de, das erst ab 5 fragt.
     expect(felder(eingabe({ klassenstufe: 1 }))).not.toContain("klassenstufe");
   });
 

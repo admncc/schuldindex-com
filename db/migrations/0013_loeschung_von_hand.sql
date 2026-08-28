@@ -1,7 +1,7 @@
 -- Löschung nur noch auf ausdrückliche Entscheidung.
 --
 -- Vorgabe des Auftraggebers vom 27.08.2026: keine automatische Löschung. Die
--- Fristen der Datenschutzerklärung bleiben — was sich ändert, ist, wer sie
+-- Fristen der Datenschutzerklärung bleiben - was sich ändert, ist, wer sie
 -- auslöst. Statt eines Zeitplans stößt eine Person in der Moderation jede
 -- Löschung einzeln an und sieht vorher, wie viele Datensätze betroffen sind.
 --

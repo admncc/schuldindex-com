@@ -3,12 +3,12 @@
 -- Die Pflicht: ein leicht zugängliches, elektronisches Verfahren, mit dem jede
 -- Person Inhalte melden kann, die sie für rechtswidrig hält. Dazu gehören eine
 -- Eingangsbestätigung (Abs. 4) und eine Mitteilung der Entscheidung samt
--- Rechtsbehelfen (Abs. 5) — beides braucht einen Rückkanal, deshalb steht hier
+-- Rechtsbehelfen (Abs. 5) - beides braucht einen Rückkanal, deshalb steht hier
 -- eine Kontaktadresse.
 --
 -- Sie liegt verschlüsselt, wie jeder andere Kontakt im System auch: dieselben
 -- Schlüssel, dasselbe Verfahren (`domain/kontakt.ts`). Wer eine Bewertung
--- meldet, ist oft die betroffene Lehrkraft — eine Klartextliste solcher Namen
+-- meldet, ist oft die betroffene Lehrkraft - eine Klartextliste solcher Namen
 -- neben den Bewertungen wäre genau das, was dieses Portal nicht anlegen will.
 
 create type meldegrund as enum (

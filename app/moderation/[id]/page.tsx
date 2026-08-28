@@ -100,7 +100,7 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
               ))}
               {vorgang.signalpunkte !== null ? (
                 <li className="gedaempft">
-                  Summe {vorgang.signalpunkte} — angehalten ab der eingestellten Halteschwelle
+                  Summe {vorgang.signalpunkte} - angehalten ab der eingestellten Halteschwelle
                 </li>
               ) : null}
             </ul>
@@ -115,7 +115,7 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
             <li>
               <strong>Ort:</strong>{" "}
               {vorgang.geo_unbekannt
-                ? "unbekannt — der Absenderort ließ sich nicht bestimmen"
+                ? "unbekannt - der Absenderort ließ sich nicht bestimmen"
                 : entfernung === null
                   ? "nicht geprüft"
                   : `${entfernung.toLocaleString("de-DE", { maximumFractionDigits: 0 })} km zur Schule (Grenze ${SCHWELLE_KM} km)`}
@@ -130,14 +130,14 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
                 ? "nicht gemessen"
                 : `${vorgang.klickmuster.anzahl} Abstände, im Mittel ${Math.round(vorgang.klickmuster.medianMs)} ms, Streuung ${Math.round(vorgang.klickmuster.streuung * 100)} %`}
               {/* Die Folge steht eingeklappt da, nicht offen: Für die Entscheidung
-                  reichen die Kennzahlen. Wer den Verlauf wirklich braucht — bei
-                  Verdacht auf eine Kampagne —, klappt ihn auf, und dass er das
+                  reichen die Kennzahlen. Wer den Verlauf wirklich braucht - bei
+                  Verdacht auf eine Kampagne -, klappt ihn auf, und dass er das
                   getan hat, ist ihm dann bewusst. */}
               {vorgang.klickfolge !== null && vorgang.klickfolge.length > 0 ? (
                 <details className="klickfolge">
                   <summary>Vollständige Folge ({vorgang.klickfolge.length} Abstände)</summary>
                   <p className="hinweis">
-                    Die Fragen erscheinen in fester Reihenfolge — der n-te Wert ist die Zeit vor
+                    Die Fragen erscheinen in fester Reihenfolge - der n-te Wert ist die Zeit vor
                     der n-ten Antwort. Wird {fristtext(regel("klickfolgen_loeschen").tage)} nach
                     der Abgabe geleert.
                   </p>
@@ -163,7 +163,7 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
 
           {/* Die IP-Adresse taucht hier nicht auf, weil sie nirgends gespeichert
               wird (Entscheidung E3). Sichtbar ist nur, was daraus abgeleitet wurde.
-              Der Kontakt liegt verschlüsselt und wird erst auf Klick entschlüsselt —
+              Der Kontakt liegt verschlüsselt und wird erst auf Klick entschlüsselt -
               auch die verkürzte Anzeige verlangte den Klartext. */}
           <Kontaktfeld bewertungId={vorgang.id} kontaktart={vorgang.kontaktart} />
 
@@ -210,14 +210,14 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
             <dt>Abgegeben</dt>
             <dd>{ZEIT.format(vorgang.erstellt_am)}</dd>
             <dt>Gesamtwertung</dt>
-            <dd>{vorgang.gesamtscore === null ? "—" : `${ZAHL.format(Number(vorgang.gesamtscore))} von 10`}</dd>
+            <dd>{vorgang.gesamtscore === null ? "-" : `${ZAHL.format(Number(vorgang.gesamtscore))} von 10`}</dd>
           </dl>
 
           {freitexte.length > 0 ? (
             <>
               <h2>Freitexte</h2>
               <p className="hinweis">
-                Freitexte werden nie wörtlich veröffentlicht — sie gehen in die Zusammenfassung ein
+                Freitexte werden nie wörtlich veröffentlicht - sie gehen in die Zusammenfassung ein
                 (Entwicklungsplan, Abschnitt 10.2). Hier stehen sie im Original, weil die Prüfung
                 genau daran hängt.
               </p>
@@ -239,7 +239,7 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
             return (
               <details key={kategorie.id} className="kategorie">
                 <summary>
-                  {kategorie.id} — {kategorie.titel}{" "}
+                  {kategorie.id} - {kategorie.titel}{" "}
                   <span className="gedaempft">({fragen.length} beantwortet)</span>
                 </summary>
                 <ul className="antwortliste">

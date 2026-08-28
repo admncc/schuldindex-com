@@ -1,5 +1,5 @@
 /**
- * Slugs für Schulprofile — `/schule/gymnasium-am-muehlenweg-hamburg`.
+ * Slugs für Schulprofile - `/schule/gymnasium-am-muehlenweg-hamburg`.
  *
  * Zwei Anforderungen, die einander widersprechen können:
  *
@@ -15,7 +15,7 @@
  *
  * Stattdessen gilt: **ist eine Kurzform mehrdeutig, bekommt sie niemand.**
  * Heißen zwei Schulen „Grundschule Nord“, werden beide zu
- * `grundschule-nord-kiel` und `grundschule-nord-luebeck` — die nackte Form
+ * `grundschule-nord-kiel` und `grundschule-nord-luebeck` - die nackte Form
  * bleibt frei. Das Ergebnis hängt damit nur von der Menge der Schulen ab, nicht
  * von ihrer Reihenfolge, und die längere Form ist ohnehin die aussagekräftigere.
  */
@@ -35,7 +35,7 @@ const ERSETZUNGEN: ReadonlyArray<readonly [RegExp, string]> = [
 ];
 
 /**
- * Obergrenzen für die einzelnen Bestandteile — ohne sie entstehen URLs mit
+ * Obergrenzen für die einzelnen Bestandteile - ohne sie entstehen URLs mit
  * 228 Zeichen, denn 5.482 Schulen tragen Namen über 70 Zeichen Länge.
  *
  * Gekürzt wird **vor** dem Zusammensetzen, nie danach. Eine Kürzung am fertigen
@@ -64,7 +64,7 @@ export function slugify(text: string): string {
     .replace(/-{2,}/g, "-");
 }
 
-/** Kurzer, stabiler Zusatz aus der Quell-ID — nur bei Namensgleichheit nötig. */
+/** Kurzer, stabiler Zusatz aus der Quell-ID - nur bei Namensgleichheit nötig. */
 export function kennung(quellId: string): string {
   let hash = 2166136261; // FNV-1a, 32 Bit
   for (let i = 0; i < quellId.length; i++) {
@@ -152,7 +152,7 @@ export function vergebeSlugs(quellen: readonly SlugQuelle[]): Map<string, string
     offen = offen.filter((id) => !vergeben.has(id));
   }
 
-  // Rest: identische Datensätze, die sich in nichts unterscheiden — auch nicht
+  // Rest: identische Datensätze, die sich in nichts unterscheiden - auch nicht
   // in der Quell-ID-Kennung. Nach Quell-ID sortiert durchzählen, damit auch
   // dieser Fall bei jedem Lauf gleich ausgeht. Der Zähler wird je Basis
   // mitgeführt, damit das Verfahren nicht quadratisch wird.

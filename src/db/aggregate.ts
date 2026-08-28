@@ -2,7 +2,7 @@
  * Neuberechnung der Schulaggregate.
  *
  * Das Bindeglied, das bisher fehlte: eine Bewertung wurde freigegeben, aber das
- * Schulprofil zeigte weiter den alten Stand — weil `schul_aggregate` niemand
+ * Schulprofil zeigte weiter den alten Stand - weil `schul_aggregate` niemand
  * fortschrieb. Jede Stelle, die den Status einer Bewertung ändert, ruft von
  * hier aus nach.
  *
@@ -39,7 +39,7 @@ const SPALTEN: readonly (readonly [KategorieId, keyof Zeile])[] = [
   ["D", "score_d"], ["E", "score_e"], ["F", "score_f"],
 ];
 
-/** Postgres liefert `numeric` als Zeichenkette — sonst verlöre es Stellen. */
+/** Postgres liefert `numeric` als Zeichenkette - sonst verlöre es Stellen. */
 function zahl(wert: string | null): number | null {
   return wert === null ? null : Number(wert);
 }
@@ -70,7 +70,7 @@ function alsBewertung(z: Zeile): EinzelneBewertung {
 /**
  * Rechnet das Aggregat einer Schule neu und schreibt es fort.
  *
- * Läuft in der Transaktion des Aufrufers, wenn eine übergeben wird — sonst
+ * Läuft in der Transaktion des Aufrufers, wenn eine übergeben wird - sonst
  * stünde die Freigabe fest und die Zahl daneben wäre die von vorhin.
  */
 export async function aktualisiereAggregat(schuleId: string, tx: Ausfuehrer = sql): Promise<void> {

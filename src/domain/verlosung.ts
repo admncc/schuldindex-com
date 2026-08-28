@@ -5,7 +5,7 @@
  *
  * Das ist keine Kleinigkeit. Ein Los je Bewertung würde genau das belohnen,
  * wogegen der ganze Rest des Portals arbeitet: möglichst viele Abgaben in
- * kurzer Zeit. Wer zehn Schulen bewertet, hätte zehnfache Gewinnchance — und
+ * kurzer Zeit. Wer zehn Schulen bewertet, hätte zehnfache Gewinnchance - und
  * die Betrugserkennung müsste gegen einen Anreiz anlaufen, den wir selbst
  * gesetzt haben. Mit einem Los je Konto ist die zweite Bewertung für die
  * Verlosung wertlos, und es bleibt nur der Grund, aus dem jemand sie schreiben
@@ -39,7 +39,7 @@ export function monatszeitraum(jahr: number, monat: number): Zeitraum {
   };
 }
 
-/** Der Monat vor dem angegebenen Zeitpunkt — der Zeitraum, der zu ziehen ist. */
+/** Der Monat vor dem angegebenen Zeitpunkt - der Zeitraum, der zu ziehen ist. */
 export function letzterMonat(jetzt = new Date()): { jahr: number; monat: number } {
   const jahr = jetzt.getUTCFullYear();
   const monat = jetzt.getUTCMonth() + 1;
@@ -66,7 +66,7 @@ export interface Teilnahme {
 
 export interface Los {
   readonly kontoId: string;
-  /** Alle Bewertungen dieses Kontos im Zeitraum — für die Nachvollziehbarkeit. */
+  /** Alle Bewertungen dieses Kontos im Zeitraum - für die Nachvollziehbarkeit. */
   readonly bewertungIds: readonly string[];
 }
 
@@ -74,7 +74,7 @@ export interface Los {
  * Fasst Teilnahmen zu Losen zusammen: eines je Konto.
  *
  * Sortiert nach Konto-Kennung, damit die Liste bei gleicher Datengrundlage
- * immer dieselbe ist — sonst ließe sich die Ziehung nicht nachrechnen.
+ * immer dieselbe ist - sonst ließe sich die Ziehung nicht nachrechnen.
  */
 export function baueLose(teilnahmen: readonly Teilnahme[]): Los[] {
   const nachKonto = new Map<string, string[]>();
@@ -104,12 +104,12 @@ export interface Ziehungsergebnis {
 /**
  * Zieht den Gewinner.
  *
- * Der Index entsteht aus dem Zufallswert und der Zahl der Lose — mit derselben
+ * Der Index entsteht aus dem Zufallswert und der Zahl der Lose - mit derselben
  * Losliste und demselben Zufallswert kommt jeder auf dasselbe Ergebnis.
  *
  * Zur Verzerrung durch den Rest der Division: bei 256 Bit Zufall und einer
  * Loszahl weit unter einer Milliarde liegt sie in der Größenordnung von
- * 2⁻²²⁰ — sie ist nicht messbar, nicht ausnutzbar und würde durch ein
+ * 2⁻²²⁰ - sie ist nicht messbar, nicht ausnutzbar und würde durch ein
  * Verwerfen-und-neu-Ziehen nur die Nachrechenbarkeit verkomplizieren.
  */
 export function ziehe(lose: readonly Los[], zufallswert: string): Ziehungsergebnis | null {
@@ -125,7 +125,7 @@ export function ziehe(lose: readonly Los[], zufallswert: string): Ziehungsergebn
  * Prüft eine gespeicherte Ziehung nach.
  *
  * Damit lässt sich später belegen, dass der eingetragene Gewinner der ist, der
- * sich aus Zufallswert und Losliste ergibt — die Grundlage jeder Beschwerde und
+ * sich aus Zufallswert und Losliste ergibt - die Grundlage jeder Beschwerde und
  * jeder Prüfung durch Dritte.
  */
 export function pruefeZiehung(
@@ -142,7 +142,7 @@ export function pruefeZiehung(
  *
  * Ohne jede Angabe zur gewinnenden Person: bei einem Teilnehmerkreis, der
  * überwiegend minderjährig ist, wäre selbst eine verkürzte Telefonnummer zu
- * viel. Nachprüfbar bleibt die Ziehung trotzdem — über den Zufallswert.
+ * viel. Nachprüfbar bleibt die Ziehung trotzdem - über den Zufallswert.
  */
 export function ziehungsmeldung(
   monat: string,

@@ -2,7 +2,7 @@
  * Automatische Prüfungen vor der Freigabe einer Bewertung.
  *
  * Der Grundsatz: **jede Prüfung liefert ein Signal, keine Entscheidung.** Eine
- * auffällige Bewertung wird gehalten, nicht abgelehnt — über die Ablehnung
+ * auffällige Bewertung wird gehalten, nicht abgelehnt - über die Ablehnung
  * entscheidet ein Mensch. Automatisch abzulehnen hieße, echte Bewertungen
  * stillschweigend zu verlieren, und niemand käme dem auf die Spur.
  *
@@ -51,7 +51,7 @@ export interface Pruefkontext {
   readonly geo: Geobefund;
   readonly antworten: Antworten;
   /**
-   * Wie lange das Formular offenstand — vom Server gemessen, nicht vom Browser
+   * Wie lange das Formular offenstand - vom Server gemessen, nicht vom Browser
    * gemeldet (`domain/formularstempel.ts`). `null`, wenn kein gültiger Stempel
    * vorlag; dann entfällt das Signal, statt zu raten.
    */
@@ -86,10 +86,10 @@ export interface Pruefergebnis {
   readonly signale: readonly Signal[];
   readonly punkte: number;
   readonly halten: boolean;
-  /** Welcher Haltezustand — Geo hat Vorrang, weil er die klarste Begründung trägt. */
+  /** Welcher Haltezustand - Geo hat Vorrang, weil er die klarste Begründung trägt. */
   readonly grund: "geo" | "betrug" | null;
   /**
-   * Die drei Kennzahlen aus dem Klickverhalten — das einzige, was davon
+   * Die drei Kennzahlen aus dem Klickverhalten - das einzige, was davon
    * aufbewahrt wird. `null`, wenn nichts gemessen wurde oder die gemeldeten
    * Abstände nicht zur Serverzeit passten (`domain/klickmuster.ts`).
    */
@@ -114,13 +114,13 @@ export const GRENZEN = {
  *
  * Zwei Muster, bewusst getrennt:
  *
- *  - **Alles gleich** — jede Frage dieselbe Antwort. Häufig bei jemandem, der
+ *  - **Alles gleich** - jede Frage dieselbe Antwort. Häufig bei jemandem, der
  *    schnell fertig werden will, und bei koordinierten Abgaben.
- *  - **Nur Extremwerte** — ausschließlich 1 und 5, nichts dazwischen. Das gibt
+ *  - **Nur Extremwerte** - ausschließlich 1 und 5, nichts dazwischen. Das gibt
  *    es bei echter Empörung, aber auch bei Manipulation.
  *
  * Beide sind für sich **kein Beweis**. Eine tatsächlich durchweg gute Schule
- * bekommt zu Recht überall Bestnoten. Deshalb tragen sie nur Gewicht 1 und 2 —
+ * bekommt zu Recht überall Bestnoten. Deshalb tragen sie nur Gewicht 1 und 2 -
  * allein reichen sie nicht zum Halten.
  */
 export function pruefeAntwortmuster(antworten: Antworten): Signal[] {
@@ -161,7 +161,7 @@ function beantworteteFragen(antworten: Antworten): number {
 /**
  * Zu schnell durchgeklickt.
  *
- * Die Dauer kommt vom Server (signierter Stempel), nicht aus dem Browser — sonst
+ * Die Dauer kommt vom Server (signierter Stempel), nicht aus dem Browser - sonst
  * schriebe jedes Skript, das den Fragebogen in zwei Sekunden ausfüllt, einfach
  * „acht Minuten“ in die Anfrage.
  */
@@ -183,7 +183,7 @@ export function pruefeTempo(
     {
       art: "zu_schnell",
       gewicht,
-      erlaeuterung: `${fragen} Fragen in ${Math.round(dauerSekunden)} Sekunden — ${jeFrage.toFixed(1)} je Frage`,
+      erlaeuterung: `${fragen} Fragen in ${Math.round(dauerSekunden)} Sekunden - ${jeFrage.toFixed(1)} je Frage`,
     },
   ];
 }
@@ -192,7 +192,7 @@ export function pruefeTempo(
  * Weit weg vom bisherigen Bild der Schule.
  *
  * Ausdrücklich **kein** Beweis für Missbrauch: Es kann die eine Person sein, die
- * etwas erlebt hat, das die anderen nicht sehen — genau die Bewertung, für die
+ * etwas erlebt hat, das die anderen nicht sehen - genau die Bewertung, für die
  * es ein solches Portal gibt. Deshalb hält das Signal die Bewertung an, statt
  * sie abzulehnen, und deshalb wiegt es vorgabegemäß nur 1.
  */
@@ -250,7 +250,7 @@ export function pruefe(k: Pruefkontext, e: Einstellungen = VORGABEN): Pruefergeb
   }
 
   if (k.bewertungenDieserSchuleLetzteStunde > zahl(e, "bewertungen_je_schule_und_stunde")) {
-    // Kann auch eine Schulklasse im Unterricht sein — deshalb nur Gewicht 2.
+    // Kann auch eine Schulklasse im Unterricht sein - deshalb nur Gewicht 2.
     signale.push({
       art: "zeitlich_gehaeuft",
       gewicht: 2,

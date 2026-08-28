@@ -9,7 +9,7 @@ import type { Bewertungseingabe } from "@/domain/bewertungseingabe";
 /**
  * Ändert eine eigene Bewertung.
  *
- * Wer geändert werden darf, entscheidet die Sitzung — nicht die Anfrage. Aus
+ * Wer geändert werden darf, entscheidet die Sitzung - nicht die Anfrage. Aus
  * dem Rumpf kommen nur die Antworten; die Kennung des Kontos kommt aus dem
  * Cookie und wird nie aus dem JSON gelesen.
  */

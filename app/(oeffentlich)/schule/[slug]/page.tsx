@@ -74,7 +74,7 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
       </section>
 
       {/* Drei Zustände statt zwei: keine Bewertungen, zu wenige, genug.
-          Der mittlere fehlt in vielen Portalen — dabei ist er bei 33.600
+          Der mittlere fehlt in vielen Portalen - dabei ist er bei 33.600
           Schulen auf lange Sicht der häufigste. */}
       {schule.anzahl === 0 ? (
         <section className="abschnitt">
@@ -122,7 +122,7 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
       {zusammenfassung && (
         <section className="abschnitt">
           <h2>Was Bewertende schreiben</h2>
-          {/* Kein einziger Originaltext wird veröffentlicht — was hier steht,
+          {/* Kein einziger Originaltext wird veröffentlicht - was hier steht,
               ist unser eigener Text, aus den Freitexten zusammengefasst und vor
               der Veröffentlichung geprüft (Entwicklungsplan, Abschnitt 10.2).
               Deshalb steht die Kennzeichnung darunter und nicht im Kleingedruckten. */}
@@ -166,14 +166,14 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
           <div className="karte">
             <span className="beschriftung">{t("schule.adresse")}</span>
             <p>
-              {schule.strasse ?? "—"}
+              {schule.strasse ?? "-"}
               <br />
-              {[schule.plz, schule.ort].filter(Boolean).join(" ") || "—"}
+              {[schule.plz, schule.ort].filter(Boolean).join(" ") || "-"}
             </p>
           </div>
           <div className="karte">
             <span className="beschriftung">{t("schule.traeger")}</span>
-            <p>{schule.traeger ?? "—"}</p>
+            <p>{schule.traeger ?? "-"}</p>
             {schule.website && (
               <p>
                 <a href={schule.website} rel="noopener noreferrer nofollow" target="_blank">

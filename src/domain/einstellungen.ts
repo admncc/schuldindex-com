@@ -2,7 +2,7 @@
  * Einstellbare Werte der Betrugserkennung.
  *
  * Bisher standen die Grenzwerte als Konstanten im Code. Das genügt, solange
- * niemand sie ändern muss — im Betrieb ist das Gegenteil der Fall: Ob „mehr als
+ * niemand sie ändern muss - im Betrieb ist das Gegenteil der Fall: Ob „mehr als
  * fünf Abgaben in zehn Minuten“ zu streng ist, weiß man erst, wenn die ersten
  * tausend Bewertungen da sind, und dann soll niemand für eine Zahl eine neue
  * Fassung ausliefern müssen.
@@ -13,15 +13,23 @@
  * hinzufügt, ändert genau eine Datei.
  *
  * **Grenzen nach oben und unten sind Pflicht.** Eine Halteschwelle von 0 hielte
- * jede Bewertung an, eine von 99 keine einzige — beides sind Zustände, in die
+ * jede Bewertung an, eine von 99 keine einzige - beides sind Zustände, in die
  * das Portal nicht durch einen Tippfehler geraten darf.
  */
 
-export type Einstellungsart = "ganzzahl" | "kommazahl";
+/**
+ * `schalter` ist eine Ganzzahl mit genau zwei erlaubten Werten, 0 und 1.
+ *
+ * Kein eigener Datentyp, weil die ganze Kette - Katalog, Prüfung, Speicherung,
+ * Verlauf - auf Zahlen steht und ein zweiter Typ jede Stelle davon verzweigen
+ * würde. Nur die Anzeige unterscheidet: Sie zeigt ein Ankreuzfeld statt eines
+ * Zahlenfeldes.
+ */
+export type Einstellungsart = "ganzzahl" | "kommazahl" | "schalter";
 
 export interface Einstellungsbeschreibung {
   readonly schluessel: string;
-  readonly gruppe: "tempo" | "abweichung" | "menge" | "ort" | "gewichtung";
+  readonly gruppe: "zugang" | "tempo" | "abweichung" | "menge" | "ort" | "gewichtung";
   readonly label: string;
   readonly hilfe: string;
   readonly art: Einstellungsart;
@@ -32,6 +40,7 @@ export interface Einstellungsbeschreibung {
 }
 
 export const GRUPPEN_LABEL: Readonly<Record<Einstellungsbeschreibung["gruppe"], string>> = {
+  zugang: "Zugang zur Moderation",
   tempo: "Tempo der Beantwortung",
   abweichung: "Abweichung vom Schulmittel",
   menge: "Menge und Häufung",
@@ -40,17 +49,30 @@ export const GRUPPEN_LABEL: Readonly<Record<Einstellungsbeschreibung["gruppe"], 
 };
 
 export const GRUPPEN_HILFE: Readonly<Record<Einstellungsbeschreibung["gruppe"], string>> = {
+  zugang:
+    "Betrifft nicht die Betrugserkennung, sondern diese Oberfläche selbst. Hinter ihr liegen entschlüsselbare Kontaktdaten, die Freigabe von Bewertungen und die Schwellen darunter - wer hier etwas lockert, lockert den Zugang zu alldem.",
   tempo:
-    "Wer den Fragebogen in Sekunden durchklickt, hat ihn nicht gelesen. Die Gesamtdauer misst der Server selbst über einen signierten Zeitstempel — eine Angabe des Browsers wäre wertlos. Die Abstände zwischen den einzelnen Klicks kommen aus dem Browser und werden gegen diese Dauer geprüft; gespeichert wird die Klickfolge nie, nur ihr Mittel und ihre Streuung.",
+    "Wer den Fragebogen in Sekunden durchklickt, hat ihn nicht gelesen. Die Gesamtdauer misst der Server selbst über einen signierten Zeitstempel - eine Angabe des Browsers wäre wertlos. Die Abstände zwischen den einzelnen Klicks kommen aus dem Browser und werden gegen diese Dauer geprüft; gespeichert wird die Klickfolge nie, nur ihr Mittel und ihre Streuung.",
   abweichung:
-    "Eine Bewertung, die weit vom bisherigen Bild einer Schule abweicht, ist kein Beweis für Missbrauch: Es kann die eine Person sein, die etwas erlebt hat, das die anderen nicht sehen. Deshalb hält dieses Signal die Bewertung an, statt sie abzulehnen — und deshalb wiegt es leicht.",
+    "Eine Bewertung, die weit vom bisherigen Bild einer Schule abweicht, ist kein Beweis für Missbrauch: Es kann die eine Person sein, die etwas erlebt hat, das die anderen nicht sehen. Deshalb hält dieses Signal die Bewertung an, statt sie abzulehnen - und deshalb wiegt es leicht.",
   menge: "Viele Abgaben in kurzer Zeit, von derselben Quelle oder zu derselben Schule.",
   ort: "Abstand zwischen dem ungefähren Standort der Abgabe und der Schule. Die IP-Adresse selbst wird nie gespeichert.",
   gewichtung:
-    "Jedes Signal hat ein Gewicht; ab der Halteschwelle geht die Bewertung in die Moderation. Ein einzelnes Signal soll nicht genügen — mehrere schwache zusammen schon.",
+    "Jedes Signal hat ein Gewicht; ab der Halteschwelle geht die Bewertung in die Moderation. Ein einzelnes Signal soll nicht genügen - mehrere schwache zusammen schon.",
 };
 
 export const KATALOG: readonly Einstellungsbeschreibung[] = [
+  {
+    schluessel: "zweiter_faktor",
+    gruppe: "zugang",
+    label: "Zweiter Faktor bei der Anmeldung verlangen",
+    hilfe:
+      "Ist er an, braucht jede Anmeldung zusätzlich den sechsstelligen Code aus der Authenticator-App. Zurzeit aus, auf Entscheidung vom 27.08.2026 für den Testbetrieb - vor dem Echtbetrieb einschalten. Das TOTP-Geheimnis der Konten bleibt gespeichert, das Einschalten wirkt sofort und kostet niemanden eine Neueinrichtung. Solange er aus ist, steht ein Hinweis darauf auf jeder Seite der Moderation.",
+    art: "schalter",
+    vorgabe: 0,
+    min: 0,
+    max: 1,
+  },
   {
     schluessel: "tempo_sekunden_je_frage",
     gruppe: "tempo",
@@ -102,7 +124,7 @@ export const KATALOG: readonly Einstellungsbeschreibung[] = [
     gruppe: "tempo",
     label: "Mindeststreuung der Klickabstände",
     hilfe:
-      "Streuen die Abstände weniger als das, klickt niemand von Hand: Ein Mensch braucht für die eine Frage zwei Sekunden und für die nächste zehn, ein Skript immer gleich lang. Der verräterischste Befund von allen — auch ein langsames Skript fällt darüber auf.",
+      "Streuen die Abstände weniger als das, klickt niemand von Hand: Ein Mensch braucht für die eine Frage zwei Sekunden und für die nächste zehn, ein Skript immer gleich lang. Der verräterischste Befund von allen - auch ein langsames Skript fällt darüber auf.",
     art: "ganzzahl",
     vorgabe: 15,
     min: 1,
@@ -201,7 +223,7 @@ export const KATALOG: readonly Einstellungsbeschreibung[] = [
     gruppe: "menge",
     label: "Bewertungen je Schule und Stunde",
     hilfe:
-      "Über alle Absender. Schlägt an, wenn eine Klasse geschlossen bewertet — der häufigste Fall einer organisierten Welle.",
+      "Über alle Absender. Schlägt an, wenn eine Klasse geschlossen bewertet - der häufigste Fall einer organisierten Welle.",
     art: "ganzzahl",
     vorgabe: 10,
     min: 2,
@@ -212,7 +234,7 @@ export const KATALOG: readonly Einstellungsbeschreibung[] = [
     gruppe: "ort",
     label: "Höchstabstand zur Schule",
     hilfe:
-      "Darüber wird die Bewertung angehalten. Deutsche Mobilfunkadressen orten auf den Netzknoten — deshalb großzügig.",
+      "Darüber wird die Bewertung angehalten. Deutsche Mobilfunkadressen orten auf den Netzknoten - deshalb großzügig.",
     art: "ganzzahl",
     vorgabe: 150,
     min: 10,
@@ -260,7 +282,7 @@ export function pruefeWert(schluessel: string, eingabe: string | number): Wertpr
   const roh = typeof eingabe === "number" ? eingabe : Number(String(eingabe).trim().replace(",", "."));
   if (!Number.isFinite(roh)) return { ok: false, meldung: "Das ist keine Zahl." };
 
-  if (b.art === "ganzzahl" && !Number.isInteger(roh)) {
+  if ((b.art === "ganzzahl" || b.art === "schalter") && !Number.isInteger(roh)) {
     return { ok: false, meldung: "Hier ist nur eine ganze Zahl möglich." };
   }
   if (roh < b.min || roh > b.max) {
@@ -269,7 +291,7 @@ export function pruefeWert(schluessel: string, eingabe: string | number): Wertpr
 
   // Kommazahlen auf eine Nachkommastelle: mehr steuert niemand sinnvoll aus,
   // und die Anzeige bliebe sonst hinter dem gespeicherten Wert zurück.
-  return { ok: true, wert: b.art === "ganzzahl" ? roh : Math.round(roh * 10) / 10 };
+  return { ok: true, wert: b.art === "kommazahl" ? Math.round(roh * 10) / 10 : roh };
 }
 
 /**
@@ -288,7 +310,7 @@ export function mitVorgaben(gespeichert: Readonly<Record<string, number>>): Eins
   return ergebnis;
 }
 
-/** Welche Werte von der Vorgabe abweichen — für die Anzeige im Panel. */
+/** Welche Werte von der Vorgabe abweichen - für die Anzeige im Panel. */
 export function abweichungen(e: Einstellungen): readonly string[] {
   return KATALOG.filter((b) => e[b.schluessel] !== b.vorgabe).map((b) => b.schluessel);
 }

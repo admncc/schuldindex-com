@@ -16,7 +16,7 @@ export interface Einstellungszustand {
  * Speichert die Einstellungen.
  *
  * Nur die Leitung. Diese Werte entscheiden, welche Bewertungen durchgehen und
- * welche ein Mensch ansieht — das ist keine Einstellung wie die Sortierung
+ * welche ein Mensch ansieht - das ist keine Einstellung wie die Sortierung
  * einer Liste.
  */
 export async function speichern(
@@ -43,10 +43,10 @@ export async function speichern(
   }
 
   // Bei einem Fehler wird gar nichts gespeichert: Eine halb übernommene
-  // Einstellungsseite ist schlimmer als eine abgelehnte — niemand wüsste
+  // Einstellungsseite ist schlimmer als eine abgelehnte - niemand wüsste
   // hinterher, welche Hälfte gilt.
   if (fehler.length > 0) {
-    return { meldung: "Nichts gespeichert — bitte sieh dir die markierten Felder an.", fehler, versuch };
+    return { meldung: "Nichts gespeichert - bitte sieh dir die markierten Felder an.", fehler, versuch };
   }
 
   const ergebnis = await speichereEinstellungen(aenderungen, moderatorin.id);

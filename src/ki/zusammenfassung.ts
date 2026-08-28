@@ -37,7 +37,7 @@ export interface Modell {
 
 export interface Auftrag {
   readonly texte: readonly string[];
-  /** Zahl der freigegebenen Bewertungen mit Freitext — Grundlage der Mindestmenge. */
+  /** Zahl der freigegebenen Bewertungen mit Freitext - Grundlage der Mindestmenge. */
   readonly anzahlBewertungen: number;
 }
 
@@ -60,7 +60,7 @@ export type Ergebnis =
   | { readonly status: "fehlgeschlagen"; readonly grund: string };
 
 /**
- * Fasst zusammen — oder eskaliert.
+ * Fasst zusammen - oder eskaliert.
  *
  * Was hier **nicht** passiert: stillschweigend nichts veröffentlichen. Fällt
  * die Ausgabe durch die Nachprüfung, kommt sie mit ihren Beanstandungen zurück
@@ -135,7 +135,7 @@ export function istFaellig(stand: Stand, jetzt = new Date()): boolean {
   return tage >= TAGE_BIS_NEUBERECHNUNG || neue < 0;
 }
 
-/** Die Kennzeichnung unter dem Text — Regel 6 aus Abschnitt 10.2. */
+/** Die Kennzeichnung unter dem Text - Regel 6 aus Abschnitt 10.2. */
 export function kennzeichnung(anzahl: number, stand: Date): string {
   const datum = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" }).format(stand);
   return `Automatisch aus ${anzahl.toLocaleString("de-DE")} Bewertungen zusammengefasst · Stand ${datum}.`;

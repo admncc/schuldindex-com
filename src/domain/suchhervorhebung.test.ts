@@ -32,7 +32,7 @@ describe("zerlegeNachTreffer", () => {
   });
 
   it("kommt mit Sonderzeichen in der Eingabe zurecht", () => {
-    // Nicht als regulärer Ausdruck behandelt — sonst wirft „(((“ einen Fehler.
+    // Nicht als regulärer Ausdruck behandelt - sonst wirft „(((“ einen Fehler.
     expect(zerlegeNachTreffer("Schule (Außenstelle)", "(auß")).toEqual([
       { text: "Schule ", treffer: false },
       { text: "(Auß", treffer: true },

@@ -27,7 +27,7 @@ export default async function Kontoanmeldung({
       ) : null}
       <p className="hinweis">
         Gib den Kontakt an, mit dem du deine Bewertung bestätigt hast. Wir schicken dir einen
-        Anmeldelink — ein Kennwort brauchst du hier nicht.
+        Anmeldelink - ein Kennwort brauchst du hier nicht.
       </p>
       <Anmeldeformular />
     </section>

@@ -11,7 +11,7 @@ import type { Zustand } from "@/domain/bewertungsstatus";
  * Die möglichen Aktionen richten sich nach dem Zustand: eine bereits
  * veröffentlichte Bewertung lässt sich nur noch herunternehmen, eine abgelehnte
  * gar nicht mehr ändern. Die Zustandsmaschine würde alles andere ohnehin
- * abweisen — die Oberfläche zeigt es gar nicht erst an, damit niemand auf einen
+ * abweisen - die Oberfläche zeigt es gar nicht erst an, damit niemand auf einen
  * Knopf klickt, der nur eine Fehlermeldung bringt.
  */
 function moeglicheAktionen(status: Zustand): readonly Aktion[] {

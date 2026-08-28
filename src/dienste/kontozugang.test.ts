@@ -81,7 +81,7 @@ describe("fordereAnmeldelinkAn", () => {
     expect(mit.meldung).toBe(ohne.meldung);
   });
 
-  it("schickt an ein unbestätigtes Konto keinen Link — sagt es aber nicht", async () => {
+  it("schickt an ein unbestätigtes Konto keinen Link - sagt es aber nicht", async () => {
     const { u, auf } = umgebung({ id: "k2", verifiziertAm: null });
     const e = await fordereAnmeldelinkAn(u, { kontakt: "0170 1234567", art: "sms" });
 
@@ -121,7 +121,7 @@ describe("fordereAnmeldelinkAn", () => {
 
 describe("Token und Cookie", () => {
   it("trennt Anmeldelink und Sitzung, obwohl beide denselben Schlüssel nutzen", () => {
-    // Ohne den Zweck im Hash ginge ein Anmeldelink als Sitzungstoken durch —
+    // Ohne den Zweck im Hash ginge ein Anmeldelink als Sitzungstoken durch -
     // und damit ein zwei Stunden gültiges Geheimnis als dreißigtägiges.
     const klartext = "beliebiger-klartext";
     expect(hasheKontotoken(klartext, "anmeldung")).not.toBe(hasheKontotoken(klartext, "sitzung"));

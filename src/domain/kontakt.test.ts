@@ -17,7 +17,7 @@ beforeAll(() => {
 
 describe("Normalisierung von Mobilnummern", () => {
   it("führt die deutschen Schreibweisen auf eine zusammen", () => {
-    // Ohne das gälten diese vier Eingaben als vier verschiedene Personen —
+    // Ohne das gälten diese vier Eingaben als vier verschiedene Personen -
     // und die Erkennung von Mehrfachkonten liefe ins Leere.
     const erwartet = "+491701234567";
     for (const eingabe of ["0170 1234567", "+49 170 1234567", "0049-170-1234567", "(0170) 123 45 67"]) {
@@ -91,7 +91,7 @@ describe("Verschlüsselung", () => {
 
   it("erzeugt bei gleichem Klartext verschiedene Geheimtexte", () => {
     // Sonst ließe sich aus der Datenbank ablesen, welche Konten denselben
-    // Kontakt tragen — genau das, was der Hash kontrolliert leisten soll.
+    // Kontakt tragen - genau das, was der Hash kontrolliert leisten soll.
     const a = verschluessele("+491701234567");
     const b = verschluessele("+491701234567");
     expect(a.equals(b)).toBe(false);

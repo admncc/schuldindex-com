@@ -63,7 +63,7 @@ create type protokollaktion as enum (
   'einsicht_kontakt'
 );
 
--- Ein Protokoll für alles, was ein Mensch in der Moderation tut — Entscheidungen
+-- Ein Protokoll für alles, was ein Mensch in der Moderation tut - Entscheidungen
 -- und Anmeldungen in derselben Tabelle. Getrennte Tabellen hätten bedeutet, bei
 -- der Frage „was ist an diesem Abend passiert“ zwei Zeitachsen zu verschränken.
 create table moderationsprotokoll (
@@ -94,7 +94,7 @@ create index protokoll_bewertung on moderationsprotokoll (bewertung_id, erstellt
 create index protokoll_moderator on moderationsprotokoll (moderator_id, erstellt_am desc);
 
 -- Wer moderiert hat, war bisher eine lose UUID. Ab jetzt zeigt sie auf die
--- Moderatorentabelle — mit `on delete set null`, damit ein ausgeschiedener
+-- Moderatorentabelle - mit `on delete set null`, damit ein ausgeschiedener
 -- Mitarbeiter gelöscht werden kann, ohne die Bewertungen mitzunehmen.
 alter table bewertungen
   add constraint bewertungen_moderiert_von_fk

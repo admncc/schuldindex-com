@@ -6,12 +6,12 @@
  * **Nicht über `skip` blättern.** Die API nimmt den Parameter an, liefert bei
  * Folgeseiten aber Datensätze erneut, die schon auf der ersten Seite standen.
  * Ein Lauf mit `limit=2000` und aufsteigendem `skip` ergab 34.094 Datensätze mit
- * nur 21.486 verschiedenen IDs — rund 12.600 Schulen fehlten, ohne dass die
+ * nur 21.486 verschiedenen IDs - rund 12.600 Schulen fehlten, ohne dass die
  * Gesamtzahl es verraten hätte. Jedes Bundesland mit über 1.000 Schulen endete
  * bei genau 1.000 verschiedenen.
  *
  * Stattdessen: **eine Abfrage je Bundesland, ohne Offset**, mit einem Limit über
- * der Landeszahl. Das Ergebnis wird gegen `/stats` geprüft — weicht ein Land ab,
+ * der Landeszahl. Das Ergebnis wird gegen `/stats` geprüft - weicht ein Land ab,
  * bricht der Lauf ab, statt einen unvollständigen Bestand weiterzureichen.
  */
 
@@ -62,7 +62,7 @@ export async function ladeAlleSchulen(protokoll: (zeile: string) => void = () =>
 
   if (abweichungen.length > 0) {
     throw new Error(
-      `Bestand unvollständig — ${abweichungen.join(", ")}. ` +
+      `Bestand unvollständig - ${abweichungen.join(", ")}. ` +
         "Lieber abbrechen als mit Lücken weiterarbeiten.",
     );
   }

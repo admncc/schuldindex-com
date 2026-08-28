@@ -67,7 +67,7 @@ export interface FaelligeSchule {
  * Welche Schulen eine neue Zusammenfassung brauchen.
  *
  * Die Vorauswahl trifft die Datenbank (Mindestmenge), die Entscheidung trifft
- * `istFaellig` — dieselbe Funktion, die auch geprüft ist. Ohne die Vorauswahl
+ * `istFaellig` - dieselbe Funktion, die auch geprüft ist. Ohne die Vorauswahl
  * liefe die Abfrage über alle 31.770 Schulen, von denen die allermeisten gar
  * keine Bewertung haben.
  */
@@ -101,7 +101,7 @@ export async function faelligeSchulen(jetzt = new Date(), grenze = 100): Promise
   );
 }
 
-/** Schreibt das Ergebnis eines Laufs fort — auch das misslungene. */
+/** Schreibt das Ergebnis eines Laufs fort - auch das misslungene. */
 export async function speichereErgebnis(
   schuleId: string,
   ergebnis: Ergebnis,

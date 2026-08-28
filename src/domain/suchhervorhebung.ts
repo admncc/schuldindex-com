@@ -3,7 +3,7 @@
  *
  * Die Autovervollständigung zeigt zehn Schulnamen, die einander oft ähneln
  * („Grundschule Am Park“, „Grundschule Am Parkring“). Wer sucht, will sehen,
- * *warum* ein Treffer da steht — deshalb wird die Fundstelle markiert.
+ * *warum* ein Treffer da steht - deshalb wird die Fundstelle markiert.
  *
  * Zwei Fallstricke, die den ersten Entwurf unbrauchbar gemacht hätten:
  *
@@ -44,7 +44,7 @@ export function zerlegeNachTreffer(text: string, begriff: string): readonly Text
   return stuecke;
 }
 
-/** Die Zeile unter dem Namen: Ort, Postleitzahl, Schulart — was davon vorliegt. */
+/** Die Zeile unter dem Namen: Ort, Postleitzahl, Schulart - was davon vorliegt. */
 export function beiwerk(teile: readonly (string | null | undefined)[]): string {
   return teile.filter((t): t is string => !!t && t.trim() !== "").join(" · ");
 }

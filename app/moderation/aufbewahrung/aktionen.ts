@@ -19,7 +19,7 @@ function istArt(wert: string): wert is Aufbewahrungsart {
  * Führt eine Aufbewahrungsregel aus.
  *
  * Nur die Leitung, und nur auf ausdrücklichen Klick: es gibt keinen Zeitplan,
- * der das übernimmt (Vorgabe vom 27.08.2026). Was hier gelöscht wird, ist weg —
+ * der das übernimmt (Vorgabe vom 27.08.2026). Was hier gelöscht wird, ist weg -
  * deshalb steht die Zahl vorher auf der Seite und der Vorgang danach im
  * Protokoll.
  */

@@ -15,7 +15,7 @@ export interface Meldezustand {
    * React setzt ein Formular nach jeder Aktion zurück, und zwar im DOM: die
    * Vorgabewerte aus dem Zustand wirken erst wieder, wenn das Formular neu
    * aufgebaut wird. Diese Zahl dient dem Formular als Schlüssel und erzwingt
-   * genau das — sonst standen nach einem Tippfehler in der Adresse plötzlich
+   * genau das - sonst standen nach einem Tippfehler in der Adresse plötzlich
    * wieder alle Felder leer, das Pflichtkreuz eingeschlossen, und der nächste
    * Klick auf „Absenden“ tat scheinbar gar nichts.
    */
@@ -33,7 +33,7 @@ export async function melden(_vorher: Meldezustand, formular: FormData): Promise
   };
 
   // React setzt das Formular nach jeder Aktion zurück. Ohne diese Werte müsste
-  // nach einem Tippfehler in der Adresse alles neu eingegeben werden — auch das
+  // nach einem Tippfehler in der Adresse alles neu eingegeben werden - auch das
   // Kreuz bei der Versicherung, und weil das Feld verpflichtend ist, ließe sich
   // das Formular danach klicken, ohne dass irgendetwas passiert.
   const werte = {
@@ -56,7 +56,7 @@ export async function melden(_vorher: Meldezustand, formular: FormData): Promise
   const { id } = await nimmMeldungAn({ ...eingabe, grund: eingabe.grund });
 
   // Die Kennung ist die Eingangsbestätigung nach Art. 16 Abs. 4: sie erlaubt der
-  // meldenden Person, sich auf genau diese Meldung zu beziehen — auch dann,
+  // meldenden Person, sich auf genau diese Meldung zu beziehen - auch dann,
   // wenn sie keine E-Mail-Adresse angegeben hat (Meldung einer Drohung).
   return { bestaetigung: EINGANGSBESTAETIGUNG, kennung: id.slice(0, 8).toUpperCase() };
 }

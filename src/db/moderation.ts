@@ -3,7 +3,7 @@
  *
  * Hier steht das SQL, nirgends sonst. Die Entscheidungen selbst trifft
  * `domain/moderation.ts`, den Anmeldevorgang `dienste/moderationsanmeldung.ts`
- * — beide ohne Datenbank und beide vollständig getestet.
+ * - beide ohne Datenbank und beide vollständig getestet.
  */
 
 import type postgres from "postgres";
@@ -147,7 +147,7 @@ export interface Warteschlangenfilter {
 /**
  * Die Warteschlange.
  *
- * Sortiert nach Alter, älteste zuerst — nicht nach Auffälligkeit. Wer nach
+ * Sortiert nach Alter, älteste zuerst - nicht nach Auffälligkeit. Wer nach
  * Verdachtsgrad sortiert, arbeitet die spannenden Fälle ab und lässt die
  * unspektakulären die 48-Stunden-Zusage reißen.
  */
@@ -192,7 +192,7 @@ export interface Vorgang {
   geo_entfernung_km: string | null;
   geo_unbekannt: boolean;
   ablehnungsgrund: string | null;
-  /** Befund der Betrugsprüfung von der Abgabe — historisch, nicht neu gerechnet. */
+  /** Befund der Betrugsprüfung von der Abgabe - historisch, nicht neu gerechnet. */
   signale: { art: string; gewicht: number; erlaeuterung: string }[];
   signalpunkte: number | null;
   /** Kennzahlen des Klickverhaltens; `null` bei allem, was vor der Messung liegt. */
@@ -297,7 +297,7 @@ export async function protokollZurBewertung(bewertungId: string): Promise<Protok
 }
 
 /**
- * Der Kontakt im Klartext — nur auf ausdrückliches Aufklappen.
+ * Der Kontakt im Klartext - nur auf ausdrückliches Aufklappen.
  *
  * Jede Einsicht steht im Protokoll. Die Moderation braucht den Kontakt selten
  * (bei Rückfragen und beim Verdacht auf Mehrfachkonten); eine Oberfläche, die
@@ -404,7 +404,7 @@ export interface Sammelergebnis {
  *    wäre kürzer und wertlos: die Begründung geht an je eine Person, und bei
  *    einer Beschwerde zählt der einzelne Vorgang.
  *  - **Wer inzwischen entschieden ist, wird übersprungen**, nicht überschrieben.
- *    Die Zahl steht in der Rückmeldung — sonst bliebe unbemerkt, dass die
+ *    Die Zahl steht in der Rückmeldung - sonst bliebe unbemerkt, dass die
  *    Sammelaktion an einer anderen Entscheidung vorbeigelaufen ist.
  *  - **Je betroffener Schule wird das Aggregat einmal neu gerechnet**, nicht je
  *    Bewertung. Bei hundert Bewertungen derselben Schule ist das der Unterschied

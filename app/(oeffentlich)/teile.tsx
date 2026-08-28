@@ -6,7 +6,7 @@ const ZAHL = new Intl.NumberFormat("de-DE", {
   maximumFractionDigits: 1,
 });
 
-/** Wertung als Zahl mit Skala — „8,4 von 10“. */
+/** Wertung als Zahl mit Skala - „8,4 von 10“. */
 export function Wertungszahl({ wert, gross = false }: { wert: number; gross?: boolean }) {
   return (
     <span className={gross ? "wertung gross" : "wertung"}>

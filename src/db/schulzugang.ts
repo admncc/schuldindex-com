@@ -1,5 +1,5 @@
 /**
- * Zugang für Schulen — Anfrage, Einlösung, Sitzung.
+ * Zugang für Schulen - Anfrage, Einlösung, Sitzung.
  */
 
 import type postgres from "postgres";
@@ -19,14 +19,14 @@ export interface Schulanfrage {
   readonly schuleId: string;
   /** Selbst angegebene Adresse, falls vorhanden. */
   readonly kontakt: string | null;
-  /** Was die Person zu ihrer Rolle an der Schule sagt — nur für die Handprüfung. */
+  /** Was die Person zu ihrer Rolle an der Schule sagt - nur für die Handprüfung. */
   readonly notiz: string;
 }
 
 export interface Anfrageergebnis {
   readonly entscheidung: Wegentscheidung;
   readonly zugangId: string;
-  /** Klartext des Links — geht hinaus und steht nirgends in der Datenbank. */
+  /** Klartext des Links - geht hinaus und steht nirgends in der Datenbank. */
   readonly link: string | null;
 }
 
@@ -34,7 +34,7 @@ export interface Anfrageergebnis {
  * Nimmt eine Zugangsanfrage entgegen.
  *
  * Die Entscheidung über den Weg trifft die Domänenschicht; hier wird nur
- * beigebracht, was sie dafür braucht — die Kontaktdaten der Schule und die
+ * beigebracht, was sie dafür braucht - die Kontaktdaten der Schule und die
  * Zahl der Schulen hinter einem Host.
  */
 export async function fordereZugangAn(anfrage: Schulanfrage): Promise<Anfrageergebnis | null> {
@@ -82,8 +82,8 @@ export async function fordereZugangAn(anfrage: Schulanfrage): Promise<Anfrageerg
  * Löst einen Zugangslink ein und legt eine Sitzung an.
  *
  * Wie beim Konto in einer Transaktion mit Sperre: ein Link, eine Sitzung. Wird
- * der Link ein zweites Mal geöffnet — die Vorschau eines Mailprogramms genügt
- * dafür —, darf daraus kein zweiter Zugang entstehen.
+ * der Link ein zweites Mal geöffnet - die Vorschau eines Mailprogramms genügt
+ * dafür -, darf daraus kein zweiter Zugang entstehen.
  */
 export async function loeseZugangEin(
   klartext: string,
@@ -203,7 +203,7 @@ export async function offeneAnfragen(grenze = 50): Promise<OffeneAnfrage[]> {
 /**
  * Gibt eine geprüfte Anfrage frei und erzeugt den Zugangslink.
  *
- * Der Link geht danach von Hand hinaus — die Redaktion hat die Schule ohnehin
+ * Der Link geht danach von Hand hinaus - die Redaktion hat die Schule ohnehin
  * gerade am Telefon oder im Schriftverkehr.
  */
 export async function gibAnfrageFrei(

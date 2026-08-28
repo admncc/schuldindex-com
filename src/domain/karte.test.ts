@@ -44,7 +44,7 @@ describe("bildfeld", () => {
   });
 
   it("macht Nordrhein-Westfalen und Hamburg fast quadratisch", () => {
-    // Nordrhein-Westfalen misst rund 250 km in beide Richtungen — die erste
+    // Nordrhein-Westfalen misst rund 250 km in beide Richtungen - die erste
     // Fassung dieses Tests erwartete „breiter als hoch“ und lag damit falsch.
     const nw = bildfeld(ausschnittFuer("NW"), 800);
     expect(nw.hoehe / nw.breite).toBeGreaterThan(0.85);

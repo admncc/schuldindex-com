@@ -39,7 +39,7 @@ export function hashe(klartext: string): string {
 /**
  * Erzeugt ein Token.
  *
- * 32 zufällige Byte, Base64url — kurz genug für eine SMS mit 160 Zeichen,
+ * 32 zufällige Byte, Base64url - kurz genug für eine SMS mit 160 Zeichen,
  * lang genug, dass Raten ausgeschlossen ist.
  */
 export function erzeugeToken(jetzt = new Date()): Token {
@@ -66,7 +66,7 @@ export interface GespeichertesToken {
  *
  * Die Reihenfolge ist Absicht: erst der Hashvergleich, dann Ablauf und
  * Verbrauch. Umgekehrt verriete die Fehlermeldung, ob ein Token überhaupt
- * existiert — und damit, ob zu einem Konto eine Bestätigung offen ist.
+ * existiert - und damit, ob zu einem Konto eine Bestätigung offen ist.
  */
 export function pruefeToken(
   vorgelegt: string,

@@ -110,7 +110,7 @@ export default function Meldeformular() {
         <p className="hinweis">
           Wir brauchen die Adresse nur, um dir das Ergebnis mitzuteilen. Sie wird verschlüsselt
           gespeichert und sechs Monate nach der Entscheidung gelöscht. Meldest du eine Drohung,
-          geht es auch ohne — dann können wir dir allerdings nicht antworten.
+          geht es auch ohne - dann können wir dir allerdings nicht antworten.
         </p>
       </fieldset>
 

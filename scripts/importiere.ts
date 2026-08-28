@@ -55,7 +55,7 @@ export function bereiteVor(rohdaten: readonly Rohschule[]): {
     if (ergebnis.schule.koordinatenbefund === "falsches_bundesland") bericht.koordinateFalschesLand++;
   }
 
-  // Mehrfach gelieferte Schulen zusammenführen, bevor Slugs vergeben werden —
+  // Mehrfach gelieferte Schulen zusammenführen, bevor Slugs vergeben werden -
   // sonst bekämen Standorte derselben Schule unterschiedliche URLs.
   const zusammengefuehrt = fuehreZusammen(
     gueltig.map((s) => ({

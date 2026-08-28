@@ -1,7 +1,7 @@
 -- Bestätigungstoken.
 --
 -- Gespeichert wird nur der Hash. Der Klartext geht in der Nachricht hinaus und
--- steht nirgends in der Datenbank — wer sie lesen kann, soll nicht jedes offene
+-- steht nirgends in der Datenbank - wer sie lesen kann, soll nicht jedes offene
 -- Konto selbst bestätigen können.
 
 create table verifizierungstoken (

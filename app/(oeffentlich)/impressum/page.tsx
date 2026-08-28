@@ -97,7 +97,7 @@ export default function Impressumsseite() {
           Photon
         </a>{" "}
         ergänzt, das auf OpenStreetMap-Daten beruht (© OpenStreetMap-Mitwirkende, ODbL). Ist eine
-        Angabe zu deiner Schule falsch, schreib uns — wir korrigieren sie.
+        Angabe zu deiner Schule falsch, schreib uns - wir korrigieren sie.
       </p>
     </section>
   );

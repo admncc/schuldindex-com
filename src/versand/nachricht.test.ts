@@ -21,7 +21,7 @@ function weg(art: Versandweg["art"], ergebnis: Zustellergebnis, zustaendig = tru
 
 describe("Nachrichtentext", () => {
   it("bleibt für SMS unter der Grenze von 160 Zeichen", () => {
-    // Darüber wird die Nachricht geteilt und doppelt berechnet — bei tausenden
+    // Darüber wird die Nachricht geteilt und doppelt berechnet - bei tausenden
     // Bestätigungen im Monat ist das kein Rundungsfehler.
     const n = baueBestaetigung(BASIS, TOKEN, "sms");
     expect(n.text.length).toBeLessThanOrEqual(SMS_GRENZE);

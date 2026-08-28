@@ -60,7 +60,7 @@ describe("pruefeMeldung", () => {
     expect(pruefeMeldung({ ...GUELTIG, gutglauben: false }).map((f) => f.feld)).toEqual(["gutglauben"]);
   });
 
-  it("verlangt eine Kontaktadresse — außer bei einer Drohung", () => {
+  it("verlangt eine Kontaktadresse - außer bei einer Drohung", () => {
     expect(pruefeMeldung({ ...GUELTIG, kontakt: "" }).map((f) => f.feld)).toEqual(["kontakt"]);
     // Art. 16 Abs. 2 lit. c nimmt Straftaten gegen Leib und Leben ausdrücklich aus.
     expect(pruefeMeldung({ ...GUELTIG, grund: "straftat", kontakt: "" })).toEqual([]);

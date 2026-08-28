@@ -7,7 +7,7 @@ import {
   fragenDerKategorie,
 } from "./fragebogen";
 
-describe("Fragebogen — Struktur", () => {
+describe("Fragebogen - Struktur", () => {
   it("enthält 61 Fragen in sechs Kategorien", () => {
     expect(FRAGEN).toHaveLength(61);
     expect(KATEGORIEN).toHaveLength(6);
@@ -25,9 +25,11 @@ describe("Fragebogen — Struktur", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("gewichtet A mit 3, B/C/D mit 2 und E/F mit 1", () => {
+  it("gewichtet A mit 4, B/C mit 2 und D/E/F mit 1", () => {
+    // Stand 28.08.2026: Sicherheit und Schulklima wiegen am schwersten,
+    // Verwaltung am leichtesten. Die Summe bleibt 11.
     const gewichte = Object.fromEntries(KATEGORIEN.map((k) => [k.id, k.gewichtung]));
-    expect(gewichte).toEqual({ A: 3, B: 2, C: 2, D: 2, E: 1, F: 1 });
+    expect(gewichte).toEqual({ A: 4, B: 2, C: 2, D: 1, E: 1, F: 1 });
   });
 
   it("macht A, B und C zur Pflicht, D, E und F optional", () => {
@@ -54,7 +56,7 @@ describe("Fragebogen — Struktur", () => {
   });
 });
 
-describe("Fragebogen — Sprache", () => {
+describe("Fragebogen - Sprache", () => {
   it("liefert für jede Skala fünf Optionen mit den Werten 1 bis 5", () => {
     for (const optionen of Object.values(SKALEN)) {
       expect(optionen).toHaveLength(5);
@@ -79,7 +81,7 @@ describe("Fragebogen — Sprache", () => {
     }
   });
 
-  it("siezt an keiner Stelle — das Portal duzt durchgehend", () => {
+  it("siezt an keiner Stelle - das Portal duzt durchgehend", () => {
     // Entscheidung vom 26.08.2026. Der Test greift auch dann, wenn jemand
     // später eine Frage in der Sie-Form nachträgt.
     for (const frage of FRAGEN) {

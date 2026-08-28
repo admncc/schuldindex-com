@@ -3,14 +3,14 @@
  *
  * Gemessen am Bestand: **3.570 der 33.600 Schulen** (10,6 %) teilen sich Name
  * und Postleitzahl mit mindestens einer anderen. Für Suchende sieht das aus wie
- * ein kaputtes Portal — „Struensee Gymnasium, 22767 Hamburg“ stand dreimal
+ * ein kaputtes Portal - „Struensee Gymnasium, 22767 Hamburg“ stand dreimal
  * untereinander.
  *
  * **Zusammengeführt wird bei gleichem Namen und gleicher Postleitzahl.**
  *
  * Der erste Entwurf war vorsichtiger und verlangte zusätzlich dieselbe Adresse
  * oder eine gemeinsame Stamm-ID. Der Blick auf die fertige Trefferliste hat das
- * widerlegt: „Grundschule Tengen, 78250“ stand viermal untereinander — vier
+ * widerlegt: „Grundschule Tengen, 78250“ stand viermal untereinander - vier
  * Außenstellen derselben Schule in verschiedenen Ortsteilen, jede mit eigener
  * Straße. Nach der vorsichtigen Regel blieben 2.377 Schulen als scheinbare
  * Dubletten stehen.
@@ -46,7 +46,7 @@ export interface Standort {
 export interface Zusammenfuehrung<T extends Dublettenkandidat> {
   /** Der Datensatz, der bestehen bleibt. */
   readonly haupt: T;
-  /** Quell-IDs der aufgegangenen Datensätze — für Nachvollziehbarkeit und Re-Import. */
+  /** Quell-IDs der aufgegangenen Datensätze - für Nachvollziehbarkeit und Re-Import. */
   readonly aufgegangen: readonly string[];
   /** Weitere Adressen derselben Schule, damit die Zusammenführung umkehrbar bleibt. */
   readonly standorte: readonly Standort[];
@@ -60,7 +60,7 @@ function schluessel(k: Dublettenkandidat): string {
  * `HH-5805-2` → `HH-5805`. Ohne Zählsuffix bleibt die ID unverändert.
  *
  * Das Suffix wird nur abgeschnitten, wenn danach **noch ein Bindestrich**
- * übrig bleibt. Sonst würde aus `NI-43424` ein `NI` — und schlagartig gälten
+ * übrig bleibt. Sonst würde aus `NI-43424` ein `NI` - und schlagartig gälten
  * alle 3.141 niedersächsischen Schulen als Standorte derselben Einrichtung.
  */
 export function stammId(quellId: string): string {
@@ -77,7 +77,7 @@ function strasseNormal(strasse: string | null): string {
  *
  * Die Koordinate wiegt schwerer als alle übrigen Felder **zusammen**. Sie ist
  * das einzige, das sich nicht nachtragen lässt, ohne erneut einen fremden
- * Dienst zu befragen — und dieser kann danebengreifen. Eine Telefonnummer
+ * Dienst zu befragen - und dieser kann danebengreifen. Eine Telefonnummer
  * dagegen fehlt eben.
  */
 export function vollstaendigkeit(k: Dublettenkandidat): number {
@@ -97,7 +97,7 @@ export function vollstaendigkeit(k: Dublettenkandidat): number {
  * Die Auswahl des bleibenden Datensatzes ist **deterministisch**: erst
  * Vollständigkeit, bei Gleichstand die kleinere Quell-ID. Sonst hinge davon,
  * in welcher Reihenfolge die Quelle liefert, welche Schul-ID und welcher Slug
- * bestehen bleibt — und beim nächsten Import bräche jeder geteilte Link.
+ * bestehen bleibt - und beim nächsten Import bräche jeder geteilte Link.
  */
 export function fuehreZusammen<T extends Dublettenkandidat>(
   kandidaten: readonly T[],

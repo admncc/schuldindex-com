@@ -45,7 +45,7 @@ export async function zugangAnfordern(
   if (ergebnis === null) return { fehler: "Diese Schule kennen wir nicht.", werte, versuch };
 
   // Der Link geht nur bei den beiden belegbaren Wegen hinaus. Bei der Prüfung
-  // von Hand entsteht gar keiner — es gibt nichts zu verschicken, bevor ein
+  // von Hand entsteht gar keiner - es gibt nichts zu verschicken, bevor ein
   // Mensch entschieden hat.
   if (ergebnis.link !== null && ergebnis.entscheidung.ziel !== null) {
     const basis = process.env["BASIS_URL"] ?? "http://localhost:3000";

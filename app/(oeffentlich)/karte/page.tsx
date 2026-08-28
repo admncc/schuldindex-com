@@ -6,7 +6,7 @@ import { bewerteteSchulen, kartenzahlen } from "@/db/karte";
 
 export const metadata: Metadata = {
   title: "Karte",
-  description: "Alle Schulen in Deutschland auf einer Karte — mit den bewerteten hervorgehoben.",
+  description: "Alle Schulen in Deutschland auf einer Karte - mit den bewerteten hervorgehoben.",
 };
 export const dynamic = "force-dynamic";
 
@@ -89,11 +89,11 @@ export default async function Kartenseite({
                       r={5}
                       className={scorestufe(score)}
                     />
-                    {/* Ein <title> im SVG ist der Sprechblasentext — und
+                    {/* Ein <title> im SVG ist der Sprechblasentext - und
                         gleichzeitig das, was Screenreader vorlesen. */}
                     <title>
                       {s.name}
-                      {s.ort ? `, ${s.ort}` : ""} — {WERT.format(score)} von 10 aus{" "}
+                      {s.ort ? `, ${s.ort}` : ""} - {WERT.format(score)} von 10 aus{" "}
                       {ZAHL.format(s.anzahl)} Bewertungen
                     </title>
                   </a>
@@ -121,7 +121,7 @@ export default async function Kartenseite({
         </ul>
 
         <p className="fussnote">
-          Die Karte lädt nichts von fremden Servern — weder Kacheln noch Schriften. Gezeichnet
+          Die Karte lädt nichts von fremden Servern - weder Kacheln noch Schriften. Gezeichnet
           wird aus unserem eigenen Schulbestand.
         </p>
       </section>

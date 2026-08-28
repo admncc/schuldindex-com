@@ -4,7 +4,7 @@ import { vorschlaege } from "@/db/vorschlaege";
 /**
  * Vorschläge für die Suche, während getippt wird.
  *
- * Öffentlich und ohne Anmeldung — der Schulbestand ist öffentlich. Trotzdem
+ * Öffentlich und ohne Anmeldung - der Schulbestand ist öffentlich. Trotzdem
  * zwei Vorkehrungen, weil die Adresse bei jedem Tastendruck aufgerufen wird:
  *
  *  - **Zu kurze Eingaben werden gar nicht erst angefragt.** Unter zwei Zeichen

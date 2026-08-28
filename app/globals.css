@@ -1,5 +1,5 @@
 /* Gestaltung des Portals.
-   Grundton ist ein kühles Papierweiß mit Königsblau als Akzent — die Farbe der
+   Grundton ist ein kühles Papierweiß mit Königsblau als Akzent - die Farbe der
    Tinte, mit der in Deutschland jedes Schulkind schreibt. Die Ampelfarben sind
    davon getrennt und ausschließlich für Bewertungen reserviert.
 
@@ -8,7 +8,7 @@
    und wurde in Deutschland als Verstoß gegen die DSGVO gewertet
    (LG München I, 3 O 17493/20). Bei einem Portal, dessen Hauptzielgruppe
    minderjährig ist, verbietet sich das ohnehin. Sollen eigene Schriften her,
-   werden sie selbst ausgeliefert — nicht von einem fremden Server geladen. */
+   werden sie selbst ausgeliefert - nicht von einem fremden Server geladen. */
 
 :root {
   --grund: #f6f7fa;
@@ -227,7 +227,7 @@ a { color: var(--akzent); }
 }
 .antwort.gewaehlt { border-color: var(--akzent); background: var(--akzent-sanft); color: var(--akzent); font-weight: 500; }
 .antwort input { accent-color: var(--akzent); }
-/* „Kann ich nicht beurteilen“ steht bewusst abgesetzt — es ist keine Bewertung
+/* „Kann ich nicht beurteilen“ steht bewusst abgesetzt - es ist keine Bewertung
    auf der Skala, sondern deren Verweigerung. */
 .antwort.weiss-nicht { color: var(--schrift-3); border-style: dashed; }
 .antwort.weiss-nicht.gewaehlt { color: var(--akzent); border-style: solid; }
@@ -443,7 +443,7 @@ mark.fehlt {
 .knopf.gefahr:disabled { opacity: 0.5; cursor: not-allowed; }
 .zufallswert { font-size: 0.78rem; word-break: break-all; color: var(--schrift-3); }
 
-/* Die Kategoriebalken tragen die Farbe ihrer Wertung — sonst sind sechs blaue
+/* Die Kategoriebalken tragen die Farbe ihrer Wertung - sonst sind sechs blaue
    Balken zu vergleichen, ohne dass die Farbe etwas sagt. */
 .balken span.gut { background: var(--gut); }
 .balken span.mittel { background: var(--mittel); }
@@ -514,3 +514,6 @@ mark.fehlt {
   cursor: default; font-size: 0.8rem; color: var(--schrift-3);
   border-top: 1px solid var(--linie); border-radius: 0; margin-top: 0.2rem; padding-top: 0.5rem;
 }
+
+.einstellung .schalter { display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+.einstellung .schalter input { width: auto; }

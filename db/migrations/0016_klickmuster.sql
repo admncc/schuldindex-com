@@ -6,7 +6,7 @@
 -- stark die Abstände streuten.
 --
 -- Der Unterschied ist kein formaler. Die Folge selbst wäre ein
--- Verhaltensprotokoll — wie lange jemand bei der Frage nach Mobbing gezögert
+-- Verhaltensprotokoll - wie lange jemand bei der Frage nach Mobbing gezögert
 -- hat, ließe sich daraus ablesen. Das geht niemanden etwas an, uns
 -- eingeschlossen. Die drei Kennzahlen tragen diese Aussage nicht und reichen
 -- für den Zweck: der Moderation zeigen, worauf ein Signal beruhte.

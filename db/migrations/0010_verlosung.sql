@@ -1,6 +1,6 @@
 -- Monatliche Verlosung (Entscheidung E9).
 --
--- Die Teilnahme wurde bisher im Formular abgefragt, geprüft — und dann
+-- Die Teilnahme wurde bisher im Formular abgefragt, geprüft - und dann
 -- weggeworfen: eine Spalte gab es nicht. Damit versprach das Ankreuzfeld etwas,
 -- das nirgends ankam. Diese Migration holt das nach und legt die Ziehung dazu.
 

@@ -9,8 +9,8 @@ import type { Vorschlag } from "@/db/vorschlaege";
  * Suchfeld mit Autovervollständigung.
  *
  * Das Formular bleibt ein gewöhnliches GET-Formular auf `/schulen`. Das ist
- * keine Nebensache: Ohne JavaScript — abgeschaltet, noch nicht geladen, an
- * einem schlechten Mobilfunkanschluss gescheitert — funktioniert die Suche
+ * keine Nebensache: Ohne JavaScript - abgeschaltet, noch nicht geladen, an
+ * einem schlechten Mobilfunkanschluss gescheitert - funktioniert die Suche
  * unverändert weiter, nur ohne Vorschläge. Die Vorschlagsliste ist eine Zugabe,
  * keine Voraussetzung.
  *
@@ -48,7 +48,7 @@ export function Suchfeld({
    * Was zuletzt abgeschickt wurde.
    *
    * Antworten können in anderer Reihenfolge eintreffen, als sie losgeschickt
-   * wurden — die Antwort auf „gym“ kann nach der auf „gymna“ ankommen und die
+   * wurden - die Antwort auf „gym“ kann nach der auf „gymna“ ankommen und die
    * bessere Liste überschreiben. Deshalb zählt nur die Antwort auf die zuletzt
    * gestellte Frage.
    */
@@ -155,7 +155,7 @@ export function Suchfeld({
           onFocus={() => setOffen(liste.length > 0)}
           // Der Klick auf einen Vorschlag nimmt dem Feld den Fokus, bevor er
           // ankommt. Deshalb wird erst geschlossen, wenn der Fokus den ganzen
-          // Block verlässt — nicht schon beim Verlassen des Feldes.
+          // Block verlässt - nicht schon beim Verlassen des Feldes.
           onBlur={(e) => {
             if (!e.currentTarget.parentElement?.contains(e.relatedTarget as Node)) {
               setOffen(false);

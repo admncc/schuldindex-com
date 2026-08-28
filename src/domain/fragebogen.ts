@@ -1,5 +1,5 @@
 /**
- * Fragebogen — kanonische Definition.
+ * Fragebogen - kanonische Definition.
  *
  * Quelle: docs/fragebogen-de.md. Diese Datei ist die maschinenlesbare Fassung
  * desselben Inhalts; bei Abweichungen gilt das Markdown-Dokument als Referenz
@@ -75,7 +75,9 @@ export const KATEGORIEN: readonly Kategorie[] = [
   {
     id: "A",
     titel: "Sicherheit & Schulklima",
-    gewichtung: 3,
+    // Vierfach statt dreifach (Entscheidung vom 28.08.2026): Ob eine Schule
+    // sicher ist, wiegt schwerer als alles andere, was hier gefragt wird.
+    gewichtung: 4,
     pflicht: true,
     freitextLabel: "Weitere Anmerkungen zu Sicherheit und Schulklima",
   },
@@ -96,7 +98,9 @@ export const KATEGORIEN: readonly Kategorie[] = [
   {
     id: "D",
     titel: "Schulleitung, Kommunikation & Verwaltung",
-    gewichtung: 2,
+    // Einfach statt zweifach (Entscheidung vom 28.08.2026): Verwaltung ist für
+    // die Schülerinnen und Schüler selbst am wenigsten spürbar.
+    gewichtung: 1,
     pflicht: false,
     freitextLabel: "Weitere Anmerkungen zu Schulleitung und Verwaltung",
   },
@@ -131,7 +135,7 @@ export interface Frage {
 }
 
 export const FRAGEN: readonly Frage[] = [
-  // ---- A — Sicherheit & Schulklima (11 Fragen) ----
+  // ---- A - Sicherheit & Schulklima (11 Fragen) ----
   {
     id: "A1", kategorie: "A", skala: "sicherheit", wertung: "direkt", teilbereich: "klima",
     text: "Wie sicher fühlst du dich generell auf dem Schulgelände (Klassenräume, Flure, Schulhof)?",
@@ -177,7 +181,7 @@ export const FRAGEN: readonly Frage[] = [
     text: "Wie bewertest du insgesamt die Sicherheit und das soziale Klima der Schule?",
   },
 
-  // ---- B — Unterrichts- & Lernqualität (10 Fragen) ----
+  // ---- B - Unterrichts- & Lernqualität (10 Fragen) ----
   { id: "B1", kategorie: "B", skala: "qualitaet", wertung: "direkt",
     text: "Wie verständlich erklären die Lehrkräfte die Unterrichtsinhalte?" },
   { id: "B2", kategorie: "B", skala: "qualitaet", wertung: "direkt",
@@ -199,7 +203,7 @@ export const FRAGEN: readonly Frage[] = [
   { id: "B10", kategorie: "B", skala: "qualitaet", wertung: "direkt",
     text: "Wie bewertest du insgesamt die Unterrichts- und Lernqualität an dieser Schule?" },
 
-  // ---- C — Ausstattung & Lernmittel (10 Fragen) ----
+  // ---- C - Ausstattung & Lernmittel (10 Fragen) ----
   { id: "C1", kategorie: "C", skala: "qualitaet", wertung: "direkt",
     text: "Wie bewertest du den Zustand der Klassenräume (Mobiliar, Beleuchtung, Belüftung)?" },
   { id: "C2", kategorie: "C", skala: "qualitaet", wertung: "direkt",
@@ -221,7 +225,7 @@ export const FRAGEN: readonly Frage[] = [
   { id: "C10", kategorie: "C", skala: "qualitaet", wertung: "direkt",
     text: "Wie bewertest du insgesamt die Ausstattung und die Lernmittel der Schule?" },
 
-  // ---- D — Schulleitung, Kommunikation & Verwaltung (10 Fragen, optional) ----
+  // ---- D - Schulleitung, Kommunikation & Verwaltung (10 Fragen, optional) ----
   { id: "D1", kategorie: "D", skala: "qualitaet", wertung: "direkt",
     text: "Wie verständlich kommuniziert die Schulleitung wichtige Informationen?" },
   { id: "D2", kategorie: "D", skala: "qualitaet", wertung: "direkt",
@@ -243,7 +247,7 @@ export const FRAGEN: readonly Frage[] = [
   { id: "D10", kategorie: "D", skala: "qualitaet", wertung: "direkt",
     text: "Wie bewertest du insgesamt die Schulleitung und die Verwaltung?" },
 
-  // ---- E — Umwelt & Nachhaltigkeit (10 Fragen, optional) ----
+  // ---- E - Umwelt & Nachhaltigkeit (10 Fragen, optional) ----
   { id: "E1", kategorie: "E", skala: "qualitaet", wertung: "direkt",
     text: "Wie umweltbewusst handelt die Schule im Schulalltag?" },
   { id: "E2", kategorie: "E", skala: "qualitaet", wertung: "direkt",
@@ -265,7 +269,7 @@ export const FRAGEN: readonly Frage[] = [
   { id: "E10", kategorie: "E", skala: "qualitaet", wertung: "direkt",
     text: "Wie bewertest du insgesamt das Engagement der Schule für Umwelt und Nachhaltigkeit?" },
 
-  // ---- F — Außerunterrichtliches Angebot & Schulleben (10 Fragen, optional) ----
+  // ---- F - Außerunterrichtliches Angebot & Schulleben (10 Fragen, optional) ----
   { id: "F1", kategorie: "F", skala: "qualitaet", wertung: "direkt",
     text: "Wie vielfältig ist das Angebot an Arbeitsgemeinschaften und Kursen außerhalb des Unterrichts?" },
   { id: "F2", kategorie: "F", skala: "qualitaet", wertung: "direkt",

@@ -31,7 +31,7 @@ export default async function Startseite() {
             <p>
               Deine Bewertung erscheint immer ohne Namen. Deine Kontaktdaten
               brauchen wir nur, um zu bestätigen, dass die Bewertung von einem
-              Menschen kommt — veröffentlicht werden sie nie.
+              Menschen kommt - veröffentlicht werden sie nie.
             </p>
           </div>
           <div className="karte">

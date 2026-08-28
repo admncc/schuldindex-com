@@ -1,7 +1,7 @@
 /**
  * Nachgeocodierung der Schulen ohne Koordinaten.
  *
- * Ausgangslage: 5.048 der 33.450 Schulen (15,1 %) liefern keine Koordinaten —
+ * Ausgangslage: 5.048 der 33.450 Schulen (15,1 %) liefern keine Koordinaten -
  * Niedersachsen zu 100 %, Sachsen-Anhalt zu 52 %, das Saarland zu 47 %.
  * Ohne Koordinaten funktionieren weder die 150-km-Prüfung noch die Karte noch
  * die Umkreissuche.
@@ -77,7 +77,7 @@ export function baueAnfragen(a: Anschrift): ReadonlyArray<{ text: string; genaui
  * Zweck ist nicht die exakte Grenze, sondern das Aussortieren grober Fehlgriffe:
  * ein Geocoder, der „Neustadt“ in Bayern statt in Schleswig-Holstein findet, ist
  * ein realer und häufiger Fall. Ohne diese Prüfung landen solche Schulen
- * hunderte Kilometer entfernt auf der Karte — und jede Bewertung aus ihrer
+ * hunderte Kilometer entfernt auf der Karte - und jede Bewertung aus ihrer
  * Nachbarschaft fiele durch die 150-km-Prüfung.
  */
 
@@ -94,7 +94,7 @@ export function liegtImBundesland(k: Koordinate, bundesland: Bundesland): boolea
   );
 }
 
-/** Deutschland insgesamt — fängt Ergebnisse aus dem Ausland ab. */
+/** Deutschland insgesamt - fängt Ergebnisse aus dem Ausland ab. */
 export function liegtInDeutschland(k: Koordinate): boolean {
   return k.lat >= 47.2 && k.lat <= 55.1 && k.lon >= 5.8 && k.lon <= 15.1;
 }
@@ -122,7 +122,7 @@ export interface Geocoder {
  * Der Grund ist ein realer Fehlgriff: für „Grundschule Klixbüll, Schulstraße 5,
  * 25899 Klixbüll“ fand der Dienst eine Schulstraße 5 rund 110 km weiter
  * südlich. Beide Orte liegen in Schleswig-Holstein, weshalb die Prüfung gegen
- * den Landesumriss nichts merkte — das Land ist 200 km lang.
+ * den Landesumriss nichts merkte - das Land ist 200 km lang.
  *
  * Verlangt wird **Gleichheit**, nicht Ähnlichkeit. Ein Vergleich der ersten
  * beiden Stellen reicht nicht: in Schleswig-Holstein beginnt jede Postleitzahl
@@ -141,7 +141,7 @@ export function plzPasst(gesucht: string | null, gefunden: string | null | undef
 
 /**
  * Arbeitet die Anfragestufen ab und gibt das erste plausible Ergebnis zurück.
- * Ein unplausibles Ergebnis beendet die Suche nicht — es wird verworfen und die
+ * Ein unplausibles Ergebnis beendet die Suche nicht - es wird verworfen und die
  * nächste, gröbere Stufe versucht.
  */
 export async function geokodiere(a: Anschrift, geocoder: Geocoder): Promise<Geokodierungsergebnis> {
@@ -157,7 +157,7 @@ export async function geokodiere(a: Anschrift, geocoder: Geocoder): Promise<Geok
       continue;
     }
     // Auf der Ortsstufe ist eine abweichende Postleitzahl zu erwarten und kein
-    // Einwand — dort wurde bewusst nur nach dem Ort gefragt.
+    // Einwand - dort wurde bewusst nur nach dem Ort gefragt.
     if (genauigkeit !== "ort" && !plzPasst(a.plz, treffer.plz)) {
       letzterEinwand = `Postleitzahl ${treffer.plz} statt ${a.plz}`;
       continue;

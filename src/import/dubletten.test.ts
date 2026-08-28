@@ -22,7 +22,7 @@ describe("Stamm-ID", () => {
   });
 
   it("hält die laufende Nummer einer gewöhnlichen ID nicht für ein Suffix", () => {
-    // Sonst würde aus „NI-43424“ ein „NI“ — und schlagartig gälten alle 3.141
+    // Sonst würde aus „NI-43424“ ein „NI“ - und schlagartig gälten alle 3.141
     // niedersächsischen Schulen als Standorte derselben Einrichtung.
     expect(stammId("NI-43424")).toBe("NI-43424");
     expect(stammId("BW-1")).toBe("BW-1");
@@ -37,7 +37,7 @@ describe("Stamm-ID", () => {
 describe("Vollständigkeit", () => {
   it("lässt die Koordinate schwerer wiegen als alle anderen Felder zusammen", () => {
     // Sie ist das einzige Feld, das sich nicht nachtragen lässt, ohne erneut
-    // einen fremden Dienst zu befragen — der danebengreifen kann.
+    // einen fremden Dienst zu befragen - der danebengreifen kann.
     const nurKoordinate = k({ quellId: "a", lat: 53.5 });
     const allesAusserKoordinate = k({
       quellId: "b",
@@ -82,7 +82,7 @@ describe("Zusammenführung", () => {
   });
 
   it("führt Außenstellen derselben Schule zusammen und bewahrt die Adressen", () => {
-    // Der reale Fall: „Grundschule Tengen, 78250“ stand viermal untereinander —
+    // Der reale Fall: „Grundschule Tengen, 78250“ stand viermal untereinander -
     // vier Außenstellen in verschiedenen Ortsteilen, jede mit eigener Straße.
     const e = fuehreZusammen([
       k({ quellId: "BW-04150137", name: "Grundschule Tengen", plz: "78250", strasse: "Schulstr. 11", lat: 47.8183 }),
@@ -113,7 +113,7 @@ describe("Zusammenführung", () => {
   });
 
   it("wählt bei gleicher Vollständigkeit immer denselben Datensatz", () => {
-    // Sonst hinge von der Lieferreihenfolge ab, welcher Slug bestehen bleibt —
+    // Sonst hinge von der Lieferreihenfolge ab, welcher Slug bestehen bleibt -
     // und beim nächsten Import bräche jeder geteilte Link.
     const eingabe = [
       k({ quellId: "HH-5805-2", strasse: "Dohrnweg 6" }),

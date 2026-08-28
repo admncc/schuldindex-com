@@ -7,7 +7,7 @@ import type { Zustand } from "@/domain/bewertungsstatus";
 /**
  * Die Schaltflächen zu einer eigenen Bewertung.
  *
- * Das Löschen fragt nach — aber nicht mit einem Browserdialog, sondern mit einer
+ * Das Löschen fragt nach - aber nicht mit einem Browserdialog, sondern mit einer
  * zweiten Schaltfläche im Fluss der Seite. Ein `confirm()` wäre schneller
  * gebaut und auf dem Telefon leicht zu übersehen.
  */
@@ -33,7 +33,7 @@ export default function Bewertungszeile({
 
       {/* Eine abgelehnte Bewertung lässt sich nicht ändern: aus „abgelehnt“
           führt kein Weg zurück (siehe bewertungsstatus.ts). Eine neue Abgabe
-          legt eine neue Bewertung an — dafür muss die alte weg. */}
+          legt eine neue Bewertung an - dafür muss die alte weg. */}
       {status !== "abgelehnt" ? (
         <a className="knopf zweitrangig klein" href={`/bewerten/${slug}?aendern=${bewertungId}`}>
           Ändern

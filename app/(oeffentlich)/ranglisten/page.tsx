@@ -8,7 +8,7 @@ import { Wertungsplakette, Wertungszahl } from "../teile";
 export const metadata: Metadata = {
   title: "Ranglisten",
   description:
-    "Die am besten bewerteten Schulen und die mit dem höchsten Verbesserungsbedarf — nach Bundesland und Schulart.",
+    "Die am besten bewerteten Schulen und die mit dem höchsten Verbesserungsbedarf - nach Bundesland und Schulart.",
 };
 export const dynamic = "force-dynamic";
 
@@ -39,7 +39,7 @@ export default async function Ranglistenseite({
   /**
    * Wie lang die beiden Listen sein dürfen.
    *
-   * Höchstens die Hälfte der Schulen je Liste — sonst stehen dieselben Schulen
+   * Höchstens die Hälfte der Schulen je Liste - sonst stehen dieselben Schulen
    * in beiden, und „Höchster Verbesserungsbedarf“ endet mit der bestbewerteten
    * Schule des Landes. Zwei Listen, die sich überschneiden, sind eine Liste,
    * zweimal gedruckt.
@@ -65,7 +65,7 @@ export default async function Ranglistenseite({
         <h1>Ranglisten</h1>
         <p className="einleitung">
           Aufgenommen wird eine Schule ab {MINDESTZAHL_RANGLISTE} freigegebenen Bewertungen. Ein
-          Platz in einer Rangliste ist eine Aussage im Vergleich zu allen anderen Schulen — dafür
+          Platz in einer Rangliste ist eine Aussage im Vergleich zu allen anderen Schulen - dafür
           muss die Zahl tragen.
         </p>
 
@@ -130,7 +130,7 @@ export default async function Ranglistenseite({
           {zweigeteilt ? (
             <Liste
               titel="Höchster Verbesserungsbedarf"
-              hinweis="Niedrigste Gesamtwertung. Diese Liste steht gleichberechtigt neben der ersten — für die Schulwahl ist sie oft die nützlichere."
+              hinweis="Niedrigste Gesamtwertung. Diese Liste steht gleichberechtigt neben der ersten - für die Schulwahl ist sie oft die nützlichere."
               eintraege={bedarf}
             />
           ) : null}
