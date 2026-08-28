@@ -43,7 +43,7 @@ export default async function Bewertungsseite({
 
   return (
     <>
-      <section className="schulkopf">
+      <section className="schulkopf formularkopf">
         <div>
           <p className="hinweis">{aenderung ? "Bewertung ändern" : "Bewertung abgeben"}</p>
           <h1>{schule.name}</h1>
@@ -53,8 +53,8 @@ export default async function Bewertungsseite({
         </div>
         <p className="hinweis">
           {aenderung
-            ? "Deine bisherigen Antworten stehen schon da. Was du änderst, wird noch einmal geprüft, bevor es die alte Fassung ersetzt."
-            : "Deine Bewertung erscheint immer anonym. Wir fragen deine Kontaktdaten nur, um zu bestätigen, dass sie von einem Menschen kommt."}
+            ? "Deine Antworten stehen schon da. Änderungen werden noch einmal geprüft."
+            : "Anonym - deine Nummer brauchen wir nur zur Bestätigung."}
         </p>
       </section>
 

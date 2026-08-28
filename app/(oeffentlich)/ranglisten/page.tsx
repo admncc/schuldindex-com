@@ -3,7 +3,7 @@ import { MINDESTZAHL_RANGLISTE } from "@/domain/aggregation";
 import { BUNDESLAENDER, BUNDESLAND_LABEL, istBundesland, type Bundesland } from "@/domain/bundesland";
 import { SCHULART_LABEL, type Schulart } from "@/import/schulart";
 import { rangliste, ranglistenlage, trendZu, type Ranglisteneintrag } from "@/db/ranglisten";
-import { Wertungsplakette, Wertungszahl } from "../teile";
+import { scorestufe } from "@/domain/scoring";
 
 export const metadata: Metadata = {
   title: "Ranglisten",
@@ -13,6 +13,10 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const ZAHL = new Intl.NumberFormat("de-DE");
+const ZAHL_EINE_STELLE = new Intl.NumberFormat("de-DE", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 const VERAENDERUNG = new Intl.NumberFormat("de-DE", {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
@@ -178,9 +182,11 @@ function Liste({
                   ) : null}
                 </span>
               </a>
-              <span className="wertungsspalte">
-                <Wertungszahl wert={score} />
-                <Wertungsplakette wert={score} />
+              {/* Nur die Zahl, gefärbt: „von 10“ und die Wortplakette wiederholen,
+                  was Skala und Farbe schon sagen - und nahmen in einer zweispaltigen
+                  Liste so viel Platz, dass lange Schulnamen Wort für Wort umbrachen. */}
+              <span className={`punktzahl ${scorestufe(score)}`}>
+                {ZAHL_EINE_STELLE.format(score)}
               </span>
             </li>
           );

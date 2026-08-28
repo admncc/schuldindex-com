@@ -17,8 +17,13 @@
   --schrift: #151a23;
   --schrift-2: #454e60;
   --schrift-3: #6b7488;
-  --akzent: #1b3a8c;
-  --akzent-sanft: #e5e9f7;
+  --akzent: #2733d4;
+  --akzent-dunkel: #1b23a8;
+  --akzent-sanft: #e8eaff;
+  /* Signalfarbe, sparsam: Verlosung und das, was jemanden zum Mitmachen bringt.
+     Nicht für Bewertungen - dafür sind die Ampelfarben da. */
+  --signal: #d8380f;
+  --signal-sanft: #ffece4;
   --linie: #dde2ec;
   --linie-stark: #c3cbda;
   --gut: #1b6e45;
@@ -27,7 +32,7 @@
   --mittel-flaeche: #f7edd9;
   --schlecht: #a32820;
   --schlecht-flaeche: #f8e4e2;
-  --radius: 10px;
+  --radius: 14px;
   --schatten: 0 1px 2px rgba(21, 26, 35, 0.05), 0 8px 24px -18px rgba(21, 26, 35, 0.3);
 }
 
@@ -65,10 +70,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3 { font-family: Georgia, "Times New Roman", "Liberation Serif", serif; margin: 0; text-wrap: balance; }
-h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; }
-h2 { font-size: 1.4rem; font-weight: 700; }
-h3 { font-size: 1.02rem; font-weight: 600; }
+/* Serifen sind raus: Die Zielgruppe ist überwiegend minderjährig und liest auf
+   dem Telefon. Eine kräftige serifenlose Schrift wird schneller erfasst und
+   wirkt weniger nach Amtsblatt. */
+h1, h2, h3 { margin: 0; text-wrap: balance; letter-spacing: -0.02em; }
+h1 { font-size: clamp(2.1rem, 6vw, 3.2rem); font-weight: 800; line-height: 1.08; }
+h2 { font-size: clamp(1.35rem, 3vw, 1.7rem); font-weight: 750; line-height: 1.2; }
+h3 { font-size: 1.05rem; font-weight: 700; }
 p { margin: 0; }
 a { color: var(--akzent); }
 :focus-visible { outline: 2px solid var(--akzent); outline-offset: 3px; border-radius: 3px; }
@@ -76,15 +84,31 @@ a { color: var(--akzent); }
 .huelle { max-width: 68rem; margin: 0 auto; padding: 0 1.25rem; }
 
 /* ---------- Kopf und Fuß ---------- */
-.kopf { border-bottom: 1px solid var(--linie); background: var(--flaeche); }
-.kopf-inhalt { display: flex; align-items: center; gap: 1.75rem; padding: 0.9rem 0; flex-wrap: wrap; }
-.marke {
-  font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: 1.15rem;
-  letter-spacing: 0.02em; color: var(--schrift); text-decoration: none;
+/* Klebend und einzeilig. Vorher brach die Navigation auf dem Telefon in drei
+   Zeilen um und schob den Inhalt aus dem Bild - 150 Pixel Kopfzeile, bevor
+   irgendetwas kam. Jetzt scrollt sie waagerecht, wenn der Platz nicht reicht. */
+.kopf {
+  position: sticky; top: 0; z-index: 30;
+  border-bottom: 1px solid var(--linie); background: color-mix(in srgb, var(--flaeche) 88%, transparent);
+  backdrop-filter: blur(8px);
 }
-.kopf nav { display: flex; gap: 1.25rem; font-size: 0.93rem; margin-left: auto; flex-wrap: wrap; }
-.kopf nav a { color: var(--schrift-2); text-decoration: none; }
+.kopf-inhalt { display: flex; align-items: center; gap: 1rem; padding: 0.7rem 0; }
+.marke {
+  font-weight: 800; font-size: 1.1rem; letter-spacing: -0.01em;
+  color: var(--schrift); text-decoration: none; white-space: nowrap;
+}
+.kopf nav {
+  display: flex; gap: 1.1rem; font-size: 0.93rem; margin-left: auto;
+  overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.kopf nav::-webkit-scrollbar { display: none; }
+.kopf nav a { color: var(--schrift-2); text-decoration: none; white-space: nowrap; padding: 0.35rem 0; }
 .kopf nav a:hover { color: var(--akzent); }
+.kopf .knopf { padding: 0.5rem 1rem; font-size: 0.9rem; }
+@media (max-width: 40rem) {
+  .kopf nav { gap: 0.9rem; font-size: 0.88rem; }
+  .kopf .knopf { display: none; }
+}
 
 .fuss { margin-top: 4rem; border-top: 1px solid var(--linie); padding: 1.5rem 0 3rem; font-size: 0.87rem; color: var(--schrift-3); }
 .fuss ul { display: flex; gap: 1.25rem; list-style: none; margin: 0 0 0.6rem; padding: 0; flex-wrap: wrap; }
@@ -93,19 +117,33 @@ a { color: var(--akzent); }
 /* ---------- Suche ---------- */
 .suchblock { padding: 3.5rem 0 2.5rem; display: flex; flex-direction: column; gap: 1.1rem; }
 .suchblock p.einleitung { color: var(--schrift-2); max-width: 46ch; font-size: 1.05rem; }
-.suchzeile { display: flex; gap: 0.6rem; max-width: 40rem; }
+.suchzeile { display: flex; gap: 0.6rem; max-width: 40rem; flex-wrap: wrap; }
+@media (max-width: 28rem) {
+  /* Sonst schrumpft das Eingabefeld so weit, dass der Platzhalter abgeschnitten
+     wird - „Schule, Ort oder Pos“ hilft niemandem. */
+  .vorschlagsfeld { flex: 1 0 100%; }
+  .suchzeile .knopf { width: 100%; }
+}
 .suchzeile input {
-  flex: 1; padding: 0.8rem 1rem; font-size: 1rem; font-family: inherit;
-  border: 1px solid var(--linie-stark); border-radius: var(--radius);
-  background: var(--flaeche); color: var(--schrift);
+  flex: 1; padding: 0.95rem 1.15rem; font-size: 1.05rem; font-family: inherit;
+  border: 1px solid var(--linie-stark); border-radius: 999px;
+  background: var(--flaeche); color: var(--schrift); box-shadow: var(--schatten);
 }
+.suchzeile input:focus { border-color: var(--akzent); }
 .knopf {
-  padding: 0.8rem 1.4rem; font-size: 1rem; font-family: inherit; font-weight: 500;
-  border: 1px solid transparent; border-radius: var(--radius);
+  /* Mindestens 44 Pixel hoch: die Fingerkuppe eines Menschen, nicht ein
+     Mauszeiger, ist hier das Eingabegerät. */
+  min-height: 2.75rem; padding: 0.7rem 1.5rem; font-size: 1rem; font-family: inherit; font-weight: 650;
+  border: 1px solid transparent; border-radius: 999px;
   background: var(--akzent); color: #fff; cursor: pointer; text-decoration: none;
-  display: inline-flex; align-items: center; white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;
+  transition: background 0.15s, transform 0.05s;
 }
+.knopf:hover { background: var(--akzent-dunkel); }
+.knopf:active { transform: translateY(1px); }
 .knopf.zweitrangig { background: var(--flaeche); color: var(--akzent); border-color: var(--linie-stark); }
+.knopf.zweitrangig:hover { background: var(--akzent-sanft); }
+.knopf.klein { min-height: 2.1rem; padding: 0.35rem 0.9rem; font-size: 0.87rem; }
 .bestandshinweis { font-size: 0.9rem; color: var(--schrift-3); }
 
 /* ---------- Trefferliste ---------- */
@@ -177,25 +215,34 @@ a { color: var(--akzent); }
 /* ---------- Bewertungsformular ---------- */
 .formular { display: flex; flex-direction: column; gap: 1.5rem; max-width: 46rem; }
 
-.fortschritt { height: 5px; background: var(--flaeche-2); border-radius: 3px; overflow: hidden; }
-.fortschritt span { display: block; height: 100%; background: var(--akzent); transition: width 0.25s ease; }
+/* Der Fortschritt bleibt beim Scrollen sichtbar: 61 Fragen sind viel, und wer
+   nicht sieht, dass es vorangeht, hört auf. */
+.fortschritt {
+  position: sticky; top: 3.4rem; z-index: 10;
+  height: 8px; background: var(--flaeche-2); border-radius: 999px; overflow: hidden;
+  box-shadow: 0 0 0 4px var(--grund);
+}
+.fortschritt span {
+  display: block; height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--akzent), var(--signal));
+  transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
 
 .feldgruppe {
   border: 1px solid var(--linie); border-radius: var(--radius); background: var(--flaeche);
   padding: 1.3rem 1.4rem; margin: 0; display: flex; flex-direction: column; gap: 0.9rem;
 }
-.feldgruppe legend {
-  font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: 1.2rem;
-  padding: 0 0.4rem; margin-left: -0.4rem;
-}
+.feldgruppe legend { font-weight: 750; font-size: 1.15rem; padding: 0 0.4rem; margin-left: -0.4rem; }
 
 .wahl { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .wahlfeld {
-  display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer;
-  border: 1px solid var(--linie-stark); border-radius: var(--radius);
-  padding: 0.55rem 0.9rem; font-size: 0.95rem; background: var(--flaeche);
+  display: inline-flex; align-items: center; gap: 0.55rem; cursor: pointer;
+  border: 1.5px solid var(--linie-stark); border-radius: 999px;
+  min-height: 2.9rem; padding: 0.6rem 1.1rem; font-size: 0.97rem; background: var(--flaeche);
+  transition: border-color 0.12s, background 0.12s;
 }
-.wahlfeld.gewaehlt { border-color: var(--akzent); background: var(--akzent-sanft); color: var(--akzent); font-weight: 500; }
+.wahlfeld:hover { border-color: var(--akzent); }
+.wahlfeld.gewaehlt { border-color: var(--akzent); background: var(--akzent-sanft); color: var(--akzent); font-weight: 650; }
 .wahlfeld input { accent-color: var(--akzent); }
 
 .feld { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.95rem; }
@@ -219,18 +266,26 @@ a { color: var(--akzent); }
 .fragetext::before {
   content: counter(frage) ". "; color: var(--schrift-3); font-variant-numeric: tabular-nums;
 }
-.antworten { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.antworten { display: flex; flex-wrap: wrap; gap: 0.45rem; }
 .antwort {
-  display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;
-  border: 1px solid var(--linie); border-radius: 999px; padding: 0.35rem 0.8rem;
-  font-size: 0.87rem; background: var(--flaeche);
+  display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer;
+  border: 1.5px solid var(--linie); border-radius: 999px;
+  /* Mindestens 44 Pixel hoch - Daumenmaß, nicht Mauszeigermaß. */
+  min-height: 2.75rem; padding: 0.5rem 1rem;
+  font-size: 0.95rem; background: var(--flaeche);
+  transition: border-color 0.12s, background 0.12s, transform 0.05s;
 }
-.antwort.gewaehlt { border-color: var(--akzent); background: var(--akzent-sanft); color: var(--akzent); font-weight: 500; }
+.antwort:hover { border-color: var(--linie-stark); }
+.antwort:active { transform: scale(0.97); }
+.antwort.gewaehlt {
+  border-color: var(--akzent); background: var(--akzent); color: #fff; font-weight: 650;
+}
+.antwort.gewaehlt input { accent-color: #fff; }
 .antwort input { accent-color: var(--akzent); }
 /* „Kann ich nicht beurteilen“ steht bewusst abgesetzt - es ist keine Bewertung
    auf der Skala, sondern deren Verweigerung. */
 .antwort.weiss-nicht { color: var(--schrift-3); border-style: dashed; }
-.antwort.weiss-nicht.gewaehlt { color: var(--akzent); border-style: solid; }
+.antwort.weiss-nicht.gewaehlt { color: #fff; border-style: solid; }
 
 .warnung {
   font-size: 0.87rem; color: var(--schrift-2); background: var(--mittel-flaeche);
@@ -369,19 +424,26 @@ a { color: var(--akzent); }
 @media (min-width: 62rem) { .ranglisten { grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; } }
 .rangliste { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; counter-reset: platz; }
 .rangliste li {
-  display: grid; grid-template-columns: 2rem 1fr auto; gap: 0.9rem; align-items: center;
+  /* `minmax(0, 1fr)` statt `1fr`: Sonst darf die Namensspalte nicht schrumpfen,
+     und lange Schulnamen wurden Wort für Wort umbrochen, während die
+     Wertungsspalte breit danebenstand. */
+  display: grid; grid-template-columns: 1.6rem minmax(0, 1fr) auto; gap: 0.8rem; align-items: center;
   border: 1px solid var(--linie); border-radius: var(--radius); background: var(--flaeche);
-  padding: 0.75rem 1rem;
+  padding: 0.8rem 1rem;
 }
-.rangliste li:hover { border-color: var(--linie-stark); }
+.rangliste li:hover { border-color: var(--akzent); }
 .rangliste .platz {
-  font-family: Georgia, "Times New Roman", serif; font-size: 1.1rem; color: var(--schrift-3);
+  font-size: 1.05rem; font-weight: 800; color: var(--schrift-3);
   font-variant-numeric: tabular-nums; text-align: right;
 }
 .rangliste .eintrag { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; text-decoration: none; }
-.rangliste .titel { font-weight: 500; color: var(--schrift); }
+.rangliste .titel { font-weight: 650; color: var(--schrift); }
 .rangliste .beiwerk { font-size: 0.85rem; color: var(--schrift-3); }
-.wertungsspalte { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; }
+.wertungsspalte { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; }
+/* Die Plakette wiederholt in Worten, was die Farbe schon sagt - in der Liste
+   ist das Platzverschwendung. Auf dem Schulprofil bleibt sie. */
+.rangliste .plakette { font-size: 0.78rem; padding: 0.2rem 0.6rem 0.2rem 0.45rem; }
+@media (max-width: 34rem) { .rangliste .plakette { display: none; } }
 .trend.verbessert { color: var(--gut); }
 .trend.verschlechtert { color: var(--schlecht); }
 .zuruecksetzen { font-size: 0.88rem; color: var(--schrift-2); }
@@ -523,7 +585,7 @@ mark.fehlt {
 /* ---------- Kategoriewertungen ---------- */
 .kategoriewertungen { display: grid; gap: 0.7rem; margin: 1rem 0 1.6rem; }
 .kategoriewertung {
-  display: grid; grid-template-columns: minmax(10rem, 22rem) 1fr auto;
+  display: grid; grid-template-columns: minmax(12rem, 26rem) 1fr auto;
   align-items: center; gap: 0.9rem;
 }
 .kategoriewertung .titel { font-size: 0.95rem; }
@@ -545,3 +607,172 @@ mark.fehlt {
   .kategoriewertung { grid-template-columns: 1fr auto; }
   .kategoriewertung .kategoriebalken { grid-column: 1 / -1; order: 3; }
 }
+
+/* ---------- Startseite: Aufmacher ---------- */
+/* Die Zielgruppe entscheidet in Sekunden, ob sie bleibt. Deshalb steht oben
+   eine Frage statt einer Beschreibung, darunter das Suchfeld - und sonst
+   nichts, was gelesen werden muss. */
+.held {
+  padding: 3rem 0 2.5rem;
+  display: flex; flex-direction: column; gap: 1.25rem;
+}
+.held h1 { max-width: 15ch; }
+.held h1 .betont {
+  background: linear-gradient(100deg, var(--akzent) 15%, #7a3ff0 95%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  /* Rückfall für Browser ohne background-clip: dann steht das Wort einfach in
+     der Akzentfarbe da, statt unsichtbar zu sein. */
+  -webkit-text-fill-color: transparent;
+}
+@supports not (background-clip: text) {
+  .held h1 .betont { color: var(--akzent); -webkit-text-fill-color: currentColor; }
+}
+.held .anriss { font-size: clamp(1.05rem, 2.4vw, 1.25rem); color: var(--schrift-2); max-width: 42ch; }
+.held .suchzeile { max-width: 44rem; }
+/* Der Aufmacher trägt die Deutschlandkarte aus echten Schulstandorten als
+   Hintergrund - dieselbe Datei, die auch die Kartenseite ausliefert
+   (`/karte/bestand.svg`, 140 KB, zwischengespeichert). Kein Bildmaterial von
+   außen, keine fremden Kartenkacheln, und trotzdem ein Bild, das sofort sagt,
+   worum es geht: 31.770 Punkte, einer je Schule. */
+.held-verlauf {
+  position: relative; isolation: isolate; overflow: hidden;
+  background:
+    radial-gradient(70rem 30rem at 8% -20%, var(--akzent-sanft), transparent 62%),
+    radial-gradient(45rem 26rem at 96% -10%, var(--signal-sanft), transparent 58%);
+}
+.held-verlauf::before {
+  content: ""; position: absolute; inset: -1rem -1rem auto auto; z-index: -1;
+  width: min(24rem, 38vw); aspect-ratio: 800 / 1093;
+  background: url("/karte/bestand.svg") no-repeat center / contain;
+  opacity: 0.55;
+  /* Nach unten und links ausblenden, damit die Karte nicht gegen den Text
+     ankämpft, sondern hinter ihm verschwindet. */
+  mask-image: linear-gradient(200deg, #000 35%, transparent 85%);
+  pointer-events: none;
+}
+@media (max-width: 52rem) {
+  /* Auf dem Telefon bleibt sie sichtbar, rückt aber ganz nach oben rechts -
+     als Andeutung neben der Überschrift, nicht als Grauschleier darunter. */
+  .held-verlauf::before { inset: -2rem -4rem auto auto; width: 15rem; opacity: 0.4; }
+}
+
+/* Drei Fakten statt drei Absätzen. */
+.merkmale { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; margin: 0; padding: 0; }
+.merkmale li {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: var(--flaeche); border: 1px solid var(--linie);
+  border-radius: 999px; padding: 0.4rem 0.9rem; font-size: 0.9rem; color: var(--schrift-2);
+}
+.merkmale li strong { color: var(--schrift); font-weight: 650; }
+@media (max-width: 30rem) {
+  .merkmale li { font-size: 0.85rem; padding: 0.35rem 0.75rem; }
+}
+
+/* ---------- Drei Schritte ---------- */
+.schritte { display: grid; gap: 1rem; list-style: none; margin: 0; padding: 0; counter-reset: schritt; }
+@media (min-width: 46rem) { .schritte { grid-template-columns: repeat(3, 1fr); } }
+.schritte li {
+  background: var(--flaeche); border: 1px solid var(--linie); border-radius: var(--radius);
+  padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 0.35rem;
+}
+.schritte li::before {
+  counter-increment: schritt; content: counter(schritt);
+  width: 1.9rem; height: 1.9rem; border-radius: 50%;
+  background: var(--akzent); color: #fff; font-weight: 750; font-size: 0.95rem;
+  display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.2rem;
+}
+.schritte strong { font-size: 1.02rem; font-weight: 700; }
+.schritte span { color: var(--schrift-2); font-size: 0.93rem; }
+
+/* ---------- Hinweisstreifen (Verlosung) ---------- */
+.streifen {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.8rem 1.2rem;
+  background: var(--signal-sanft); border: 1px solid color-mix(in srgb, var(--signal) 25%, transparent);
+  border-radius: var(--radius); padding: 1rem 1.2rem;
+}
+.streifen .marke-signal {
+  font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  font-weight: 750; color: var(--signal);
+}
+.streifen p { color: var(--schrift-2); font-size: 0.95rem; flex: 1; min-width: 16rem; }
+.streifen strong { color: var(--schrift); }
+
+/* ---------- Kurze Ranglisten-Vorschau ---------- */
+.vorschauliste { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.vorschauliste li a {
+  display: flex; align-items: center; gap: 0.9rem; text-decoration: none; color: inherit;
+  background: var(--flaeche); border: 1px solid var(--linie); border-radius: var(--radius);
+  padding: 0.8rem 1rem;
+}
+.vorschauliste li a:hover { border-color: var(--akzent); }
+.vorschauliste .platz {
+  font-weight: 800; font-size: 1.05rem; color: var(--schrift-3); min-width: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+.vorschauliste .name { flex: 1; min-width: 0; font-weight: 600; }
+.vorschauliste .name span { display: block; font-weight: 400; font-size: 0.85rem; color: var(--schrift-3); }
+.vorschauliste .punkte { font-weight: 800; font-variant-numeric: tabular-nums; }
+.vorschauliste .punkte.gut { color: var(--gut); }
+.vorschauliste .punkte.mittel { color: var(--mittel); }
+.vorschauliste .punkte.schlecht { color: var(--schlecht); }
+
+/* ---------- Abschnittskopf mit Verweis ---------- */
+.abschnittskopf { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.abschnittskopf a { font-size: 0.92rem; text-decoration: none; font-weight: 600; white-space: nowrap; }
+.abschnittskopf a:hover { text-decoration: underline; }
+
+/* ---------- Bewegung, sparsam ---------- */
+/* Nur zwei Stellen bewegen sich: die Balken der Kategoriewertungen wachsen
+   einmal ein, und Karten heben sich beim Überfahren leicht an. Mehr wäre auf
+   einem Portal, das Mobbingzahlen anzeigt, unangebracht. */
+@keyframes wachsen { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+.kategoriewertung .fuellung { transform-origin: left; animation: wachsen 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.kategoriewertung:nth-child(2) .fuellung { animation-delay: 0.05s; }
+.kategoriewertung:nth-child(3) .fuellung { animation-delay: 0.1s; }
+.kategoriewertung:nth-child(4) .fuellung { animation-delay: 0.15s; }
+.kategoriewertung:nth-child(5) .fuellung { animation-delay: 0.2s; }
+.kategoriewertung:nth-child(6) .fuellung { animation-delay: 0.25s; }
+
+.karte, .treffer li a, .vorschauliste li a, .schritte li {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.karte:hover, .treffer li a:hover, .vorschauliste li a:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(21, 26, 35, 0.06), 0 18px 36px -24px rgba(21, 26, 35, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Wertungsring ---------- */
+/* Die Gesamtwertung als Ring statt als Zahl neben einer Plakette: Das ist die
+   eine Zahl, wegen der die Seite aufgerufen wird, und sie soll aus zwei Metern
+   Entfernung lesbar sein. */
+.wertungsring { display: inline-grid; place-items: center; position: relative; }
+.wertungsring svg { display: block; transform: rotate(-90deg); }
+.wertungsring .kreis-hinten { stroke: var(--flaeche-2); }
+.wertungsring .kreis-vorn { stroke-linecap: round; transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.wertungsring .kreis-vorn.gut { stroke: var(--gut); }
+.wertungsring .kreis-vorn.mittel { stroke: var(--mittel); }
+.wertungsring .kreis-vorn.schlecht { stroke: var(--schlecht); }
+.wertungsring .mitte { position: absolute; display: grid; place-items: center; line-height: 1; }
+.wertungsring .zahl { font-size: 2.4rem; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+.wertungsring .skala { font-size: 0.75rem; color: var(--schrift-3); margin-top: 0.25rem; }
+
+.wertungsblock { display: flex; flex-direction: column; gap: 0.6rem; align-items: center; }
+
+/* Auf der Formularseite ist der Schulname eine Angabe, keine Schlagzeile: In
+   voller Überschriftengröße nahm er auf dem Telefon vier Zeilen ein, und die
+   erste Frage stand unterhalb des Bildschirmrands. */
+.formularkopf { padding: 1.5rem 0 1rem; gap: 0.5rem; }
+.formularkopf h1 { font-size: clamp(1.35rem, 4.5vw, 1.9rem); line-height: 1.15; }
+.formularkopf .anschrift { font-size: 0.92rem; }
+
+/* Kompakte Punktzahl für Listen: Die Farbe trägt die Aussage, das Wort daneben
+   wiederholte sie nur und kostete die halbe Spaltenbreite. */
+.punktzahl { font-size: 1.45rem; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.punktzahl.gut { color: var(--gut); }
+.punktzahl.mittel { color: var(--mittel); }
+.punktzahl.schlecht { color: var(--schlecht); }

@@ -7,7 +7,8 @@ import { kennzeichnung } from "@/ki/zusammenfassung";
 import { BUNDESLAND_LABEL } from "@/domain/bundesland";
 import { MINDESTZAHL_PROFIL } from "@/domain/aggregation";
 import { ampelstufe } from "@/domain/scoring";
-import { Wertungsplakette, Wertungszahl } from "../../teile";
+import { Wertungsplakette } from "../../teile";
+import { Wertungsring } from "../../wertungsring";
 import { Kategoriewertungen } from "../../kategoriewertungen";
 
 export async function generateMetadata({
@@ -52,8 +53,8 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
             </p>
           </div>
           {sichtbar && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", alignItems: "flex-end" }}>
-              <Wertungszahl wert={score} gross />
+            <div className="wertungsblock">
+              <Wertungsring wert={score} />
               <Wertungsplakette wert={score} />
             </div>
           )}

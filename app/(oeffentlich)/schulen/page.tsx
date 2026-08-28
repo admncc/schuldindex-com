@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { sucheSchulen } from "@/db/schulen";
 import { BUNDESLAND_LABEL } from "@/domain/bundesland";
-import { Wertungszahl } from "../teile";
+import { scorestufe } from "@/domain/scoring";
 import { Suchfeld } from "../suchfeld";
 import { schulartAnzeige } from "@/import/schulart";
 
@@ -59,7 +59,14 @@ export default async function Suchseite({
                         : ""}
                     </span>
                   </span>
-                  {s.gesamtscore !== null && <Wertungszahl wert={Number(s.gesamtscore)} />}
+                  {s.gesamtscore !== null && (
+                    <span className={`punktzahl ${scorestufe(Number(s.gesamtscore))}`}>
+                      {Number(s.gesamtscore).toLocaleString("de-DE", {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                      })}
+                    </span>
+                  )}
                 </a>
               </li>
             ))}

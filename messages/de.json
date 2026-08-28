@@ -16,12 +16,14 @@
     "konto": "Deine Bewertungen"
   },
   "startseite": {
-    "titel": "Finde deine Schule",
-    "untertitel": "Bewertungen von Schülerinnen, Schülern, Eltern und Lehrkräften – anonym abgegeben, vor der Veröffentlichung geprüft.",
-    "suchfeld": "Schulname, Ort oder Postleitzahl",
+    "titel": "Wie ist deine Schule wirklich?",
+    "untertitel": "Anonyme Bewertungen von Schülern, Eltern und Lehrkräften - vor der Veröffentlichung geprüft.",
+    "suchfeld": "Schule oder Ort",
     "suchknopf": "Suchen",
     "schulenImBestand": "{anzahl, number} Schulen in ganz Deutschland",
-    "hinweisAnonym": "Deine Bewertung erscheint immer anonym."
+    "hinweisAnonym": "Deine Bewertung erscheint immer anonym.",
+    "titelVorn": "Wie ist deine Schule",
+    "titelBetont": "wirklich?"
   },
   "suche": {
     "titel": "Schulen finden",
