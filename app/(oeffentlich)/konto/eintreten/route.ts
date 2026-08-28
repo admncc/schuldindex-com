@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { erzeugeKontositzung, kontocookie } from "@/domain/kontozugang";
 import { loeseAnmeldelinkEin } from "@/db/konto";
+import { anfrageIstSicher } from "../../../sichere-verbindung";
 
 /**
  * Löst den Anmeldelink ein.
@@ -28,7 +29,7 @@ export async function GET(anfrage: Request): Promise<NextResponse> {
     return NextResponse.redirect(new URL(`/konto/anmelden?grund=${grund}`, url));
   }
 
-  const sicher = process.env.NODE_ENV === "production";
+  const sicher = anfrageIstSicher(anfrage);
   (await cookies()).set(kontocookie(sicher), sitzung.klartext, {
     httpOnly: true,
     secure: sicher,

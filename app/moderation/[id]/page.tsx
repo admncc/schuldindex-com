@@ -74,6 +74,9 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
         </div>
         <div className="vorgangsstatus">
           <span className={`plakette ${stufe}`}>{DRINGLICHKEIT_LABEL[stufe]}</span>
+          {/* Damit niemand eine erfundene Bewertung für eine echte hält und
+              umgekehrt - die Entscheidung darüber wäre wertlos. */}
+          {vorgang.ist_demo ? <span className="plakette demo">Demodatensatz</span> : null}
           <span className="gedaempft">
             {ZUSTAND_LABEL[status]} · seit {Math.floor(alterInStunden(vorgang.erstellt_am, jetzt))} Stunden
           </span>

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { fuehreRegelAus } from "@/db/aufraeumen";
+import { loescheDemodaten } from "@/db/demodaten";
 import { REGELN, regel, type Aufbewahrungsart } from "@/domain/aufbewahrung";
 import { verlangeAnmeldung } from "../sitzung";
 
@@ -45,6 +46,39 @@ export async function regelAusfuehren(
       betroffen === 0
         ? `${regel(roh).gegenstand}: nichts war fällig.`
         : `${regel(roh).gegenstand}: ${betroffen.toLocaleString("de-DE")} Datensätze gelöscht.`,
+    versuch,
+  };
+}
+
+/**
+ * Entfernt die Demodaten.
+ *
+ * Getrennt von den Aufbewahrungsregeln, obwohl beides löscht: Die Regeln setzen
+ * eine Zusage aus der Datenschutzerklärung um, das hier räumt einen Testbestand
+ * weg. Sie in einen Topf zu werfen hieße, das Protokoll unlesbar zu machen.
+ */
+export async function demodatenLoeschen(
+  vorher: Loeschzustand,
+  _formular: FormData,
+): Promise<Loeschzustand> {
+  const moderatorin = await verlangeAnmeldung();
+  const versuch = (vorher.versuch ?? 0) + 1;
+
+  if (moderatorin.rolle !== "leitung") {
+    return { meldung: "Demodaten darf nur die Leitung löschen.", versuch };
+  }
+
+  const geloescht = await loescheDemodaten(moderatorin.id);
+  revalidatePath("/moderation/aufbewahrung");
+  revalidatePath("/");
+
+  return {
+    erfolg:
+      geloescht.bewertungen === 0
+        ? "Es lagen keine Demodaten vor."
+        : `${geloescht.bewertungen.toLocaleString("de-DE")} Demobewertungen und ` +
+          `${geloescht.konten.toLocaleString("de-DE")} Demokonten gelöscht, ` +
+          `${geloescht.schulen.toLocaleString("de-DE")} Schulwertungen neu gerechnet.`,
     versuch,
   };
 }

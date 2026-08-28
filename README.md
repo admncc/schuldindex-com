@@ -85,13 +85,15 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `scripts/moderator-anlegen.ts` | Legt ein Moderationskonto an, gibt Kennwort und App-URL einmalig aus |
 | `scripts/zusammenfassen.ts` | Erzeugt die Freitext-Zusammenfassungen der fälligen Schulen |
 | `scripts/verlosung-ziehen.ts` | Zieht die monatliche Verlosung, `--pruefen` rechnet sie nach |
+| `src/db/demodaten.ts` | Demobestand zählen und entfernen - über die Kennzeichnung, nie über Verdachtsmerkmale |
+| `scripts/demodaten.ts` | Erzeugt Demobewertungen für den Testbetrieb, gekennzeichnet und wieder entfernbar |
 | `scripts/aggregate-neu.ts` | Rechnet alle Schulaggregate neu - nach jeder Änderung an der Formel |
 | `scripts/aufraeumen.ts` | Aufräumlauf nach den Fristen; zählt nur, `--loeschen` löscht wirklich |
 | `scripts/aufraeumen.test.ts` | Prüft an der Datenbank, dass keine Frist zu viel löscht |
 
 ```bash
 npm install
-npm test        # 629 Tests (34 davon gegen die eingespielten Echtdaten)
+npm test        # 642 Tests (37 davon gegen die eingespielten Echtdaten)
 npm run typecheck
 cp .env.example .env  # Schlüssel erzeugen, siehe Kommentare in der Datei
 npm run dev          # Anwendung unter http://localhost:3000
@@ -100,6 +102,10 @@ npm run dev          # Anwendung unter http://localhost:3000
 # --trocken zeigt den Auftrag an das Modell, ohne die API aufzurufen:
 ANTHROPIC_API_KEY=… npx tsx scripts/zusammenfassen.ts --grenze 20
 npx tsx scripts/zusammenfassen.ts --schule <slug> --trocken
+
+# Testbestand: 550 erfundene Bewertungen über 55 Schulen. Sie sind als Demodaten
+# gekennzeichnet und im Panel unter Aufbewahrung mit einem Klick wieder weg.
+npx tsx scripts/demodaten.ts --anzahl 550 --schulen 55
 
 # Zugang zur Moderation anlegen (Ausgabe erscheint genau einmal):
 npx tsx scripts/moderator-anlegen.ts anna "Anna Beispiel" --leitung

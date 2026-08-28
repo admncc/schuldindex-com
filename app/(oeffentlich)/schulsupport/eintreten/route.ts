@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { loeseZugangEin } from "@/db/schulzugang";
 import { ZUGANG_TAGE } from "@/domain/schulzugang";
 import { schulcookie } from "../sitzung";
+import { anfrageIstSicher } from "../../../sichere-verbindung";
 
 /** Wie beim Konto: das Einlösen gehört in einen Route-Handler, nicht in eine Seite. */
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ export async function GET(anfrage: Request): Promise<NextResponse> {
     return NextResponse.redirect(new URL(`/schulsupport/anfordern?grund=${ergebnis.grund}`, url));
   }
 
-  const sicher = process.env.NODE_ENV === "production";
+  const sicher = anfrageIstSicher(anfrage);
   (await cookies()).set(schulcookie(sicher), ergebnis.sitzung, {
     httpOnly: true,
     secure: sicher,

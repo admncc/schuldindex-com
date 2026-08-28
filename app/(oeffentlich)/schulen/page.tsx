@@ -4,6 +4,7 @@ import { sucheSchulen } from "@/db/schulen";
 import { BUNDESLAND_LABEL } from "@/domain/bundesland";
 import { Wertungszahl } from "../teile";
 import { Suchfeld } from "../suchfeld";
+import { schulartAnzeige } from "@/import/schulart";
 
 export const metadata: Metadata = { title: "Schulen finden" };
 
@@ -53,7 +54,9 @@ export default async function Suchseite({
                         .join(", ")}
                       {" · "}
                       {BUNDESLAND_LABEL[s.bundesland]}
-                      {s.schulart_original ? ` · ${s.schulart_original}` : ""}
+                      {schulartAnzeige(s.schulart_original, s.schularten)
+                        ? ` · ${schulartAnzeige(s.schulart_original, s.schularten)}`
+                        : ""}
                     </span>
                   </span>
                   {s.gesamtscore !== null && <Wertungszahl wert={Number(s.gesamtscore)} />}

@@ -74,6 +74,18 @@ export const KATALOG: readonly Einstellungsbeschreibung[] = [
     max: 1,
   },
   {
+    schluessel: "sitzungsdauer_stunden",
+    gruppe: "zugang",
+    label: "Eine Anmeldung gilt so lange",
+    hilfe:
+      "Danach ist eine erneute Anmeldung nötig. Zwölf Stunden decken einen Arbeitstag ab und melden einen vergessenen Rechner über Nacht ab. Läuft die Sitzung mitten in der Arbeit ab, landet man auf der Anmeldeseite - wer das oft erlebt, erhöht den Wert hier. Laufende Sitzungen behalten ihre Frist; die Änderung wirkt ab der nächsten Anmeldung.",
+    art: "ganzzahl",
+    vorgabe: 12,
+    min: 1,
+    max: 720,
+    einheit: "Stunden",
+  },
+  {
     schluessel: "tempo_sekunden_je_frage",
     gruppe: "tempo",
     label: "Mindestzeit je Frage",

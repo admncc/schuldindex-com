@@ -6,7 +6,9 @@ import { revalidatePath } from "next/cache";
 import { sitzungscookie, SITZUNGSCOOKIE_NAMEN } from "@/domain/anmeldung";
 import { melde } from "@/dienste/moderationsanmeldung";
 import { zweiterFaktorPflicht } from "@/domain/zweiterfaktor";
+import { verbindungIstSicher } from "../sichere-verbindung";
 import { holeEinstellungen } from "@/db/einstellungen";
+import { zahl } from "@/domain/einstellungen";
 import {
   beendeSitzung,
   entscheide,
@@ -34,6 +36,7 @@ export interface Anmeldezustand {
 
 export async function anmelden(_vorher: Anmeldezustand, formular: FormData): Promise<Anmeldezustand> {
   const kennung = String(formular.get("kennung") ?? "");
+  const einstellungen = await holeEinstellungen();
   const ergebnis = await melde(
     zugang,
     {
@@ -42,14 +45,18 @@ export async function anmelden(_vorher: Anmeldezustand, formular: FormData): Pro
       code: String(formular.get("code") ?? ""),
     },
     new Date(),
-    { zweiterFaktorPflicht: zweiterFaktorPflicht(await holeEinstellungen()) },
+    {
+      zweiterFaktorPflicht: zweiterFaktorPflicht(einstellungen),
+      sitzungsstunden: zahl(einstellungen, "sitzungsdauer_stunden"),
+    },
   );
 
   if (!ergebnis.ok) return { meldung: ergebnis.meldung, kennung };
 
-  // In der Entwicklung läuft die Oberfläche über http; dort fällt sowohl
-  // `Secure` als auch das `__Host-`-Präfix weg (siehe `sitzungscookie`).
-  const sicher = process.env.NODE_ENV === "production";
+  // Entscheidend ist die Verbindung, nicht die Betriebsart: Ein `Secure`-Cookie
+  // über http nimmt der Browser nicht an, und die Anmeldung liefe ins Leere
+  // (siehe `app/sichere-verbindung.ts`).
+  const sicher = await verbindungIstSicher();
   (await cookies()).set(sitzungscookie(sicher), ergebnis.sitzung.klartext, {
     httpOnly: true,
     secure: sicher,

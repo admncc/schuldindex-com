@@ -12,6 +12,7 @@
 
 import { sql } from "./verbindung";
 import { autovervollstaendige, type SqlAusfuehrer } from "./schulsuche";
+import { schulartAnzeige } from "../import/schulart";
 import type { Bundesland } from "../domain/bundesland";
 
 const ausfuehrer = (<T>(text: string, werte: readonly unknown[]) =>
@@ -42,6 +43,8 @@ export async function vorschlaege(eingabe: string): Promise<Vorschlag[]> {
     ort: t.ort,
     plz: t.plz,
     bundesland: t.bundesland,
-    schulart: t.schulartOriginal,
+    // Nicht der Rohwert: Die Quelle liefert für einen Teil der Länder
+    // `primaryEducation` statt „Grundschule“ (siehe `import/schulart.ts`).
+    schulart: schulartAnzeige(t.schulartOriginal, t.schularten),
   }));
 }

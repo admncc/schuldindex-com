@@ -92,7 +92,8 @@ export async function stimmtPasswort(klartext: string, gespeichert: string): Pro
  * Gültigkeitsdauer einer Sitzung.
  *
  * Zwölf Stunden: lang genug für einen Arbeitstag, kurz genug, dass ein
- * vergessener Rechner über Nacht abgemeldet wird.
+ * vergessener Rechner über Nacht abgemeldet wird. Nachziehbar im Panel
+ * (`sitzungsdauer_stunden`); dieser Wert gilt, solange dort nichts steht.
  */
 export const SITZUNG_STUNDEN = 12;
 
@@ -115,12 +116,12 @@ export function hasheSitzung(klartext: string): string {
   return createHmac("sha256", sitzungsSchluessel()).update(klartext).digest("base64url");
 }
 
-export function erzeugeSitzung(jetzt = new Date()): Sitzungstoken {
+export function erzeugeSitzung(jetzt = new Date(), stunden = SITZUNG_STUNDEN): Sitzungstoken {
   const klartext = randomBytes(32).toString("base64url");
   return {
     klartext,
     hash: hasheSitzung(klartext),
-    gueltigBis: new Date(jetzt.getTime() + SITZUNG_STUNDEN * 3600_000),
+    gueltigBis: new Date(jetzt.getTime() + stunden * 3600_000),
   };
 }
 

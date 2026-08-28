@@ -1336,6 +1336,30 @@ Verzögerungsrisiko und werden deshalb früh angestoßen.
 
 ---
 
+## 13.1 Demodaten für den Testbetrieb
+
+Ein leeres Portal lässt sich nicht beurteilen: Ranglisten brauchen 20 Bewertungen je Schule, ein
+Profil 10, die Karte bewertete Schulen, die Moderation eine Warteschlange. `scripts/demodaten.ts`
+erzeugt deshalb einen Testbestand (Vorgabe 600 Bewertungen über 60 Schulen).
+
+Zwei Festlegungen, die den Bestand brauchbar machen:
+
+- **Jede Schule bekommt einen Charakter**, um den die Antworten streuen - gute, mittelmäßige und
+  schwache nebeneinander. Gleichverteilter Zufall ergäbe überall den Mittelwert 3, und weder
+  Ranglisten noch Ampelfarben hätten etwas zu zeigen. Die Häufigkeitsfragen zu Mobbing laufen
+  dabei andersherum, sonst stünde eine „gute“ Schule mit hohem Aggressionsindex da.
+- **Fester Zufall.** Zwei Läufe mit denselben Argumenten ergeben denselben Bestand; eine seltsam
+  aussehende Rangliste sieht nach dem nächsten Lauf noch genauso aus.
+
+**Gekennzeichnet, nicht erraten.** Konten und Bewertungen tragen `ist_demo`
+(`0018_demodaten.sql`), und die Löschung im Panel (Aufbewahrung → Demodaten, nur Leitung, mit
+Rückfrage samt Zahlen) greift ausschließlich auf diese Kennzeichnung zu. Eine Löschung nach
+Verdachtsmerkmalen - erfundene Nummern, ein Zeitraum - nähme früher oder später eine echte
+Bewertung mit, und niemand käme dem auf die Spur. In Warteschlange und Vorgangsansicht sind
+Demosätze als solche markiert, damit niemand eine erfundene Bewertung für eine echte hält.
+
+---
+
 ## 14. Betrieb
 
 - Umgebungen: `production`, `staging`, `preview` (pro Pull Request).

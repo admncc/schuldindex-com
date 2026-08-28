@@ -79,6 +79,8 @@ export interface Anmeldeoptionen {
    * Wert aus den Einstellungen.
    */
   readonly zweiterFaktorPflicht?: boolean;
+  /** Gültigkeitsdauer der Sitzung in Stunden; ohne Angabe die Vorgabe des Domänenmoduls. */
+  readonly sitzungsstunden?: number;
 }
 
 /**
@@ -159,7 +161,7 @@ export async function melde(
     return { ok: false, meldung: ANMELDUNG_FEHLGESCHLAGEN };
   }
 
-  const sitzung = erzeugeSitzung(jetzt);
+  const sitzung = erzeugeSitzung(jetzt, optionen.sitzungsstunden);
   await zugang.merkeAnmeldung(konto.id, codeErgebnis.schritt ?? null, jetzt);
   await zugang.legeSitzungAn(konto.id, sitzung.hash, sitzung.gueltigBis);
   await zugang.protokolliere({

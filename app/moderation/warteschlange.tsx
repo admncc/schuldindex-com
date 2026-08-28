@@ -98,6 +98,7 @@ export default function Warteschlange({ eintraege }: { eintraege: readonly Warte
                 <td>
                   <a href={`/moderation/${e.id}`} className="alterslink">
                     <span className={`plakette ${stufe}`}>{DRINGLICHKEIT_LABEL[stufe]}</span>{" "}
+                    {e.ist_demo ? <span className="plakette demo">Demo</span> : null}{" "}
                     {alter(alterInStunden(e.erstellt_am, jetzt))}
                   </a>
                 </td>

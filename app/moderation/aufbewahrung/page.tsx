@@ -3,6 +3,8 @@ import { letzteLaeufe, raeumeAuf } from "@/db/aufraeumen";
 import { fristtext, laufbericht, REGELN, regel } from "@/domain/aufbewahrung";
 import { verlangeAnmeldung } from "../sitzung";
 import Regelzeile from "./regelzeile";
+import Demoblock from "./demoblock";
+import { zaehleDemodaten } from "@/db/demodaten";
 
 export const metadata: Metadata = { title: "Aufbewahrung", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -15,7 +17,7 @@ export default async function Aufbewahrungsseite() {
   // Ein trockener Lauf: er zeigt, was fällig wäre, und ändert nichts. Der
   // löschende Lauf gehört in den Zeitplan, nicht in eine Seite, die jemand
   // versehentlich neu lädt.
-  const [faellig, laeufe] = await Promise.all([raeumeAuf(true), letzteLaeufe()]);
+  const [faellig, laeufe, demo] = await Promise.all([raeumeAuf(true), letzteLaeufe(), zaehleDemodaten()]);
 
   const letzterEchte = laeufe.find((l) => !l.trocken);
   const stundenHer =
@@ -49,6 +51,13 @@ export default async function Aufbewahrungsseite() {
           <p className="fussnote">Bisher wurde nichts gelöscht.</p>
         )}
       </div>
+
+      <Demoblock
+        bewertungen={demo.bewertungen}
+        konten={demo.konten}
+        schulen={demo.schulen}
+        darfLoeschen={moderatorin.rolle === "leitung"}
+      />
 
       <h2>Was gerade fällig wäre</h2>
       <table className="tabelle">

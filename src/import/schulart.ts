@@ -41,6 +41,30 @@ export const SCHULART_LABEL: Readonly<Record<Schulart, string>> = {
   sonstige: "Sonstige",
 };
 
+/**
+ * Was auf der Seite stehen soll: die Originalbezeichnung, sonst die Taxonomie.
+ *
+ * Die Quelle liefert für einen Teil der Länder keine deutsche Bezeichnung,
+ * sondern den Rohcode ihres Datenmodells - `primaryEducation`,
+ * `upperSecondaryEducation`. Der stand so auf den Schulprofilen und in der
+ * Suche. Erkannt wird er an der Schreibweise: ein Wort ohne Leerzeichen mit
+ * Großbuchstaben mittendrin ist keine deutsche Schulartbezeichnung.
+ *
+ * Die Zuordnung selbst ist davon nicht betroffen - `schularten` stand immer
+ * richtig in der Datenbank, nur die Anzeige griff daneben.
+ */
+export function schulartAnzeige(
+  original: string | null | undefined,
+  arten: readonly Schulart[] = [],
+): string | null {
+  const roh = original?.trim();
+  const istCode = roh !== undefined && roh !== "" && !/\s/.test(roh) && /[a-z][A-Z]/.test(roh);
+
+  if (roh !== undefined && roh !== "" && !istCode) return roh;
+  const erste = arten[0];
+  return erste === undefined ? null : SCHULART_LABEL[erste];
+}
+
 export interface Schulartzuordnung {
   /** Taxonomie-Arten, aufsteigend sortiert und ohne Dubletten. Für Filter und Ranglisten. */
   readonly arten: readonly Schulart[];

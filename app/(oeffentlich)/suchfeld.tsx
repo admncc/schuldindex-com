@@ -41,6 +41,16 @@ export function Suchfeld({
   const [liste, setListe] = useState<Vorschlag[]>([]);
   const [offen, setOffen] = useState(false);
   const [markiert, setMarkiert] = useState(-1);
+  /**
+   * Hat die Person in diesem Feld getippt?
+   *
+   * Nach dem Absenden lädt die Ergebnisseite neu, und das Feld steht wieder da -
+   * mit dem gesuchten Begriff darin. Ohne diese Unterscheidung hielte die
+   * Vorschlagsliste das für eine Eingabe und klappte über den Treffern auf, die
+   * gerade angezeigt werden sollen. Vorschläge gibt es deshalb nur auf Tippen
+   * oder auf die Pfeiltaste, nie von allein.
+   */
+  const [getippt, setGetippt] = useState(false);
 
   const id = useId();
   const feld = useRef<HTMLInputElement>(null);
@@ -57,6 +67,7 @@ export function Suchfeld({
   const gedaechtnis = useRef(new Map<string, Vorschlag[]>());
 
   useEffect(() => {
+    if (!getippt) return;
     const begriff = eingabe.trim();
     if (begriff.length < MINDESTZEICHEN) {
       setListe([]);
@@ -94,7 +105,7 @@ export function Suchfeld({
       clearTimeout(zeitgeber);
       abbruch.abort();
     };
-  }, [eingabe]);
+  }, [eingabe, getippt]);
 
   function waehle(vorschlag: Vorschlag) {
     window.location.href = `/schule/${vorschlag.slug}`;
@@ -107,7 +118,12 @@ export function Suchfeld({
         setOffen(true);
         return;
       }
-      if (liste.length === 0) return;
+      if (liste.length === 0) {
+        // Noch nichts geholt - etwa direkt nach dem Laden der Ergebnisseite.
+        // Die Pfeiltaste ist eine Aufforderung, also jetzt nachladen.
+        if (eingabe.trim().length >= MINDESTZEICHEN) setGetippt(true);
+        return;
+      }
       const richtung = e.key === "ArrowDown" ? 1 : -1;
       // Umlaufend: Vom letzten Eintrag nach unten landet man wieder im Feld
       // (-1), und das ist die Stelle, an der man weitertippt.
@@ -141,7 +157,10 @@ export function Suchfeld({
       method="get"
       // Ohne Markierung ist Enter ein normales Absenden; die offene Liste darf
       // daran nichts ändern, sonst verliert man die Volltextsuche.
-      onSubmit={() => setOffen(false)}
+      onSubmit={() => {
+        setOffen(false);
+        setGetippt(false);
+      }}
       role="search"
     >
       <div className="vorschlagsfeld">
@@ -150,9 +169,14 @@ export function Suchfeld({
           type="search"
           name="q"
           value={eingabe}
-          onChange={(e) => setEingabe(e.target.value)}
+          onChange={(e) => {
+            setEingabe(e.target.value);
+            setGetippt(true);
+          }}
           onKeyDown={beiTaste}
-          onFocus={() => setOffen(liste.length > 0)}
+          // Beim Hineinklicken nur wieder zeigen, was schon geholt wurde -
+          // ein vorbelegtes Feld soll nicht von allein eine Liste aufziehen.
+          onFocus={() => setOffen(getippt && liste.length > 0)}
           // Der Klick auf einen Vorschlag nimmt dem Feld den Fokus, bevor er
           // ankommt. Deshalb wird erst geschlossen, wenn der Fokus den ganzen
           // Block verlässt - nicht schon beim Verlassen des Feldes.
