@@ -4,13 +4,13 @@ import { useState, useTransition } from "react";
 import { kontaktZeigen } from "./aktionen";
 
 /** Wie in der Vorgangsansicht: der Kontakt bleibt verdeckt, bis jemand ihn anfordert. */
-export default function Gewinnerkontakt({ ziehungId }: { ziehungId: string }) {
+export default function Gewinnerkontakt({ gewinnId }: { gewinnId: string }) {
   const [klartext, setzeKlartext] = useState<string | null>(null);
   const [laeuft, starte] = useTransition();
 
   return (
     <div className="kontaktfeld">
-      <strong>Kontakt der gewinnenden Person:</strong>{" "}
+      <strong>Kontakt:</strong>{" "}
       {klartext === null ? (
         <button
           type="button"
@@ -18,7 +18,7 @@ export default function Gewinnerkontakt({ ziehungId }: { ziehungId: string }) {
           disabled={laeuft}
           onClick={() =>
             starte(async () =>
-              setzeKlartext((await kontaktZeigen(ziehungId)) ?? "nicht verfügbar"),
+              setzeKlartext((await kontaktZeigen(gewinnId)) ?? "nicht verfügbar"),
             )
           }
         >

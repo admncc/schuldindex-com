@@ -19,6 +19,7 @@ import { kontaktHash, normalisiereKontakt, verschleiere, verschluessele } from "
 import type { KategorieId } from "../domain/fragebogen";
 import { erlaubteKontaktarten, zahl, type Einstellungen } from "../domain/einstellungen";
 import { bereinige, type Klickauswertung } from "../domain/klickmuster";
+import { geraetehash } from "../domain/geraetehash";
 
 export interface Schulbezug {
   readonly id: string;
@@ -39,8 +40,14 @@ export interface Umgebung {
   legeKontoAn(daten: { kontaktHash: string; chiffre: Buffer; art: string }): Promise<Konto>;
   hatBereitsBewertet(schuleId: string, kontoId: string): Promise<boolean>;
   /** Zählwerte für die Betrugsprüfung. */
-  holeZaehler(kontoId: string, schuleId: string): Promise<
-    Pick<Pruefkontext, "abgabenLetzteZehnMinuten" | "schulenLetzte24Stunden" | "bewertungenDieserSchuleLetzteStunde">
+  holeZaehler(kontoId: string, schuleId: string, geraetHash: string | null): Promise<
+    Pick<
+      Pruefkontext,
+      | "abgabenLetzteZehnMinuten"
+      | "schulenLetzte24Stunden"
+      | "bewertungenDieserSchuleLetzteStunde"
+      | "abgabenVonDiesemGeraet"
+    >
   >;
   ortungDesAbsenders(): Promise<Punkt | null>;
   pruefeFreitext(texte: readonly string[]): Promise<boolean>;
@@ -52,6 +59,13 @@ export interface Umgebung {
   /** Bisheriger Stand der Schule - Grundlage des Abweichungssignals. */
   holeSchulmittel(schuleId: string): Promise<{ mittel: number | null; anzahl: number }>;
   speichere(daten: Gespeicherte): Promise<{ bewertungId: string }>;
+  /**
+   * Hält fest, dass dieses Konto über einen Empfehlungslink entstanden ist.
+   *
+   * Läuft still ins Leere, wenn der Code zu nichts gehört: Die Bewertung ist
+   * abgegeben, und daran soll eine unbekannte Empfehlung nichts ändern.
+   */
+  merkeEmpfehlung(code: string, kontoId: string, bewertungId: string): Promise<void>;
   sendeBestaetigung(empfaenger: string, art: string, token: Token): Promise<boolean>;
 }
 
@@ -78,6 +92,8 @@ export interface Gespeicherte {
    * folgt, steht in `domain/klickmuster.ts`.
    */
   readonly klickfolge: readonly number[] | null;
+  /** Abdruck der Browserkennung, nicht die Kennung selbst. */
+  readonly geraetHash: string | null;
   readonly token: Token;
 }
 
@@ -154,7 +170,10 @@ export async function bewertungAbgeben(
   // schon vor dem Speichern.
   const scores = bewerte(eingabe.antworten);
 
-  const zaehler = await umgebung.holeZaehler(konto.id, schule.id);
+  // Der Abdruck der Browserkennung - nicht die Kennung selbst
+  // (`domain/geraetekennung.ts`).
+  const geraetHash = eingabe.geraetekennung ? geraetehash(eingabe.geraetekennung) : null;
+  const zaehler = await umgebung.holeZaehler(konto.id, schule.id, geraetHash);
   const schulstand = await umgebung.holeSchulmittel(schule.id);
 
   const betrug = pruefeBetrug(
@@ -209,8 +228,20 @@ export async function bewertungAbgeben(
     signalpunkte: betrug.punkte,
     klick: betrug.klick,
     klickfolge: folge.length > 0 ? folge : null,
+    geraetHash,
     token,
   });
+
+  // Die Empfehlung wird erst hier festgehalten, nach der Bewertung: Der Code
+  // im Cookie sagt nur, worüber jemand gekommen ist. Ohne abgegebene Bewertung
+  // ist das kein Werbeerfolg, sondern ein Klick.
+  //
+  // Nur beim **ersten** Mal: Ein Konto kann nur einmal geworben worden sein
+  // (die Datenbank hält das ebenfalls fest), sonst zählte dieselbe Person mit
+  // jeder weiteren Schule erneut.
+  if (eingabe.empfehlungscode && bestehendes === null) {
+    await umgebung.merkeEmpfehlung(eingabe.empfehlungscode, konto.id, bewertungId);
+  }
 
   const versandt = await umgebung.sendeBestaetigung(normal, art, token);
 

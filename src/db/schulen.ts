@@ -247,3 +247,18 @@ export async function zaehleSchulen(): Promise<number> {
   `;
   return zeile?.n ?? 0;
 }
+
+/**
+ * Wie viele Bewertungen veröffentlicht sind.
+ *
+ * Für die Landeplätze: Die Zahl steht dort neben der Zahl der Schulen und darf
+ * nicht aus dem Text kommen - eine erfundene Zahl auf einer Seite, die
+ * überwiegend Minderjährige anspricht, ist keine Zuspitzung, sondern eine
+ * Lüge.
+ */
+export async function zaehleVeroeffentlichte(): Promise<number> {
+  const [zeile] = await sql<{ n: number }[]>`
+    select count(*)::int as n from bewertungen where status = 'freigegeben'
+  `;
+  return zeile?.n ?? 0;
+}

@@ -90,6 +90,17 @@ export interface Bewertungseingabe {
   /** Kam die Abgabe ohne gültigen Formularstempel an? Wird vom Server gesetzt. */
   readonly stempelFehlt?: boolean | undefined;
   /**
+   * Der Empfehlungscode aus dem Cookie - vom Server gesetzt, nicht aus dem
+   * Formular. Ein Code im Rumpf wäre eine Einladung, sich selbst zu werben.
+   */
+  readonly empfehlungscode?: string | null | undefined;
+  /**
+   * Die Kennung des Browsers, aus Cookie oder Local Storage - vom Server
+   * gesetzt. Ein **Signal**, kein Beweis: Ein privates Fenster hat eine neue
+   * (`domain/geraetekennung.ts`).
+   */
+  readonly geraetekennung?: string | null | undefined;
+  /**
    * Abstände zwischen zwei Antwortklicks in Millisekunden, in der Reihenfolge
    * der Klicks. Kommen aus dem Browser und werden gegen `dauerSekunden`
    * plausibilisiert; gespeichert werden nur die drei Kennzahlen daraus

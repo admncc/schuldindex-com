@@ -7,6 +7,9 @@ import { zahl } from "@/domain/einstellungen";
 import { holeEinstellungen } from "@/db/einstellungen";
 import { aktualisiereAggregate } from "@/db/aggregate";
 import { einer } from "@/domain/suchparameter";
+import { empfehlungslink, teilentext } from "@/domain/empfehlung";
+import { empfehlungscodeFuer } from "@/db/empfehlungen";
+import { Teilen } from "./teilen";
 
 export const metadata: Metadata = { title: "Bewertung bestätigen" };
 export const dynamic = "force-dynamic";
@@ -102,19 +105,34 @@ export default async function Bestaetigungsseite({
     return { gesamt: wartende.length, veroeffentlicht };
   });
 
+  // Der eigene Link entsteht erst hier - nicht schon bei der Abgabe: Wer
+  // bewertet und nie bestätigt, braucht keinen.
+  const code = await empfehlungscodeFuer(gespeichert!.konto_id);
+  const basis = process.env["BASIS_URL"] ?? new URL("/", "http://localhost:3000").origin;
+
   // **Ein Text für beide Ausgänge.** Ob eine Bewertung sofort erscheint oder
   // erst noch angesehen wird, steht hier bewusst nicht: Sonst wäre die Seite
   // eine Rückmeldung darüber, ob die Prüfung angeschlagen hat.
   return (
-    <Rueckmeldung
-      titel="Danke - deine Bewertung ist bestätigt"
-      text={
-        bearbeitet.gesamt > 0
-          ? "Sie wird noch geprüft und erscheint danach auf dem Schulprofil. Von jetzt an kannst du weitere Schulen bewerten, ohne dich erneut zu bestätigen."
-          : "Dein Konto ist bestätigt. Von jetzt an kannst du Schulen bewerten, ohne dich erneut zu bestätigen."
-      }
-      gut
-    />
+    <>
+      <Rueckmeldung
+        titel="Danke - deine Bewertung ist bestätigt"
+        text={
+          bearbeitet.gesamt > 0
+            ? "Sie wird noch geprüft und erscheint danach auf dem Schulprofil. Von jetzt an kannst du weitere Schulen bewerten, ohne dich erneut zu bestätigen."
+            : "Dein Konto ist bestätigt. Von jetzt an kannst du Schulen bewerten, ohne dich erneut zu bestätigen."
+        }
+        gut
+      />
+      {code !== null ? (
+        <section className="abschnitt">
+          <Teilen
+            link={empfehlungslink(basis, code)}
+            text={teilentext("deine Schule", empfehlungslink(basis, code))}
+          />
+        </section>
+      ) : null}
+    </>
   );
 }
 

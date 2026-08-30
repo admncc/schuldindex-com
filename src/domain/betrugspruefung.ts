@@ -23,6 +23,7 @@ export type Signalart =
   | "gleichmaessige_klicks"
   | "klickfolge_unplausibel"
   | "ohne_formularstempel"
+  | "geraet_mehrfach"
   | "abweichung_vom_mittel"
   | "ort_unbekannt"
   | "zu_viele_von_einer_quelle"
@@ -83,6 +84,15 @@ export interface Pruefkontext {
    * Folge (`dienste/bewertungAbgeben.ts`, Entscheidung vom 27.08.2026).
    */
   readonly klickabstaende?: readonly number[] | null | undefined;
+  /**
+   * Bewertungen aus demselben Browser in den letzten 24 Stunden.
+   *
+   * Klein gewichtet und mit Bedacht: In einer Familie, einem Computerraum oder
+   * an einem geteilten Rechner ist das der Normalfall. Es soll auffallen, wenn
+   * jemand zwanzig Bewertungen aus einem Fenster schreibt - nicht, wenn zwei
+   * Geschwister dieselbe Schule bewerten.
+   */
+  readonly abgabenVonDiesemGeraet?: number | undefined;
   /** Bewertungen von derselben Quelle in den letzten zehn Minuten. */
   readonly abgabenLetzteZehnMinuten: number;
   /** Verschiedene Schulen, die dieser Kontakt in den letzten 24 Stunden bewertet hat. */
@@ -286,6 +296,15 @@ export function pruefe(k: Pruefkontext, e: Einstellungen = VORGABEN): Pruefergeb
       art: "konto_per_email",
       gewicht: 1,
       erlaeuterung: "Konto ohne verifizierte Telefonnummer",
+    });
+  }
+
+  const vomGeraet = k.abgabenVonDiesemGeraet ?? 0;
+  if (vomGeraet >= zahl(e, "geraet_hoechstzahl")) {
+    signale.push({
+      art: "geraet_mehrfach",
+      gewicht: Math.min(3, Math.max(1, Math.round(zahl(e, "geraet_gewicht")))) as 1 | 2 | 3,
+      erlaeuterung: `${vomGeraet} weitere Abgaben aus demselben Browser in 24 Stunden`,
     });
   }
 

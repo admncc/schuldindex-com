@@ -43,6 +43,7 @@ function umgebung(teil: Partial<Umgebung> = {}): Umgebung {
     findeKonto: vi.fn(async () => null),
     legeKontoAn: vi.fn(async () => ({ id: "k1", verifiziertAm: null })),
     hatBereitsBewertet: vi.fn(async () => false),
+    merkeEmpfehlung: vi.fn(async () => {}),
     holeZaehler: vi.fn(async () => ({
       abgabenLetzteZehnMinuten: 1,
       schulenLetzte24Stunden: 1,

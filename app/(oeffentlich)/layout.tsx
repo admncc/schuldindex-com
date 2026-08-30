@@ -1,12 +1,24 @@
+import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
+import { EMPFEHLUNGSCOOKIE } from "@/domain/empfehlung";
+import { GERAETECOOKIE } from "@/domain/geraetekennung";
 import { Markenzeichen } from "./marke";
+import { Kennungsspiegel } from "./kennung";
 
 /** Kopf- und Fußzeile des öffentlichen Portals. */
 export default async function OeffentlichesLayout({ children }: { children: React.ReactNode }) {
   const t = await getTranslations();
 
+  // Beide Kennungen kommen aus dem Cookie und gehen an den Spiegel weiter, der
+  // sie im Local Storage sichert. Gesetzt werden sie in `middleware.ts`
+  // beziehungsweise beim Aufruf eines Empfehlungslinks.
+  const speicher = await cookies();
+  const geraet = speicher.get(GERAETECOOKIE)?.value ?? null;
+  const refcode = speicher.get(`${EMPFEHLUNGSCOOKIE}_spiegel`)?.value ?? null;
+
   return (
     <>
+      <Kennungsspiegel geraet={geraet} refcode={refcode} />
       <header className="kopf">
         <div className="huelle kopf-inhalt">
           <a className="marke" href="/">

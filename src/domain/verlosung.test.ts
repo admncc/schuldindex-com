@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  GEWINNE,
   baueLose,
   erzeugeZufallswert,
   letzterMonat,
   monatsname,
   monatszeitraum,
+  pruefeMehrfachziehung,
   pruefeZiehung,
-  ziehe,
-  ziehungsmeldung,
+  teilnahmeAn,
   type Teilnahme,
+  ziehe,
+  zieheMehrere,
+  ziehungsmeldung,
 } from "./verlosung";
 
 function teilnahme(kontoId: string, bewertungId: string, rolle = "schueler_ab_16"): Teilnahme {
@@ -195,5 +199,70 @@ describe("ziehungsmeldung", () => {
     const text = ziehungsmeldung("August 2026", 1, true);
     expect(text).toContain("hat 1 Konto teilgenommen");
     expect(text).not.toContain("Konten");
+  });
+});
+
+describe("Drei Ziehungen", () => {
+  it("nennt die Gewinne, die auf den Seiten stehen", () => {
+    expect(GEWINNE.normal).toEqual({ anzahl: 50, wertEuro: 50, mindestEmpfehlungen: 0 });
+    expect(GEWINNE.super).toEqual({ anzahl: 25, wertEuro: 100, mindestEmpfehlungen: 1 });
+    expect(GEWINNE.mega).toEqual({ anzahl: 1, wertEuro: 1000, mindestEmpfehlungen: 100 });
+  });
+
+  it("lässt ohne Empfehlung nur die normale Ziehung zu", () => {
+    expect(teilnahmeAn(0, false)).toEqual(["normal"]);
+  });
+
+  it("nimmt ab einer geworbenen Person die Superverlosung dazu", () => {
+    expect(teilnahmeAn(1, false)).toEqual(["normal", "super"]);
+    expect(teilnahmeAn(99, false)).toEqual(["normal", "super"]);
+  });
+
+  it("nimmt ab hundert geworbenen Personen die Mega-Verlosung dazu", () => {
+    expect(teilnahmeAn(100, false)).toEqual(["normal", "super", "mega"]);
+  });
+
+  it("nimmt frühere Gewinner aus der normalen Ziehung, nicht aus den anderen", () => {
+    // Sonst gewinnt auf Dauer, wer am längsten dabei ist - und für alle
+    // anderen wird die Chance kleiner statt größer.
+    expect(teilnahmeAn(0, true)).toEqual([]);
+    expect(teilnahmeAn(3, true)).toEqual(["super"]);
+    expect(teilnahmeAn(150, true)).toEqual(["super", "mega"]);
+  });
+});
+
+describe("zieheMehrere", () => {
+  const lose = Array.from({ length: 200 }, (_, i) => ({
+    kontoId: `konto-${String(i).padStart(3, "0")}`,
+    bewertungIds: [`b-${i}`],
+  }));
+  const wert = "a".repeat(64);
+
+  it("zieht so viele Gewinner wie gefordert, ohne Wiederholung", () => {
+    const z = zieheMehrere(lose, wert, 50);
+    expect(z.gewinner).toHaveLength(50);
+    expect(new Set(z.gewinner.map((g) => g.los.kontoId)).size).toBe(50);
+    expect(z.loseGesamt).toBe(200);
+  });
+
+  it("ist nachrechenbar", () => {
+    const a = zieheMehrere(lose, wert, 25).gewinner.map((g) => g.los.kontoId);
+    const b = zieheMehrere(lose, wert, 25).gewinner.map((g) => g.los.kontoId);
+    expect(a).toEqual(b);
+    expect(pruefeMehrfachziehung(lose, wert, 25, a)).toBe(true);
+    expect(pruefeMehrfachziehung(lose, wert, 25, [...a].reverse())).toBe(false);
+  });
+
+  it("führt bei anderem Zufallswert zu anderen Gewinnern", () => {
+    const a = zieheMehrere(lose, wert, 10).gewinner.map((g) => g.los.kontoId);
+    const b = zieheMehrere(lose, "b".repeat(64), 10).gewinner.map((g) => g.los.kontoId);
+    expect(a).not.toEqual(b);
+  });
+
+  it("gibt bei zu wenigen Losen alle aus und erfindet keine", () => {
+    // 50 Gutscheine unter 12 Teilnehmenden bleiben 12 Gewinner.
+    const zwoelf = lose.slice(0, 12);
+    expect(zieheMehrere(zwoelf, wert, 50).gewinner).toHaveLength(12);
+    expect(zieheMehrere([], wert, 50).gewinner).toHaveLength(0);
   });
 });

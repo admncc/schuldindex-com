@@ -122,6 +122,28 @@ export const KATALOG: readonly Einstellungsbeschreibung[] = [
     max: 1,
   },
   {
+    schluessel: "geraet_hoechstzahl",
+    gruppe: "menge",
+    label: "Abgaben aus demselben Browser in 24 Stunden",
+    hilfe:
+      "Ab dieser Zahl gilt die nächste Abgabe aus demselben Browser als auffällig. Nicht zu streng einstellen: In einer Familie, einem Computerraum oder an einem geteilten Rechner sind mehrere Abgaben der Normalfall. Die Kennung dahinter ist Zufall und in zehn Sekunden zurückgesetzt - sie fängt den bequemen Fall, nicht den entschlossenen.",
+    art: "ganzzahl",
+    vorgabe: 5,
+    min: 2,
+    max: 50,
+  },
+  {
+    schluessel: "geraet_gewicht",
+    gruppe: "gewichtung",
+    label: "Gewicht: viele Abgaben aus demselben Browser",
+    hilfe:
+      "Wie schwer die Häufung aus einem Browser wiegt. Klein halten - sie ist ein Hinweis, kein Nachweis.",
+    art: "ganzzahl",
+    vorgabe: 1,
+    min: 1,
+    max: 3,
+  },
+  {
     schluessel: "tempo_sekunden_je_frage",
     gruppe: "tempo",
     label: "Mindestzeit je Frage",

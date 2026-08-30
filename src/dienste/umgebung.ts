@@ -17,6 +17,7 @@ import { versandkette } from "../versand/wege";
 import { holeEinstellungen } from "../db/einstellungen";
 import type { Kontaktart } from "../domain/kontakt";
 import type { Punkt } from "../domain/geopruefung";
+import { kontoZuCode, merkeEmpfehlung as merkeEmpfehlungInDb } from "../db/empfehlungen";
 
 /** Wörter, deren Auftauchen im Freitext eine Prüfung durch Menschen auslöst. */
 const VERBOTEN =
@@ -61,18 +62,22 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
       return (zeile?.n ?? 0) > 0;
     },
 
-    async holeZaehler(kontoId, schuleId) {
-      const [zeile] = await sql<{ zehn: number; tag: number; stunde: number }[]>`
+    async holeZaehler(kontoId, schuleId, geraetHash) {
+      const [zeile] = await sql<{ zehn: number; tag: number; stunde: number; geraet: number }[]>`
         select
           (select count(*)::int from bewertungen
              where konto_id = ${kontoId} and erstellt_am > now() - interval '10 minutes') as zehn,
           (select count(distinct schule_id)::int from bewertungen
              where konto_id = ${kontoId} and erstellt_am > now() - interval '24 hours') as tag,
           (select count(*)::int from bewertungen
-             where schule_id = ${schuleId} and erstellt_am > now() - interval '1 hour') as stunde
+             where schule_id = ${schuleId} and erstellt_am > now() - interval '1 hour') as stunde,
+          (select case when ${geraetHash}::text is null then 0 else count(*)::int end
+             from bewertungen
+             where geraet_hash = ${geraetHash} and erstellt_am > now() - interval '24 hours') as geraet
       `;
       return {
         abgabenLetzteZehnMinuten: zeile?.zehn ?? 0,
+        abgabenVonDiesemGeraet: zeile?.geraet ?? 0,
         schulenLetzte24Stunden: zeile?.tag ?? 0,
         bewertungenDieserSchuleLetzteStunde: zeile?.stunde ?? 0,
       };
@@ -99,7 +104,7 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
             schule_id, konto_id, rolle, klassenstufe, abgangsjahr, status,
             datenschutz_einwilligung_am, eltern_einwilligung_am, einwilligung_fassung,
             geo_entfernung_km, geo_unbekannt, verlosung_teilnahme, signale, signalpunkte,
-            klickmuster, klickfolge
+            klickmuster, klickfolge, geraet_hash
           ) values (
             ${daten.schuleId}, ${daten.kontoId}, ${daten.eingabe.rolle!}::rolle,
             ${daten.eingabe.klassenstufe}, ${daten.eingabe.abgangsjahr},
@@ -109,7 +114,8 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
             ${daten.eingabe.verlosungTeilnahme},
             ${sql.json(daten.signale as never)}, ${daten.signalpunkte},
             ${daten.klick === null ? null : sql.json(daten.klick as never)},
-            ${daten.klickfolge === null ? null : sql.json(daten.klickfolge as never)}
+            ${daten.klickfolge === null ? null : sql.json(daten.klickfolge as never)},
+            ${daten.geraetHash}
           ) returning id
         `;
 
@@ -159,6 +165,20 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
         mittel: zeile?.mittel == null ? null : Number(zeile.mittel),
         anzahl: zeile?.anzahl ?? 0,
       };
+    },
+
+    /**
+     * Die Empfehlung festhalten - oder es lassen.
+     *
+     * Ein unbekannter Code ist kein Fehler: Er kann aus einem alten Cookie
+     * stammen, aus einem abgetippten Link mit Zahlendreher oder von einem
+     * Konto, das es nicht mehr gibt. Die Bewertung ist zu diesem Zeitpunkt
+     * gespeichert, und daran soll das nichts ändern.
+     */
+    async merkeEmpfehlung(code, kontoId, bewertungId) {
+      const werber = await kontoZuCode(code);
+      if (werber === null) return;
+      await merkeEmpfehlungInDb(werber, kontoId, bewertungId);
     },
 
     async sendeBestaetigung(empfaenger, art, token) {

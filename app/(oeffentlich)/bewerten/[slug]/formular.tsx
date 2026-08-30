@@ -31,6 +31,8 @@ import {
   ZUSCHLAG_JE_FREIWILLIGER_BEREICH,
   hoechstwert,
 } from "@/domain/scoring";
+import { GEWINNE } from "@/domain/verlosungsgewinne";
+import { gesicherteKennungen } from "../../kennung";
 
 const ZAHL = new Intl.NumberFormat("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
@@ -211,7 +213,16 @@ export function Bewertungsformular({
         {
           method: aenderung === undefined ? "POST" : "PATCH",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ ...eingabe, stempel, klickabstaende: abstaende.current }),
+          // Die im Browser gesicherten Kennungen gehen mit: Der Server nimmt
+          // sie **nur**, wenn der zugehörige Cookie fehlt - sonst könnte sich
+          // jeder in der Konsole eine Empfehlung ausdenken
+          // (`domain/geraetekennung.ts`).
+          body: JSON.stringify({
+            ...eingabe,
+            stempel,
+            klickabstaende: abstaende.current,
+            gesichert: gesicherteKennungen(),
+          }),
         },
       );
       const ergebnis = (await antwort.json()) as
@@ -471,7 +482,8 @@ export function Bewertungsformular({
                 <label className="ankreuzfeld">
                   <input type="checkbox" checked={verlosung} onChange={(e) => setVerlosung(e.target.checked)} />
                   <span>
-                    Ich möchte an der monatlichen Verlosung teilnehmen und habe die{" "}
+                    Ich möchte an der monatlichen Verlosung teilnehmen ({GEWINNE.normal.anzahl}{" "}
+                    Gutscheine über je {GEWINNE.normal.wertEuro} Euro) und habe die{" "}
                     <a href="/verlosung" target="_blank" rel="noopener">Teilnahmebedingungen</a>{" "}
                     gelesen. Ein Los je Konto und Monat.
                   </span>

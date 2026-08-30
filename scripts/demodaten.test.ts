@@ -7,16 +7,25 @@
  * Bewertung mit. Deshalb legt der Test von beidem etwas an und sieht danach
  * nach, was übrig ist.
  *
- * **Achtung:** Der Test ruft dieselbe Funktion auf wie der Knopf im Panel, und
- * die löscht *alle* Demodaten - auch die aus `scripts/demodaten.ts`. Das ist
- * gewollt: eine abgeschwächte Fassung würde nicht prüfen, was im Betrieb
- * passiert. Der Bestand ist in zwanzig Sekunden neu erzeugt.
+ * **Der Test löscht den gesamten Demobestand.** Er ruft dieselbe Funktion auf
+ * wie der Knopf im Panel, und die nimmt alles mit, was `ist_demo` trägt - auch
+ * die 900 Bewertungen aus `scripts/demodaten.ts`.
+ *
+ * Deshalb läuft er nur auf ausdrückliche Aufforderung:
+ *
+ *   DEMODATEN_LOESCHTEST=1 DATABASE_URL=postgres://… npx vitest run scripts/demodaten.test.ts
+ *
+ * Ohne diese Angabe wird er übersprungen. Der Grund ist Erfahrung: Ein
+ * gewöhnliches `npm test` gegen die Entwicklungsdatenbank räumte zweimal
+ * hintereinander den ganzen Demobestand ab, und beide Male fiel es erst auf,
+ * als Ranglisten und Karte leer waren. Ein Test, der als Nebenwirkung Daten
+ * löscht, gehört nicht in den Standardlauf.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import postgres from "postgres";
 
 const URL = process.env["DATABASE_URL"] ?? "";
-const vorhanden = URL !== "";
+const vorhanden = URL !== "" && process.env["DEMODATEN_LOESCHTEST"] === "1";
 const KENNUNG = "demotest";
 
 let sql: postgres.Sql;

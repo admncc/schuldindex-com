@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import { letzteZiehungen } from "@/db/verlosung";
-import { monatsname, ziehungsmeldung } from "@/domain/verlosung";
+import {
+  GEWINNE,
+  PARTNER,
+  VERLOSUNGSARTEN,
+  VERLOSUNG_LABEL,
+  monatsname,
+  ziehungsmeldung,
+} from "@/domain/verlosung";
 import { betreiber } from "@/recht/betreiber";
 import { Fehlt } from "../rechtsteile";
 
@@ -22,7 +29,41 @@ export default async function Verlosungsseite() {
       <p>
         Wer eine Schule bewertet und Schülerin oder Schüler ist, kann an der monatlichen
         Verlosung teilnehmen. Die Teilnahme ist freiwillig und kostenlos; die Bewertung zählt
-        genauso, wenn du das Kästchen nicht ankreuzt.
+        genauso, wenn du das Kästchen nicht ankreuzt. Ausgespielt werden Gutscheine von{" "}
+        {PARTNER}, einlösbar in über 500 Geschäften.
+      </p>
+
+      <h2>Drei Ziehungen im Monat</h2>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Ziehung</th>
+            <th scope="col">Gewinne</th>
+            <th scope="col">Wer dabei ist</th>
+          </tr>
+        </thead>
+        <tbody>
+          {VERLOSUNGSARTEN.map((art) => (
+            <tr key={art}>
+              <td>{VERLOSUNG_LABEL[art]}</td>
+              <td>
+                {GEWINNE[art].anzahl} × {GEWINNE[art].wertEuro} Euro
+              </td>
+              <td>
+                {art === "normal"
+                  ? "Alle, die bewertet und teilgenommen haben. Wer hier einmal gewonnen hat, ist bei den weiteren Ziehungen dieser Art nicht mehr dabei."
+                  : GEWINNE[art].mindestEmpfehlungen === 1
+                    ? "Wer im selben Monat mindestens eine Person über den eigenen Link geworben hat, deren Bewertung veröffentlicht wurde."
+                    : `Wer im selben Monat mindestens ${GEWINNE[art].mindestEmpfehlungen} Personen über den eigenen Link geworben hat, deren Bewertungen veröffentlicht wurden.`}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>
+        Den eigenen Link bekommst du, sobald deine Bewertung bestätigt ist. Er zählt erst, wenn
+        jemand darüber <strong>bewertet</strong> und die Bewertung veröffentlicht wird - ein
+        Klick allein bringt nichts, sonst wäre die Superverlosung eine Klickzählung.
       </p>
 
       <h2>Teilnahmebedingungen</h2>
@@ -31,6 +72,11 @@ export default async function Verlosungsseite() {
           <strong>Wer teilnehmen kann:</strong> Schülerinnen und Schüler, die eine Bewertung
           abgegeben und bestätigt haben. Andere Rollen - Eltern, Lehrkräfte, Ehemalige - sind
           ausgeschlossen.
+        </li>
+        <li>
+          <strong>Wer schon gewonnen hat</strong>, nimmt an der monatlichen Verlosung nicht
+          erneut teil - an Super- und Mega-Verlosung dagegen weiterhin. Die belohnen nicht das
+          Bewerten, sondern das Weitersagen.
         </li>
         <li>
           <strong>Ein Los je Konto und Monat.</strong> Auch wer mehrere Schulen bewertet, hat ein
@@ -85,6 +131,7 @@ export default async function Verlosungsseite() {
         <table>
           <thead>
             <tr>
+              <th scope="col">Ziehung</th>
               <th scope="col">Monat</th>
               <th scope="col">Teilnehmende Konten</th>
               <th scope="col">Gezogen am</th>
@@ -94,6 +141,7 @@ export default async function Verlosungsseite() {
           <tbody>
             {ziehungen.map((z) => (
               <tr key={z.id}>
+                <td>{VERLOSUNG_LABEL[z.art]}</td>
                 <td>{monatsname(z.jahr, z.monat)}</td>
                 <td>{z.lose_gesamt.toLocaleString("de-DE")}</td>
                 <td>{DATUM.format(z.gezogen_am)}</td>

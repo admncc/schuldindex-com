@@ -45,9 +45,52 @@ export default function Datenschutzseite() {
       <p>
         Diese Seiten laden <strong>nichts von fremden Servern</strong> - keine Schriften, keine
         Kartenkacheln, keine Analysewerkzeuge, keine Werbenetzwerke. Deine IP-Adresse geht damit
-        an niemanden außer an den Server, der die Seite ausliefert. Es werden auch keine Cookies
-        gesetzt, solange du dich nicht anmeldest; das einzige Cookie im ganzen Portal ist das
-        Sitzungscookie der internen Moderation.
+        an niemanden außer an den Server, der die Seite ausliefert. Es gibt keine Werbe- und keine
+        Analysecookies, und es wird nichts an Dritte weitergegeben.
+      </p>
+
+      <h3>2.1 Was auf deinem Gerät gespeichert wird</h3>
+      <p>
+        Drei Dinge legen wir auf deinem Gerät ab - als Cookie und, damit sie nicht verlorengehen,
+        zusätzlich im lokalen Speicher deines Browsers. Alle drei sind für den Betrieb dieses
+        Portals erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG); eine Einwilligung brauchen wir dafür
+        nicht, weil das Portal ohne sie seine eigene Zusage nicht halten kann.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Was</th>
+            <th scope="col">Wozu</th>
+            <th scope="col">Wie lange</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Gerätekennung (Zufallszahl)</td>
+            <td>
+              Erkennen, ob viele Bewertungen aus demselben Browser kommen. Sie sagt nichts über
+              dich aus und wird nur als Abdruck gespeichert; ein privates Fenster hat eine neue.
+            </td>
+            <td>1 Jahr</td>
+          </tr>
+          <tr>
+            <td>Empfehlungskennung</td>
+            <td>
+              Nur wenn du über den Link einer anderen Person kommst: damit ihre Empfehlung zählt,
+              sobald deine Bewertung veröffentlicht wird.
+            </td>
+            <td>30 Tage</td>
+          </tr>
+          <tr>
+            <td>Sitzungscookie</td>
+            <td>Anmeldung bei „Deine Bewertungen“, im Schulzugang und in der Moderation.</td>
+            <td>bis zur Abmeldung</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Löschen kannst du beides jederzeit über die Einstellungen deines Browsers („Website-Daten
+        löschen“). Die Bewertung selbst bleibt davon unberührt.
       </p>
       <p>
         Beim Ausliefern entstehen Zugriffsprotokolle des Servers (IP-Adresse, Zeitpunkt,

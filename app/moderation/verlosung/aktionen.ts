@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { gewinnerkontakt, merkeBenachrichtigung, ziehen } from "@/db/verlosung";
-import { monatsname } from "@/domain/verlosung";
+import { GEWINNE, VERLOSUNG_LABEL, istVerlosungsart, monatsname } from "@/domain/verlosung";
 import { verlangeAnmeldung } from "../sitzung";
 
 export interface Ziehungszustand {
@@ -30,8 +30,12 @@ export async function monatZiehen(
 
   const jahr = Number(formular.get("jahr"));
   const monat = Number(formular.get("monat"));
+  const rohArt = String(formular.get("art") ?? "normal");
   if (!Number.isInteger(jahr) || !Number.isInteger(monat) || monat < 1 || monat > 12) {
     return { meldung: "Bitte wähle einen gültigen Monat.", versuch };
+  }
+  if (!istVerlosungsart(rohArt)) {
+    return { meldung: "Diese Ziehung gibt es nicht.", versuch };
   }
 
   // Ein laufender Monat wird nicht gezogen: es kämen laufend Lose hinzu, und
@@ -42,7 +46,7 @@ export async function monatZiehen(
     return { meldung: "Dieser Monat läuft noch. Gezogen wird erst nach seinem Ende.", versuch };
   }
 
-  const ergebnis = await ziehen(jahr, monat, moderatorin.id);
+  const ergebnis = await ziehen(jahr, monat, moderatorin.id, rohArt);
   if (!ergebnis.ok) {
     return {
       meldung:
@@ -59,17 +63,20 @@ export async function monatZiehen(
   return {
     erfolg:
       ergebnis.ziehung.gewinner_konto_id === null
-        ? `${monatsname(jahr, monat)}: keine Teilnahmen. Der Monat ist vermerkt.`
-        : `${monatsname(jahr, monat)}: Los ${ergebnis.ziehung.gewinner_index! + 1} von ${ergebnis.ziehung.lose_gesamt} gezogen.`,
+        ? `${VERLOSUNG_LABEL[rohArt]} ${monatsname(jahr, monat)}: keine Teilnahmen. Der Monat ist vermerkt.`
+        : `${VERLOSUNG_LABEL[rohArt]} ${monatsname(jahr, monat)}: ${Math.min(
+            GEWINNE[rohArt].anzahl,
+            ergebnis.ziehung.lose_gesamt,
+          )} von ${ergebnis.ziehung.lose_gesamt} Losen gezogen.`,
     versuch,
   };
 }
 
 /** Zeigt den Kontakt der gewinnenden Person - für die Benachrichtigung von Hand. */
-export async function kontaktZeigen(ziehungId: string): Promise<string | null> {
+export async function kontaktZeigen(gewinnId: string): Promise<string | null> {
   const moderatorin = await verlangeAnmeldung();
   if (moderatorin.rolle !== "leitung") return null;
-  return (await gewinnerkontakt(ziehungId))?.klartext ?? null;
+  return (await gewinnerkontakt(gewinnId))?.klartext ?? null;
 }
 
 /**
@@ -81,7 +88,7 @@ export async function kontaktZeigen(ziehungId: string): Promise<string | null> {
  */
 export async function benachrichtigungVermerken(formular: FormData): Promise<void> {
   await verlangeAnmeldung();
-  const id = String(formular.get("ziehung") ?? "");
+  const id = String(formular.get("gewinn") ?? "");
   if (id !== "") await merkeBenachrichtigung(id);
   revalidatePath("/moderation/verlosung");
 }

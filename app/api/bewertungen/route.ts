@@ -6,8 +6,16 @@ import { pruefeStempel, STEMPEL_HINWEIS } from "@/domain/formularstempel";
 import { MAX_ABSTAENDE } from "@/domain/klickmuster";
 import { absenderadresse, ortungFuerIp } from "@/geo/mmdb";
 import { zaehle } from "@/domain/drosselung";
+import { cookies } from "next/headers";
+import { EMPFEHLUNGSCOOKIE, istEmpfehlungscode } from "@/domain/empfehlung";
+import { GERAETECOOKIE, gueltigeKennung } from "@/domain/geraetekennung";
 
-type Anfragekoerper = Bewertungseingabe & { stempel?: string; klickabstaende?: unknown };
+type Anfragekoerper = Bewertungseingabe & {
+  stempel?: string;
+  klickabstaende?: unknown;
+  /** Was der Browser aus dem Local Storage mitschickt - siehe unten. */
+  gesichert?: { geraet?: unknown; refcode?: unknown };
+};
 
 /**
  * Nimmt die gemeldeten Klickabstände entgegen - und nur das, was auch eine
@@ -91,6 +99,30 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
   // stillschweigendes Nichts: Vorher war „Stempel weglassen“ der einfachste
   // Weg, die Tempoprüfung und die Plausibilisierung der Klickfolge zugleich
   // abzuschalten.
+  /**
+   * Empfehlungscode und Gerätekennung.
+   *
+   * **Der Cookie gilt.** Der Wert aus dem Local Storage springt nur ein, wenn
+   * der Cookie fehlt - er kommt aus dem Browser und ließe sich in der Konsole
+   * beliebig setzen. Als alleinige Quelle wäre er eine Einladung, sich selbst
+   * zu werben; als Rückfall rettet er die Empfehlung, wenn Safari den Cookie
+   * nach sieben Tagen kappt oder der Link in einer App geöffnet wurde.
+   */
+  const kekse = await cookies();
+  const gesichert = eingabe.gesichert ?? {};
+  const codeAusCookie = kekse.get(EMPFEHLUNGSCOOKIE)?.value ?? null;
+  const codeAusSpeicher = typeof gesichert.refcode === "string" ? gesichert.refcode : null;
+  const empfehlungscode = istEmpfehlungscode(codeAusCookie)
+    ? codeAusCookie
+    : istEmpfehlungscode(codeAusSpeicher)
+      ? codeAusSpeicher
+      : null;
+
+  const geraet = gueltigeKennung(
+    kekse.get(GERAETECOOKIE)?.value,
+    typeof gesichert.geraet === "string" ? gesichert.geraet : null,
+  );
+
   const slug = typeof eingabe.schulSlug === "string" ? eingabe.schulSlug : "";
   const stempel = typeof eingabe.stempel === "string" ? pruefeStempel(eingabe.stempel, slug) : null;
   const dauerSekunden = stempel?.ok ? stempel.dauerSekunden : null;
@@ -108,7 +140,14 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
 
   try {
     const ergebnis = await bewertungAbgeben(
-      { ...eingabe, dauerSekunden, stempelFehlt, klickabstaende: klickabstaende(eingabe.klickabstaende) },
+      {
+        ...eingabe,
+        dauerSekunden,
+        stempelFehlt,
+        empfehlungscode,
+        geraetekennung: geraet,
+        klickabstaende: klickabstaende(eingabe.klickabstaende),
+      },
       umgebungMitDatenbank(basis, ortung),
     );
     return NextResponse.json(ergebnis, { status: ergebnis.ok ? 201 : 422 });
