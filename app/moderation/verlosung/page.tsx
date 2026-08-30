@@ -185,10 +185,28 @@ export default async function Verlosungsseite() {
                         ) : (
                           <span className="gedaempft">Kontakt sieht die Leitung.</span>
                         )}
-                        {g.benachrichtigtAm ? (
-                          <span className="gedaempft">
-                            benachrichtigt {ZEIT.format(g.benachrichtigtAm)}
-                          </span>
+                        {/* Der Vermerk lässt sich zurücknehmen. Vorher war ein
+                            Fehlklick endgültig: Die Person galt als versorgt
+                            und bekam nie etwas, und im Protokoll stand nichts,
+                            woran man das hätte sehen können. */}
+                        {moderatorin.rolle !== "leitung" ? (
+                          g.benachrichtigtAm ? (
+                            <span className="gedaempft">
+                              benachrichtigt {ZEIT.format(g.benachrichtigtAm)}
+                            </span>
+                          ) : (
+                            <span className="gedaempft">offen</span>
+                          )
+                        ) : g.benachrichtigtAm ? (
+                          <form action={benachrichtigungVermerken}>
+                            <input type="hidden" name="gewinn" value={g.id} />
+                            <span className="gedaempft">
+                              benachrichtigt {ZEIT.format(g.benachrichtigtAm)}
+                            </span>
+                            <button name="zuruecknehmen" value="1" className="knopf schlicht klein">
+                              zurücknehmen
+                            </button>
+                          </form>
                         ) : (
                           <form action={benachrichtigungVermerken}>
                             <input type="hidden" name="gewinn" value={g.id} />

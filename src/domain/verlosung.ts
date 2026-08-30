@@ -210,15 +210,42 @@ export function pruefeZiehung(
 }
 
 /** Dasselbe für eine Ziehung mit mehreren Gewinnern. */
+/**
+ * Drei Antworten, nicht zwei.
+ *
+ * `unvollstaendig` ist die dazugekommene: Seit Migration 0027 überlebt eine
+ * Gewinnzeile das Löschen des Kontos, dessen Kennung wird dabei geleert. Ein
+ * `boolean` musste dafür „stimmt nicht" sagen - ausgerechnet über eine
+ * Ziehung, von der dieselbe Migration zusagt, sie bleibe nachrechenbar. Und
+ * über Ziehungen von vor 0025, die noch mit `ziehe` gezogen wurden und deren
+ * Gewinner gar nicht in `verlosungsgewinne` stehen.
+ *
+ * Geprüft wird deshalb Platz für Platz: Wo eine Kennung steht, muss sie zur
+ * erwarteten passen; wo keine steht, ist der Platz nicht prüfbar. Weicht ein
+ * prüfbarer Platz ab, ist das Ergebnis `weicht_ab` - eine Lücke entschuldigt
+ * keinen Widerspruch.
+ */
+export type Ziehungspruefung = "stimmt" | "unvollstaendig" | "weicht_ab";
+
 export function pruefeMehrfachziehung(
   lose: readonly Los[],
   zufallswert: string,
   anzahl: number,
-  gewinnerKontoIds: readonly string[],
-): boolean {
+  gewinnerKontoIds: readonly (string | null)[],
+): Ziehungspruefung {
   const erwartet = zieheMehrere(lose, zufallswert, anzahl).gewinner.map((g) => g.los.kontoId);
-  if (erwartet.length !== gewinnerKontoIds.length) return false;
-  return erwartet.every((id, i) => id === gewinnerKontoIds[i]);
+  if (erwartet.length !== gewinnerKontoIds.length) return "weicht_ab";
+
+  let luecke = false;
+  for (const [i, id] of erwartet.entries()) {
+    const gespeichert = gewinnerKontoIds[i];
+    if (gespeichert === null || gespeichert === undefined) {
+      luecke = true;
+      continue;
+    }
+    if (gespeichert !== id) return "weicht_ab";
+  }
+  return luecke ? "unvollstaendig" : "stimmt";
 }
 
 /**
@@ -235,6 +262,15 @@ export function ziehungsmeldung(
   benachrichtigt: number,
 ): string {
   if (gewinne === 0) {
+    // Nicht allein an `gewinne` entscheiden: Sind alle Gewinnerkonten gelöscht
+    // oder stammt die Ziehung von vor der Umstellung auf mehrere Gewinner,
+    // steht `gewinne` auf 0, obwohl Lose im Topf waren. Die Seite behauptete
+    // dann vor zehn Teilnehmenden, es habe sie nicht gegeben.
+    if (loseGesamt > 0) {
+      return `Für ${monat} wurde aus ${loseGesamt} ${
+        loseGesamt === 1 ? "Los" : "Losen"
+      } gezogen. Wer gewonnen hat, ist hier nicht mehr hinterlegt.`;
+    }
     return `Für ${monat} lagen keine Teilnahmen vor. Es wurde nicht gezogen.`;
   }
 

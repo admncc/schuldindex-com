@@ -61,7 +61,30 @@ export default async function Bestaetigungsseite({
       : null,
   );
 
-  if (!ergebnis.ok) {
+  /**
+   * Ein zweiter Aufruf desselben Links ist keine Fehlbedienung.
+   *
+   * Der Hauptkontaktweg ist WhatsApp, und WhatsApp lädt den Link für die
+   * Vorschau, bevor ihn ein Mensch antippt. Der Abruf verbrauchte das Token -
+   * die Person, die danach selbst klickte, las „Link nicht mehr gültig.
+   * Fordere dir einen neuen an", sah den Teilen-Bereich nie und konnte auch
+   * nichts nachfordern. Dasselbe beim schlichten Neuladen der Dankeseite.
+   *
+   * Beim Anmeldelink ist genau das seit Langem bedacht (`src/db/konto.ts`).
+   * Hier nicht - obwohl es der Weg ist, den fast alle nehmen.
+   *
+   * Ein verbrauchtes Token innerhalb seiner ursprünglichen Gültigkeit zeigt
+   * deshalb weiter die Dankeseite. Es schaltet dabei nichts frei und legt
+   * keine Sitzung an; es zeigt, was der erste Aufruf schon gezeigt hat. Ist es
+   * abgelaufen oder unbekannt, bleibt es bei der Fehlermeldung.
+   */
+  const schonBestaetigt =
+    !ergebnis.ok &&
+    ergebnis.grund === "verbraucht" &&
+    gespeichert !== undefined &&
+    gespeichert.gueltig_bis.getTime() > Date.now();
+
+  if (!ergebnis.ok && !schonBestaetigt) {
     return <Rueckmeldung titel="Link nicht mehr gültig" text={PRUEFUNG_HINWEIS[ergebnis.grund]} />;
   }
 
@@ -75,7 +98,9 @@ export default async function Bestaetigungsseite({
   // Erstabgabe ungeprüft durch - mit einer frischen E-Mail-Adresse also jede.
   const schwelle = zahl(await holeEinstellungen(), "halteschwelle");
 
-  const bearbeitet = await sql.begin(async (tx) => {
+  const bearbeitet = schonBestaetigt
+    ? { gesamt: 0, veroeffentlicht: 0 }
+    : await sql.begin(async (tx) => {
     await tx`update verifizierungstoken set verbraucht_am = now() where id = ${gespeichert!.id}`;
     await tx`update konten set verifiziert_am = coalesce(verifiziert_am, now()) where id = ${gespeichert!.konto_id}`;
 

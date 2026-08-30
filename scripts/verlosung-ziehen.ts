@@ -53,7 +53,13 @@ try {
       console.log(
         `${VERLOSUNG_LABEL[art]} ${monatsname(jahr, monat)}: ${z.lose_gesamt} Lose, Zufallswert ${z.zufallswert}`,
       );
-      console.log(ergebnis ? "Die Ziehung rechnet sich nach." : "ACHTUNG: Die Ziehung rechnet sich NICHT nach.");
+      console.log(
+        ergebnis === "stimmt"
+          ? "Die Ziehung rechnet sich nach."
+          : ergebnis === "unvollstaendig"
+            ? "Teilweise nachgerechnet: Zu einzelnen Plätzen fehlt die Kennung (gelöschtes Konto oder Altziehung). Was prüfbar war, stimmt."
+            : "ACHTUNG: Die Ziehung rechnet sich NICHT nach.",
+      );
     }
   } else {
     const vorschau = baueLose(await teilnahmen(jahr, monat, art));
@@ -77,7 +83,7 @@ try {
       } else {
         console.log(`Gezogen: ${gezogene.length} von ${ergebnis.ziehung.lose_gesamt} Losen`);
         for (const g of gezogene) {
-          const kontakt = await gewinnerkontakt(g.id);
+          const kontakt = await gewinnerkontakt(g.id, null);
           console.log(`  ${g.platz}. ${kontakt?.verschleiert ?? "unbekannt"} (${kontakt?.art ?? "-"})`);
         }
         console.log(`Zufallswert: ${ergebnis.ziehung.zufallswert}`);

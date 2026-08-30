@@ -82,6 +82,70 @@ export async function merkeEmpfehlung(
   return zeilen.length > 0;
 }
 
+/**
+ * Höchstens so viele zählende Empfehlungen je Werber und Gerät.
+ *
+ * Die Regel „Empfehlungen aus demselben Browser zählen nicht" verglich bisher
+ * nur gegen die Bewertungen **des Werbers**. Wer das Werberkonto auf dem Handy
+ * anlegt und danach hundert Strohkonten der Reihe nach im selben
+ * Laptop-Browser durchklickt, wurde von keiner Zeile erfasst: Keine der
+ * hundert Kennungen stimmt mit der des Handys überein. Kein privates Fenster,
+ * kein gelöschtes Cookie nötig.
+ *
+ * Gezählt werden deshalb zusätzlich die Geworbenen **untereinander**. Zwei je
+ * Gerät, nicht eins: In einer Familie oder im Computerraum ist derselbe
+ * Browser der Normalfall, und wer seine Schwester am eigenen Rechner bewerten
+ * lässt, soll dafür nicht bestraft werden. Hundert sind es dort nicht.
+ */
+export const HOECHSTENS_JE_GERAET = 2;
+
+/**
+ * Die Empfehlungen eines Zeitraums, die zählen - als Unterabfrage.
+ *
+ * **Eine Stelle für alle.** Vorher rechneten Kontoseite, Panel und Ziehung
+ * drei verschiedene Zahlen aus derselben Tabelle: Die Kontoseite filterte das
+ * gleiche Gerät heraus, das Panel nicht, und die Ziehung noch einmal anders.
+ * Im Panel stand dann die Plakette „Mega-Verlosung" an einem Konto, das die
+ * Ziehung gar nicht in den Topf nahm - eine Abweichung, die erst auffällt,
+ * wenn jemand reklamiert.
+ *
+ * Drei Bedingungen, alle drei aus der Missbrauchsabwehr:
+ *
+ *  - Die geworbene Bewertung ist **veröffentlicht**. Eine gehaltene oder
+ *    abgelehnte zählt nicht, sonst wäre die Ablehnung zu versilbern.
+ *  - Sie trägt eine **Gerätekennung**. Ohne sie liefe die Prüfung darunter ins
+ *    Leere (`null = null` ist nicht wahr), und weil die Kennung aus einem
+ *    Cookie kommt, das sich weglassen lässt, wäre das Weglassen die Umgehung.
+ *    Für die normale Verlosung bleibt eine solche Bewertung gültig - dort geht
+ *    es um die eigene Abgabe, nicht um eine Werbeprämie.
+ *  - Sie kommt **nicht** aus dem Browser des Werbers und nicht als dritte aus
+ *    demselben Browser wie zwei andere Geworbene desselben Werbers.
+ */
+export function zaehlendeEmpfehlungen(zeitraum: Zeitraum) {
+  return sql`
+    select k.id, k.werber_konto_id
+    from (
+      select e.id, e.werber_konto_id,
+             row_number() over (
+               partition by e.werber_konto_id, gb.geraet_hash
+               order by e.erstellt_am, e.id
+             ) as je_geraet
+      from empfehlungen e
+      join bewertungen gb on gb.id = e.bewertung_id
+      where e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}
+        and gb.status = 'freigegeben'
+        and gb.geraet_hash is not null
+        and not exists (
+          select 1 from bewertungen sb
+          where sb.konto_id = e.werber_konto_id
+            and sb.geraet_hash is not null
+            and sb.geraet_hash = gb.geraet_hash
+        )
+    ) k
+    where k.je_geraet <= ${HOECHSTENS_JE_GERAET}
+  `;
+}
+
 export interface Empfehlungsstand {
   /** Wie viele geworbene Personen bewertet haben - unabhängig vom Zustand. */
   readonly geworben: number;
@@ -97,23 +161,14 @@ export async function empfehlungsstand(
   if (!istKennung(kontoId)) return { geworben: 0, zaehlend: 0 };
 
   const [zeile] = await sql<{ geworben: number; zaehlend: number }[]>`
-    select count(*)::int as geworben,
-           -- Nur was auch in der Ziehung zählt: veröffentlicht und **nicht**
-           -- aus demselben Browser wie eine Bewertung des Werbers. Sonst
-           -- stünde hier eine Zahl, die die Ziehung später nicht anerkennt.
-           count(*) filter (
-             where b.status = 'freigegeben'
-               and not exists (
-                 select 1 from bewertungen sb
-                 where sb.konto_id = e.werber_konto_id
-                   and sb.geraet_hash is not null
-                   and sb.geraet_hash = b.geraet_hash
-               )
-           )::int as zaehlend
-    from empfehlungen e
-    left join bewertungen b on b.id = e.bewertung_id
-    where e.werber_konto_id = ${kontoId}
-      and e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}
+    select
+      (select count(*)::int from empfehlungen e
+       where e.werber_konto_id = ${kontoId}
+         and e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}) as geworben,
+      -- Genau die Menge, aus der die Ziehung rechnet. Stünde hier eine andere
+      -- Zahl, verspräche die Kontoseite eine Teilnahme, die es nicht gibt.
+      (select count(*)::int from (${zaehlendeEmpfehlungen(zeitraum)}) z
+       where z.werber_konto_id = ${kontoId}) as zaehlend
   `;
   return { geworben: zeile?.geworben ?? 0, zaehlend: zeile?.zaehlend ?? 0 };
 }
@@ -125,12 +180,12 @@ export async function empfehlungszahlen(zeitraum: Zeitraum): Promise<{
   werber: number;
 }> {
   const [zeile] = await sql<{ gesamt: number; zaehlend: number; werber: number }[]>`
-    select count(*)::int as gesamt,
-           count(*) filter (where b.status = 'freigegeben')::int as zaehlend,
-           count(distinct e.werber_konto_id)::int as werber
-    from empfehlungen e
-    left join bewertungen b on b.id = e.bewertung_id
-    where e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}
+    select
+      (select count(*)::int from empfehlungen e
+       where e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}) as gesamt,
+      (select count(*)::int from (${zaehlendeEmpfehlungen(zeitraum)}) z) as zaehlend,
+      (select count(distinct e.werber_konto_id)::int from empfehlungen e
+       where e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}) as werber
   `;
   return zeile ?? { gesamt: 0, zaehlend: 0, werber: 0 };
 }
@@ -205,11 +260,8 @@ export async function empfehlungsliste(
              false
            ) as gleiches_geraet,
            (
-             select count(*)::int from empfehlungen e2
-             join bewertungen b2 on b2.id = e2.bewertung_id
-             where e2.werber_konto_id = w.id
-               and b2.status = 'freigegeben'
-               and e2.erstellt_am >= ${zeitraum.von} and e2.erstellt_am < ${zeitraum.bis}
+             select count(*)::int from (${zaehlendeEmpfehlungen(zeitraum)}) z
+             where z.werber_konto_id = w.id
            ) as zaehlende
     from empfehlungen e
     join konten w on w.id = e.werber_konto_id
@@ -273,7 +325,11 @@ export async function topWerber(zeitraum: Zeitraum, grenze = 25): Promise<Werber
   >`
     select w.id as konto_id, w.empfehlungscode as code,
            count(*)::int as geworben,
-           count(*) filter (where b.status = 'freigegeben')::int as zaehlend,
+           -- Dieselbe Menge wie in der Ziehung, nicht bloss „veröffentlicht":
+           -- Sonst trägt die Plakette „Mega-Verlosung" an einem Konto, das die
+           -- Ziehung nicht aufnimmt.
+           (select count(*)::int from (${zaehlendeEmpfehlungen(zeitraum)}) z
+            where z.werber_konto_id = w.id)::int as zaehlend,
            count(*) filter (
              where exists (
                select 1 from bewertungen wb

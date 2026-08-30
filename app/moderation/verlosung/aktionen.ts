@@ -76,7 +76,7 @@ export async function monatZiehen(
 export async function kontaktZeigen(gewinnId: string): Promise<string | null> {
   const moderatorin = await verlangeAnmeldung();
   if (moderatorin.rolle !== "leitung") return null;
-  return (await gewinnerkontakt(gewinnId))?.klartext ?? null;
+  return (await gewinnerkontakt(gewinnId, moderatorin.id))?.klartext ?? null;
 }
 
 /**
@@ -87,8 +87,14 @@ export async function kontaktZeigen(gewinnId: string): Promise<string | null> {
  * niemand, ob die Benachrichtigung schon heraus ist.
  */
 export async function benachrichtigungVermerken(formular: FormData): Promise<void> {
-  await verlangeAnmeldung();
+  // Dieselbe Rolle wie beim Einsehen: Benachrichtigen kann nur, wer den
+  // Kontakt sieht, und ein Vermerk von jemandem, der ihn nie hatte, sagt
+  // nichts aus.
+  const moderatorin = await verlangeAnmeldung();
+  if (moderatorin.rolle !== "leitung") return;
+
   const id = String(formular.get("gewinn") ?? "");
-  if (id !== "") await merkeBenachrichtigung(id);
+  const zuruecknehmen = formular.get("zuruecknehmen") !== null;
+  if (id !== "") await merkeBenachrichtigung(id, moderatorin.id, !zuruecknehmen);
   revalidatePath("/moderation/verlosung");
 }

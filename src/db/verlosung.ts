@@ -10,6 +10,7 @@ import {
   erzeugeZufallswert,
   monatszeitraum,
   pruefeMehrfachziehung,
+  type Ziehungspruefung,
   ziehe,
   zieheMehrere,
   type Los,
@@ -18,6 +19,7 @@ import {
 } from "../domain/verlosung";
 import { entschluesseleWennMoeglich, verschleiere, type Kontaktart } from "../domain/kontakt";
 import { istKennung } from "../domain/kennung";
+import { zaehlendeEmpfehlungen } from "./empfehlungen";
 
 /**
  * Die Teilnahmen eines Monats.
@@ -80,27 +82,27 @@ export async function teilnahmen(
    * teilnehmende Bewertung hat - irgendwann, nicht in diesem Monat.
    */
   const werber = await sql<{ konto_id: string; bewertung_id: string; rolle: string }[]>`
-    select e.werber_konto_id as konto_id,
-           min(wb.id::text)::uuid as bewertung_id,
-           min(wb.rolle::text) as rolle
-    from empfehlungen e
-    join bewertungen gb on gb.id = e.bewertung_id and gb.status = 'freigegeben'
-    join bewertungen wb on wb.konto_id = e.werber_konto_id
-      and wb.verlosung_teilnahme and wb.status = 'freigegeben'
-    join konten wk on wk.id = e.werber_konto_id and wk.verifiziert_am is not null
-    where e.erstellt_am >= ${von} and e.erstellt_am < ${bis}
-      -- Eine Empfehlung aus demselben Browser zählt nicht. Wer sich selbst
-      -- wirbt, tut das fast immer im selben Fenster; ohne diese Zeile genügten
-      -- eine zweite Adresse und zehn Minuten für ein Los in der Superziehung.
-      and not exists (
-        select 1 from bewertungen sb
-        where sb.konto_id = e.werber_konto_id
-          and sb.geraet_hash is not null
-          and sb.geraet_hash = gb.geraet_hash
-      )
-    group by e.werber_konto_id
-    having count(*) >= ${mindestens}
-    order by e.werber_konto_id
+    with zaehlend as (${zaehlendeEmpfehlungen({ von, bis })}),
+    werbend as (
+      select z.werber_konto_id as konto_id, count(*)::int as anzahl
+      from zaehlend z
+      group by z.werber_konto_id
+      having count(*) >= ${mindestens}
+    )
+    select w.konto_id, wb.id as bewertung_id, wb.rolle::text as rolle
+    from werbend w
+    join konten wk on wk.id = w.konto_id and wk.verifiziert_am is not null
+    -- Genau eine eigene Bewertung als Los, per lateral statt per Join: Ein
+    -- gewoehnlicher Join haette den Werber so oft geliefert, wie er selbst
+    -- bewertet hat, und aus einem Los mehrere gemacht.
+    join lateral (
+      select b.id, b.rolle from bewertungen b
+      where b.konto_id = w.konto_id
+        and b.verlosung_teilnahme and b.status = 'freigegeben'
+      order by b.erstellt_am, b.id
+      limit 1
+    ) wb on true
+    order by w.konto_id
   `;
 
   return werber.map((z) => ({ kontoId: z.konto_id, bewertungId: z.bewertung_id, rolle: z.rolle }));
@@ -199,9 +201,27 @@ export async function ziehen(
       await tx`
         insert into verlosungsgewinne (verlosung_id, konto_id, platz, los_index)
         values (${zeile!.id}, ${g.los.kontoId}, ${platz + 1}, ${g.index})
-        on conflict (verlosung_id, konto_id) do nothing
+        -- Das where gehoert dazu. Seit Migration 0027 ist die Eindeutigkeit
+        -- ein **partieller** Index (nur wo konto_id gesetzt ist), und einen
+        -- solchen nimmt Postgres nur dann als Arbiter, wenn sein Praedikat in
+        -- der Klausel steht. Ohne es brach jede Ziehung mit 42P10 ab - die
+        -- ganze Transaktion rollte zurueck, samt der Zeile in verlosungen.
+        -- Es lief also seit 0027 keine einzige Ziehung mehr durch, und weil
+        -- nichts in verlosungsgewinne landete, griff auch der Ausschluss
+        -- frueherer Gewinner nie.
+        on conflict (verlosung_id, konto_id) where konto_id is not null do nothing
       `;
     }
+
+    // Die Ziehung ins Protokoll. Sie steht zwar an `verlosungen.gezogen_von`,
+    // aber nur dort: In der zeitlichen Gesamtsicht des Protokolls - „was ist an
+    // diesem Abend geschehen" - fehlte ausgerechnet der Vorgang, der Geld
+    // vergibt und sich nicht zurücknehmen lässt.
+    await tx`
+      insert into moderationsprotokoll (aktion, moderator_id, begruendung)
+      values ('verlosung_gezogen', ${moderatorId},
+              ${`${art} ${monat}/${jahr}: ${ergebnis.gewinner.length} von ${lose.length} Losen gezogen, Zufallswert ${zufallswert}`})
+    `;
 
     return { ok: true as const, ziehung: zeile!, lose };
   });
@@ -209,7 +229,8 @@ export async function ziehen(
 
 export interface Gewinn {
   readonly id: string;
-  readonly kontoId: string;
+  /** `null`, sobald das Konto gelöscht ist - der Platz bleibt (Migration 0027). */
+  readonly kontoId: string | null;
   readonly platz: number;
   readonly benachrichtigtAm: Date | null;
 }
@@ -218,7 +239,7 @@ export interface Gewinn {
 export async function gewinner(ziehungId: string): Promise<Gewinn[]> {
   if (!istKennung(ziehungId)) return [];
   const zeilen = await sql<
-    { id: string; konto_id: string; platz: number; benachrichtigt_am: Date | null }[]
+    { id: string; konto_id: string | null; platz: number; benachrichtigt_am: Date | null }[]
   >`
     select id, konto_id, platz, benachrichtigt_am
     from verlosungsgewinne where verlosung_id = ${ziehungId}
@@ -240,8 +261,15 @@ export async function gewinner(ziehungId: string): Promise<Gewinn[]> {
  */
 export async function gewinnerkontakt(
   gewinnId: string,
+  /**
+   * Wer einsieht. `null` nur für das Kommandozeilenwerkzeug auf dem Server -
+   * der Eintrag entsteht trotzdem, dann eben ohne Person. Ein Weg ohne
+   * Protokolleintrag soll es nicht geben.
+   */
+  moderatorId: string | null,
 ): Promise<{ klartext: string; verschleiert: string; art: Kontaktart } | null> {
   if (!istKennung(gewinnId)) return null;
+  if (moderatorId !== null && !istKennung(moderatorId)) return null;
   const [zeile] = await sql<{ kontakt_chiffre: Uint8Array | null; kontaktart: Kontaktart }[]>`
     select k.kontakt_chiffre, k.kontaktart
     from verlosungsgewinne g join konten k on k.id = g.konto_id
@@ -254,12 +282,51 @@ export async function gewinnerkontakt(
       ? null
       : entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
   if (klartext === null) return null;
+
+  // Jede Einsicht ein eigener Eintrag - dieselbe Zusage wie am Vorgang
+  // (Entwicklungsplan 8.1, Festlegung 2). Sie stand hier bisher nicht ein:
+  // Der Kontakt wurde entschlüsselt und hinterliess keine Spur, ausgerechnet
+  // bei den überwiegend minderjährigen Gewinnenden.
+  await sql`
+    insert into moderationsprotokoll (aktion, moderator_id, begruendung)
+    values ('einsicht_kontakt', ${moderatorId},
+            ${
+              `Kontakt einer gewinnenden Person eingesehen (Gewinn ${gewinnId})` +
+              (moderatorId === null ? " - über das Kommandozeilenwerkzeug" : "")
+            })
+  `;
+
   return { klartext, verschleiert: verschleiere(klartext, zeile.kontaktart), art: zeile.kontaktart };
 }
 
-export async function merkeBenachrichtigung(gewinnId: string): Promise<void> {
-  if (!istKennung(gewinnId)) return;
-  await sql`update verlosungsgewinne set benachrichtigt_am = now() where id = ${gewinnId}`;
+/**
+ * Setzt oder nimmt den Benachrichtigungsvermerk zurück.
+ *
+ * Zurücknehmen muss möglich sein: Der Versand läuft von Hand, ein Klick auf
+ * „Erledigt" liess sich vorher nicht widerrufen, und danach stand nur noch
+ * „benachrichtigt <Datum>" - die gewinnende Person galt als versorgt und
+ * bekam nie etwas. Ein Vorgang, der ausschliesslich in eine Richtung geht,
+ * darf keiner sein, den ein Fehlklick auslöst.
+ */
+export async function merkeBenachrichtigung(
+  gewinnId: string,
+  moderatorId: string,
+  gesetzt = true,
+): Promise<void> {
+  if (!istKennung(gewinnId) || !istKennung(moderatorId)) return;
+  const zeilen = await sql<{ id: string }[]>`
+    update verlosungsgewinne
+    set benachrichtigt_am = ${gesetzt ? sql`now()` : null}
+    where id = ${gewinnId}
+    returning id
+  `;
+  if (zeilen.length === 0) return;
+
+  await sql`
+    insert into moderationsprotokoll (aktion, moderator_id, begruendung)
+    values ('gewinn_benachrichtigt', ${moderatorId},
+            ${`${gesetzt ? "Benachrichtigung vermerkt" : "Vermerk zurückgenommen"} (Gewinn ${gewinnId})`})
+  `;
 }
 
 /**
@@ -272,12 +339,17 @@ export async function pruefeGespeicherteZiehung(
   jahr: number,
   monat: number,
   art: Verlosungsart = "normal",
-): Promise<boolean | null> {
+): Promise<Ziehungspruefung | null> {
   const ziehung = await holeZiehung(jahr, monat, art);
   if (ziehung === null) return null;
 
   const gezogene = await gewinner(ziehung.id);
-  if (gezogene.length === 0) return ziehung.lose_gesamt === 0;
+  // Keine Gewinnzeilen: Entweder war nichts zu ziehen - dann stimmt es -, oder
+  // die Zeilen fehlen, obwohl Lose im Topf waren. Letzteres ist kein
+  // Widerspruch, sondern eine Lücke: Altziehungen von vor 0025 stehen gar
+  // nicht in `verlosungsgewinne`, und 0027 trug nur nach, wo noch eine Kennung
+  // stand.
+  if (gezogene.length === 0) return ziehung.lose_gesamt === 0 ? "stimmt" : "unvollstaendig";
 
   // **Dasselbe Verfahren wie beim Ziehen.** Hier stand einmal `pruefeZiehung`,
   // also die Einzelziehung - gezogen wurde aber schon mit `zieheMehrere`. Die

@@ -204,6 +204,14 @@ describe("ziehungsmeldung", () => {
     expect(ziehungsmeldung("August 2026", 0, 0, 0)).toMatch(/keine Teilnahmen/);
   });
 
+  it("behauptet bei gelöschten Gewinnern nicht, es habe keine Teilnahmen gegeben", () => {
+    // Zehn Menschen hatten teilgenommen; auf der Seite, die das belegen soll,
+    // stand „lagen keine Teilnahmen vor".
+    const text = ziehungsmeldung("Juli 2026", 10, 0, 0);
+    expect(text).not.toMatch(/keine Teilnahmen/);
+    expect(text).toContain("10 Losen");
+  });
+
   it("beugt „1 Konten“ vor", () => {
     const text = ziehungsmeldung("August 2026", 1, 1, 0);
     expect(text).toContain("hat 1 Konto teilgenommen");
@@ -258,8 +266,24 @@ describe("zieheMehrere", () => {
     const a = zieheMehrere(lose, wert, 25).gewinner.map((g) => g.los.kontoId);
     const b = zieheMehrere(lose, wert, 25).gewinner.map((g) => g.los.kontoId);
     expect(a).toEqual(b);
-    expect(pruefeMehrfachziehung(lose, wert, 25, a)).toBe(true);
-    expect(pruefeMehrfachziehung(lose, wert, 25, [...a].reverse())).toBe(false);
+    expect(pruefeMehrfachziehung(lose, wert, 25, a)).toBe("stimmt");
+    expect(pruefeMehrfachziehung(lose, wert, 25, [...a].reverse())).toBe("weicht_ab");
+  });
+
+  it("nennt eine Ziehung mit gelöschtem Gewinnerkonto unvollständig, nicht falsch", () => {
+    // Seit Migration 0027 überlebt der Platz das Löschen des Kontos und die
+    // Kennung wird geleert. „Rechnet sich nicht nach" wäre darauf die falsche
+    // Antwort - genau diese Migration sagt die Nachrechenbarkeit zu.
+    const lose = Array.from({ length: 40 }, (_, i) => ({ kontoId: `k${i}`, bewertungIds: [] }));
+    const wert = "b".repeat(64);
+    const erwartet = zieheMehrere(lose, wert, 25).gewinner.map((g) => g.los.kontoId);
+
+    const mitLuecke = erwartet.map((id, i) => (i === 3 ? null : id));
+    expect(pruefeMehrfachziehung(lose, wert, 25, mitLuecke)).toBe("unvollstaendig");
+
+    // Eine Lücke entschuldigt keinen Widerspruch an anderer Stelle.
+    const luekeUndFehler = mitLuecke.map((id, i) => (i === 5 ? "fremd" : id));
+    expect(pruefeMehrfachziehung(lose, wert, 25, luekeUndFehler)).toBe("weicht_ab");
   });
 
   it("führt bei anderem Zufallswert zu anderen Gewinnern", () => {

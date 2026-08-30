@@ -48,15 +48,27 @@ function monatsauswahl(jetzt = new Date()): { jahr: number; monat: number }[] {
 export default async function Empfehlungsseite({
   searchParams,
 }: {
-  searchParams: Promise<{ jahr?: string | string[]; monat?: string | string[]; nur?: string | string[] }>;
+  searchParams: Promise<{
+    zeitraum?: string | string[];
+    /** Altbestand: einzelne Parameter aus gespeicherten Links. */
+    jahr?: string | string[];
+    monat?: string | string[];
+    nur?: string | string[];
+  }>;
 }) {
   await verlangeAnmeldung();
   const p = await searchParams;
 
   const jetzt = new Date();
   const auswahl = monatsauswahl(jetzt);
-  const jahr = Number(einer(p.jahr) ?? auswahl[0]!.jahr);
-  const monat = Number(einer(p.monat) ?? auswahl[0]!.monat);
+  // Jahr und Monat in einem Wert. Vorher trug die Option nur den Monat und das
+  // Jahr stand fest daneben - wer im August 2026 „Dezember 2025" wählte,
+  // sendete `jahr=2026&monat=12`, fand nichts und landete kommentarlos wieder
+  // im laufenden Monat. Vier von zwölf Monaten waren so unerreichbar,
+  // ausgerechnet in dem Bereich, der die Rückschau leisten soll.
+  const [rohJahr, rohMonat] = (einer(p.zeitraum) ?? "").split("-");
+  const jahr = Number(rohJahr ?? einer(p.jahr) ?? auswahl[0]!.jahr);
+  const monat = Number(rohMonat ?? einer(p.monat) ?? auswahl[0]!.monat);
   const gewaehlt = auswahl.find((m) => m.jahr === jahr && m.monat === monat) ?? auswahl[0]!;
   const nurAuffaellig = einer(p.nur) === "geraet";
 
@@ -83,16 +95,15 @@ export default async function Empfehlungsseite({
         <label htmlFor="monat" className="versteckt">Monat</label>
         <select
           id="monat"
-          name="monat"
-          defaultValue={String(gewaehlt.monat)}
+          name="zeitraum"
+          defaultValue={`${gewaehlt.jahr}-${gewaehlt.monat}`}
         >
           {auswahl.map((m) => (
-            <option key={`${m.jahr}-${m.monat}`} value={m.monat}>
+            <option key={`${m.jahr}-${m.monat}`} value={`${m.jahr}-${m.monat}`}>
               {monatsname(m.jahr, m.monat)}
             </option>
           ))}
         </select>
-        <input type="hidden" name="jahr" value={gewaehlt.jahr} />
         <label className="feld klein schalterfeld">
           <input type="checkbox" name="nur" value="geraet" defaultChecked={nurAuffaellig} />
           <span>Nur vom selben Gerät</span>

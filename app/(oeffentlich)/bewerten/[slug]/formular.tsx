@@ -154,27 +154,58 @@ export function Bewertungsformular({
   /** Ist das gerade ein freiwilliger Bereich? Die werden anders verlassen. */
   const imFreiwilligen = schritt.art === "kategorie" && FREIWILLIG.includes(schritt.id);
   const abschlussnummer = schritte.length - 1;
+  /** Rolle plus die drei Pflichtbereiche - dahinter fängt das Freiwillige an. */
+  const letzterPflichtschritt = PFLICHT.length;
 
   /**
-   * Zurück aus einem freiwilligen Bereich.
+   * Hat der Bereich etwas, das man verlöre?
+   *
+   * Auch ein Freitext zählt. Vorher hing es allein an den Antworten, und wer
+   * nur einen Kommentar geschrieben hatte, verlor ihn beim Zurückgehen
+   * kommentarlos.
+   */
+  function hatInhalt(id: KategorieId): boolean {
+    return beantwortet(id, antworten) > 0 || (freitexte[id] ?? "").trim() !== "";
+  }
+
+  /**
+   * Verlässt einen freiwilligen Bereich Richtung Abschluss.
    *
    * Ein freiwilliger Bereich wird vom Abschluss aus geöffnet - also führt der
    * Weg zurück auch dorthin und nicht in den letzten Pflichtbereich. Wer ihn
-   * unbeantwortet verlässt, hat es sich anders überlegt: Dann verschwindet er
-   * wieder aus der Liste und steht auf dem Abschluss erneut zur Auswahl.
+   * leer verlässt, hat es sich anders überlegt: Dann verschwindet er wieder
+   * aus der Liste und steht auf dem Abschluss erneut zur Auswahl.
+   *
+   * Gilt für **beide** Knöpfe. „Übernehmen" räumte den leeren Bereich vorher
+   * nicht weg: Er blieb in `freiwillige` stehen, verschwand damit aus der
+   * Auswahlliste am Abschluss und war nicht mehr zu erreichen - während der
+   * Anreiztext daneben weiter „mit jedem weiteren Bereich 9,0" versprach.
    */
+  function verlasseFreiwilligen(id: KategorieId) {
+    const leer = !hatInhalt(id);
+    if (leer) {
+      setFreiwillige((bisher) => bisher.filter((k) => k !== id));
+      setFreitexte((t) => ({ ...t, [id]: "" }));
+    }
+    // Ohne die neue Länge zu kennen: Nach dem Entfernen ist der Abschluss
+    // einen Schritt weiter vorn. `schritte` wird erst im nächsten Durchlauf
+    // neu gebaut, deshalb hier von Hand.
+    setNummer(leer ? abschlussnummer - 1 : abschlussnummer);
+  }
+
   function zurueck() {
     setGezeigt(false);
     if (imFreiwilligen && schritt.art === "kategorie") {
-      const id = schritt.id;
-      if (beantwortet(id, antworten) === 0) {
-        setFreiwillige((bisher) => bisher.filter((k) => k !== id));
-        setFreitexte((t) => ({ ...t, [id]: "" }));
-      }
-      // Ohne die neue Länge zu kennen: Nach dem Entfernen ist der Abschluss
-      // einen Schritt weiter vorn. `schritte` wird erst im nächsten Durchlauf
-      // neu gebaut, deshalb hier von Hand.
-      setNummer(beantwortet(id, antworten) === 0 ? abschlussnummer - 1 : abschlussnummer);
+      verlasseFreiwilligen(schritt.id);
+      return;
+    }
+    // Vom Abschluss aus **über** die freiwilligen Bereiche hinweg in den
+    // letzten Pflichtbereich. Ein Schritt zurück landete vorher im zuletzt
+    // geöffneten freiwilligen Bereich, und von dort ging es wieder auf den
+    // Abschluss: eine geschlossene Schleife. Wer merkte, dass er in Bereich A
+    // falsch geklickt hatte, kam dorthin nie zurück.
+    if (schritt.art === "abschluss") {
+      setNummer(letzterPflichtschritt);
       return;
     }
     setNummer((n) => Math.max(0, n - 1));
@@ -198,7 +229,11 @@ export function Bewertungsformular({
     // Aus einem freiwilligen Bereich geht es zurück zum Abschluss, nicht in
     // den nächsten Bereich: Von dort ist er geöffnet worden, und dort steht
     // die Auswahl der übrigen.
-    setNummer((n) => (imFreiwilligen ? abschlussnummer : Math.min(n + 1, schritte.length - 1)));
+    if (imFreiwilligen && schritt.art === "kategorie") {
+      verlasseFreiwilligen(schritt.id);
+      return;
+    }
+    setNummer((n) => Math.min(n + 1, schritte.length - 1));
   }
 
   async function absenden() {
@@ -293,6 +328,13 @@ export function Bewertungsformular({
                     if (!istSchueler(r)) setKlassenstufe(null);
                     if (r !== "ehemalig") setAbgangsjahr(null);
                     if (!istSchueler(r)) setVerlosung(false);
+                    // Die Elterneinwilligung blieb beim Rollenwechsel stehen.
+                    // Wer „unter 16" wählte, das Häkchen setzte und dann auf
+                    // „Lehrkraft" wechselte, schickte sie mit - und in der
+                    // Datenbank stand danach eine Einwilligung, die es für
+                    // diese Rolle nie gab. Als Nachweis nach DSGVO ist das
+                    // schlimmer als gar keine.
+                    if (r !== "schueler_unter_16") setEltern(false);
                   }}
                 />
                 {ROLLE_LABEL[r]}
