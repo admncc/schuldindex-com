@@ -222,7 +222,7 @@ describe("Drei Ziehungen", () => {
     expect(teilnahmeAn(0, false)).toEqual(["normal"]);
   });
 
-  it("nimmt ab einer geworbenen Person die Superverlosung dazu", () => {
+  it("nimmt ab einer geworbenen Person die Super-Verlosung dazu", () => {
     expect(teilnahmeAn(1, false)).toEqual(["normal", "super"]);
     expect(teilnahmeAn(99, false)).toEqual(["normal", "super"]);
   });

@@ -65,6 +65,6 @@ describe("Empfehlungslink", () => {
     const text = teilentext("Gymnasium Nord", "https://schulindex.com/e/abcdefghjk");
     expect(text).toContain("Gymnasium Nord");
     expect(text).toContain("https://schulindex.com/e/abcdefghjk");
-    expect(text).toContain("Superverlosung");
+    expect(text).toContain("Super-Verlosung");
   });
 });

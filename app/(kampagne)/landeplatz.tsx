@@ -67,8 +67,12 @@ export function Landeplatz({
           {VERLOSUNGSARTEN.map((art) => (
             <li key={art} className={art === "mega" ? "lp-gewinn gross" : "lp-gewinn"}>
               <span className="lp-wert">{ZAHL.format(GEWINNE[art].wertEuro)} €</span>
+              {/* Der Name zuerst, die Zahl dahinter: „50× Verlosung" las sich,
+                  seit die normale Ziehung schlicht „Verlosung" heisst, wie eine
+                  Menge Ziehungen statt einer Menge Gutscheine. */}
               <span className="lp-anzahl">
-                {GEWINNE[art].anzahl}× {VERLOSUNG_LABEL[art]}
+                {VERLOSUNG_LABEL[art]} · {GEWINNE[art].anzahl}{" "}
+                {GEWINNE[art].anzahl === 1 ? "Gutschein" : "Gutscheine"}
               </span>
               <span className="lp-bedingung">
                 {GEWINNE[art].mindestEmpfehlungen === 0

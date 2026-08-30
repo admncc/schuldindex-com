@@ -52,7 +52,16 @@ export default async function Kontoseite() {
           <div>
             <h1>Deine Bewertungen</h1>
             <p className="gedaempft">
-              Angemeldet als <code>{konto.verschleiert}</code>
+              {konto.verschleiert === null ? (
+                // Nach einem Schlüsselwechsel gilt die Sitzung weiter, der
+                // Kontakt lässt sich nur nicht mehr anzeigen. Das ist keine
+                // Adresse und darf nicht wie eine dastehen.
+                "Angemeldet - dein Kontakt lässt sich gerade nicht anzeigen."
+              ) : (
+                <>
+                  Angemeldet als <code>{konto.verschleiert}</code>
+                </>
+              )}
             </p>
           </div>
           <form action={abmelden}>

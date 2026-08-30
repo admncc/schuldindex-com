@@ -21,7 +21,7 @@
  *    haben. Wer einmal gewonnen hat, ist danach heraus - sonst gewinnt auf
  *    Dauer, wer am längsten dabei ist, und für alle anderen wird die Chance
  *    kleiner statt größer.
- *  - Die **Superverlosung** unter denen, die im selben Monat mindestens eine
+ *  - Die **Super-Verlosung** unter denen, die im selben Monat mindestens eine
  *    weitere Person geworben haben, deren Bewertung veröffentlicht wurde.
  *  - Die **Mega-Verlosung** unter denen, die im selben Monat über hundert
  *    solcher Personen geworben haben - ein Gutschein, einmal im Monat.

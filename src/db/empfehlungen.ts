@@ -85,7 +85,7 @@ export async function merkeEmpfehlung(
 export interface Empfehlungsstand {
   /** Wie viele geworbene Personen bewertet haben - unabhängig vom Zustand. */
   readonly geworben: number;
-  /** Davon mit veröffentlichter Bewertung - nur die zählen für die Superverlosung. */
+  /** Davon mit veröffentlichter Bewertung - nur die zählen für die Super-Verlosung. */
   readonly zaehlend: number;
 }
 

@@ -69,7 +69,7 @@ export default async function Verlosungsseite() {
       <p>
         Den eigenen Link bekommst du, sobald deine Bewertung bestätigt ist. Er zählt erst, wenn
         jemand darüber <strong>bewertet</strong> und die Bewertung veröffentlicht wird - ein
-        Klick allein bringt nichts, sonst wäre die Superverlosung eine Klickzählung.
+        Klick allein bringt nichts, sonst wäre die Super-Verlosung eine Klickzählung.
       </p>
 
       <h2>Teilnahmebedingungen</h2>
@@ -103,9 +103,14 @@ export default async function Verlosungsseite() {
           bestätigt wurde. Melde dich bitte innerhalb von vier Wochen zurück - danach können wir
           den Gutschein nicht mehr zusichern.
         </li>
+        {/* Vorher stand hier „unter 18 Jahren brauchen wir vor der Übergabe die
+            Zustimmung der Sorgeberechtigten". Das versprach eine Prüfung, die
+            gar nicht stattfindet - wir holen nichts ein. Die Grenze ist
+            dieselbe wie beim Bewerten: unter 16 nur mit Zustimmung, und die
+            bestätigt die teilnehmende Person selbst. */}
         <li>
-          <strong>Unter 18 Jahren</strong> brauchen wir vor der Übergabe die Zustimmung der
-          Sorgeberechtigten.
+          <strong>Unter 16 Jahren</strong> ist die Teilnahme nur mit Zustimmung der
+          Sorgeberechtigten möglich.
         </li>
         <li>
           <strong>Ausgeschlossen</strong> sind Personen, die an SCHULINDEX mitarbeiten, sowie

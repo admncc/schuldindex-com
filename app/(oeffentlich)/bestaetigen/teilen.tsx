@@ -63,7 +63,7 @@ export function Teilen({
           <p>
             Je mehr aus deiner Schule bewerten, desto mehr sagt die Wertung aus. Und: Sobald{" "}
             <strong>eine einzige Person</strong> über deinen Link bewertet, bist du diesen Monat
-            zusätzlich in der <strong>Superverlosung</strong> - {GEWINNE.super.anzahl} Gutscheine
+            zusätzlich in der <strong>Super-Verlosung</strong> - {GEWINNE.super.anzahl} Gutscheine
             über je {GEWINNE.super.wertEuro} Euro von {PARTNER}.
           </p>
         </>
@@ -105,7 +105,7 @@ export function Teilen({
       {kompakt ? null : (
         <p className="fussnote">
           Der Link zählt, sobald jemand darüber eine Bewertung abgibt und diese veröffentlicht
-          wird. Wer ihn nur anklickt, zählt nicht - sonst wäre die Superverlosung eine
+          wird. Wer ihn nur anklickt, zählt nicht - sonst wäre die Super-Verlosung eine
           Klickzählung.
         </p>
       )}

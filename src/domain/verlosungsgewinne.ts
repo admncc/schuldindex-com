@@ -27,9 +27,19 @@ export const GEWINNE: Readonly<Record<Verlosungsart, Verlosungsgewinn>> = {
   mega: { anzahl: 1, wertEuro: 1000, mindestEmpfehlungen: 100 },
 };
 
+/**
+ * Die Namen der drei Ziehungen.
+ *
+ * Die normale hiess „Monatliche Verlosung" und heisst jetzt schlicht
+ * „Verlosung": Alle drei sind monatlich, das Wort trennte also nichts und
+ * stand ueberall doppelt - „Monatliche Verlosung · August 2026".
+ *
+ * „Super-Verlosung" mit Bindestrich, wie „Mega-Verlosung" - zusammengeschrieben
+ * standen die beiden Schwesterziehungen unterschiedlich da.
+ */
 export const VERLOSUNG_LABEL: Readonly<Record<Verlosungsart, string>> = {
-  normal: "Monatliche Verlosung",
-  super: "Superverlosung",
+  normal: "Verlosung",
+  super: "Super-Verlosung",
   mega: "Mega-Verlosung",
 };
 

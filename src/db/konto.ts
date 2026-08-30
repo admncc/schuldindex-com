@@ -106,7 +106,14 @@ export async function loeseAnmeldelinkEin(
 export interface AngemeldetesKonto {
   id: string;
   kontaktart: Kontaktart;
-  verschleiert: string;
+  /**
+   * Der verkürzte Kontakt - `null`, wenn er sich nicht entschlüsseln lässt.
+   *
+   * Kein Platzhaltertext an dieser Stelle: „nicht lesbar" stand danach im
+   * Kopf der Kontoseite hinter „Angemeldet als", als wäre es die Adresse.
+   * Wie die Seite damit umgeht, entscheidet die Seite.
+   */
+  verschleiert: string | null;
 }
 
 export async function holeKontositzung(klartext: string): Promise<AngemeldetesKonto | null> {
@@ -135,7 +142,7 @@ export async function holeKontositzung(klartext: string): Promise<AngemeldetesKo
   return {
     id: zeile.id,
     kontaktart: zeile.kontaktart,
-    verschleiert: klar === null ? "nicht lesbar" : verschleiere(klar, zeile.kontaktart),
+    verschleiert: klar === null ? null : verschleiere(klar, zeile.kontaktart),
   };
 }
 

@@ -88,6 +88,7 @@ export default async function Verlosungsseite() {
         );
         const dieseLose = lose.get(art) ?? [];
         const gewinn = GEWINNE[art];
+        const zuVergeben = Math.min(gewinn.anzahl, dieseLose.length);
 
         return (
           <div key={art} className="karte">
@@ -102,9 +103,11 @@ export default async function Verlosungsseite() {
             <p>
               {dieseLose.length === 0
                 ? "Für diesen Monat liegen keine Teilnahmen vor."
-                : `${ZAHL.format(dieseLose.length)} teilnehmende Konten - ${ZAHL.format(
-                    Math.min(gewinn.anzahl, dieseLose.length),
-                  )} Gewinne zu vergeben.`}
+                : `${ZAHL.format(dieseLose.length)} ${
+                    dieseLose.length === 1 ? "teilnehmendes Konto" : "teilnehmende Konten"
+                  } - ${ZAHL.format(zuVergeben)} ${
+                    zuVergeben === 1 ? "Gewinn" : "Gewinne"
+                  } zu vergeben.`}
             </p>
             {schonGezogen ? (
               <p className="gedaempft">Für diesen Monat wurde bereits gezogen.</p>
@@ -113,7 +116,7 @@ export default async function Verlosungsseite() {
                 jahr={vormonat.jahr}
                 monat={vormonat.monat}
                 art={art}
-                anzahl={Math.min(gewinn.anzahl, dieseLose.length)}
+                anzahl={zuVergeben}
               />
             ) : (
               <p className="gedaempft">Eine Ziehung löst die Leitung aus.</p>
@@ -137,8 +140,26 @@ export default async function Verlosungsseite() {
 
               {/* „Gezogen“ kommt aus den Gewinnen, nicht aus der Altspalte:
                   Die wird beim Löschen eines Kontos geleert. */}
+              {/* Drei Faelle, nicht zwei. Der dritte kam erst mit dem Loeschrecht
+                  dazu: gezogen wurde, aber die Gewinnzeile traegt keine Kennung
+                  mehr, weil das Konto geloescht ist (`on delete set null`) -
+                  oder die Ziehung stammt von vor Migration 0025 und ihr
+                  Altgewinner war schon weg, als 0027 nachtrug. „0 × 50 Euro"
+                  behauptete dann, es sei nichts gewonnen worden. */}
               {gezogene.length === 0 && z.lose_gesamt === 0 ? (
                 <p className="gedaempft">Keine Teilnahmen - es wurde nicht gezogen.</p>
+              ) : gezogene.length === 0 ? (
+                <dl className="angaben">
+                  <dt>Gewinne</dt>
+                  <dd>
+                    Gezogen aus {ZAHL.format(z.lose_gesamt)} Losen. Zu wem sie gingen, ist nicht
+                    mehr hinterlegt - die Konten sind gelöscht.
+                  </dd>
+                  <dt>Zufallswert</dt>
+                  <dd>
+                    <code className="zufallswert">{z.zufallswert}</code>
+                  </dd>
+                </dl>
               ) : (
                 <>
                   <dl className="angaben">
