@@ -18,7 +18,7 @@ import type { Zustand } from "../domain/bewertungsstatus";
 import type { Rolle } from "../domain/bewertungseingabe";
 import type { Antwort, KategorieId } from "../domain/fragebogen";
 import type { Kontoumgebung } from "../dienste/kontozugang";
-import { baueAnmeldelink, sende } from "../versand/nachricht";
+import { baueAnmeldelink, baueBestaetigung, sende, type Nachricht } from "../versand/nachricht";
 import { versandkette } from "../versand/wege";
 
 export function kontoumgebung(basisUrl: string): Kontoumgebung {
@@ -31,9 +31,12 @@ export function kontoumgebung(basisUrl: string): Kontoumgebung {
     },
 
     async zaehleLinks(kontoId) {
+      // **Beide Zwecke.** Seit ein unbestätigtes Konto einen Bestätigungslink
+      // nachfordern kann, wäre eine Grenze nur auf `anmeldung` gar keine: Für
+      // genau die Konten, die den anderen Weg nehmen, zählte sie nichts.
       const [zeile] = await sql<{ n: number }[]>`
         select count(*)::int as n from verifizierungstoken
-        where konto_id = ${kontoId} and zweck = 'anmeldung'
+        where konto_id = ${kontoId} and zweck in ('anmeldung', 'bestaetigung')
           and erstellt_am > now() - interval '1 hour'
       `;
       return zeile?.n ?? 0;
@@ -47,26 +50,53 @@ export function kontoumgebung(basisUrl: string): Kontoumgebung {
     },
 
     async sendeAnmeldelink(kontoId, klartext) {
-      const [zeile] = await sql<{ kontakt_chiffre: Uint8Array | null; kontaktart: Kontaktart }[]>`
-        select kontakt_chiffre, kontaktart from konten where id = ${kontoId}
+      return verschicke(kontoId, klartext, baueAnmeldelink);
+    },
+
+    async speichereBestaetigungslink(kontoId, token) {
+      await sql`
+        insert into verifizierungstoken (konto_id, token_hash, zweck, gueltig_bis)
+        values (${kontoId}, ${token.hash}, 'bestaetigung', ${token.gueltigBis})
       `;
-      if (!zeile) return false;
+    },
 
-      // Lässt sich der Kontakt nicht lesen, gibt es nichts zu senden - das gilt
-      // auch für ein stillgelegtes Konto, dessen Kontakt nach Ablauf der
-      // Aufbewahrungsfrist gelöscht wurde. Der Aufrufer meldet trotzdem den
-      // immer gleichen Text nach außen.
-      const empfaenger =
-        zeile.kontakt_chiffre === null
-          ? null
-          : entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
-      if (empfaenger === null) return false;
-
-      const nachricht = baueAnmeldelink(basisUrl, klartext, zeile.kontaktart);
-      const ergebnis = await sende(versandkette(), empfaenger, zeile.kontaktart, nachricht);
-      return ergebnis.ok;
+    async sendeBestaetigungslink(kontoId, klartext) {
+      return verschicke(kontoId, klartext, baueBestaetigung);
     },
   };
+
+  /**
+   * Kontakt aufschliessen und die Nachricht auf den Weg bringen.
+   *
+   * Lässt sich der Kontakt nicht lesen, gibt es nichts zu senden - das gilt
+   * auch für ein stillgelegtes Konto, dessen Kontakt nach Ablauf der
+   * Aufbewahrungsfrist gelöscht wurde. Der Aufrufer meldet trotzdem den immer
+   * gleichen Text nach aussen.
+   */
+  async function verschicke(
+    kontoId: string,
+    klartext: string,
+    baue: (basis: string, token: string, art: Kontaktart) => Nachricht,
+  ): Promise<boolean> {
+    const [zeile] = await sql<{ kontakt_chiffre: Uint8Array | null; kontaktart: Kontaktart }[]>`
+      select kontakt_chiffre, kontaktart from konten where id = ${kontoId}
+    `;
+    if (!zeile) return false;
+
+    const empfaenger =
+      zeile.kontakt_chiffre === null
+        ? null
+        : entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
+    if (empfaenger === null) return false;
+
+    const ergebnis = await sende(
+      versandkette(),
+      empfaenger,
+      zeile.kontaktart,
+      baue(basisUrl, klartext, zeile.kontaktart),
+    );
+    return ergebnis.ok;
+  }
 }
 
 /**

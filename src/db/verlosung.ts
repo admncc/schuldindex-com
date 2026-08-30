@@ -135,7 +135,7 @@ export async function holeZiehung(
   return zeile ?? null;
 }
 
-export async function letzteZiehungen(grenze = 12): Promise<Ziehung[]> {
+export async function letzteZiehungen(grenze = 36): Promise<Ziehung[]> {
   return sql<Ziehung[]>`
     select id, jahr, monat, art::text as art, zufallswert, lose_gesamt, gewinner_index, losliste,
            gewinner_konto_id, benachrichtigt_am, gezogen_am

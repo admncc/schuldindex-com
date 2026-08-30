@@ -95,7 +95,9 @@ export function Bewertungsformular({
   const [nummer, setNummer] = useState(0);
   const [gezeigt, setGezeigt] = useState(false);
   const [sendet, setSendet] = useState(false);
-  const [gesendet, setGesendet] = useState<{ kontaktAnzeige: string } | null>(null);
+  const [gesendet, setGesendet] = useState<{ kontaktAnzeige: string; versandt: boolean } | null>(
+    null,
+  );
   const [serverfehler, setServerfehler] = useState<string[]>([]);
 
   /**
@@ -261,10 +263,19 @@ export function Bewertungsformular({
         },
       );
       const ergebnis = (await antwort.json()) as
-        | { ok: true; kontaktAnzeige?: string }
+        | { ok: true; kontaktAnzeige?: string; nachrichtVersandt?: boolean }
         | { ok: false; fehler: { feld: string; meldung: string }[] };
 
-      if (ergebnis.ok) setGesendet({ kontaktAnzeige: ergebnis.kontaktAnzeige ?? "" });
+      if (ergebnis.ok) {
+        setGesendet({
+          kontaktAnzeige: ergebnis.kontaktAnzeige ?? "",
+          // Die Antwort sagt seit jeher, ob die Nachricht hinausging - gelesen
+          // hat es niemand. Der Bildschirm behauptete in jedem Fall, sie sei
+          // unterwegs; im Betrieb ist sie das derzeit nie, weil noch kein
+          // Versandweg eingerichtet ist.
+          versandt: ergebnis.nachrichtVersandt !== false,
+        });
+      }
       else setServerfehler(ergebnis.fehler.map((f) => f.meldung));
     } catch {
       setServerfehler(["Die Verbindung ist abgebrochen. Bitte versuche es noch einmal."]);
@@ -286,6 +297,25 @@ export function Bewertungsformular({
     );
   }
 
+  if (gesendet !== null && !gesendet.versandt) {
+    return (
+      <div className="leerzustand">
+        <h2>Deine Bewertung ist gespeichert - die Nachricht nicht angekommen</h2>
+        <p>
+          Wir konnten die Bestätigung an <strong>{gesendet.kontaktAnzeige}</strong> gerade nicht
+          zustellen. Deine Antworten sind gespeichert und gehen nicht verloren; veröffentlicht
+          wird die Bewertung erst nach der Bestätigung.
+        </p>
+        <p>
+          Fordere den Link bitte in ein paar Minuten noch einmal an - dafür genügt derselbe
+          Kontakt.
+        </p>
+        <a className="knopf" href="/konto/anmelden">Bestätigungslink anfordern</a>
+        <a className="knopf zweitrangig" href={`/schule/${schulSlug}`}>Zurück zur Schule</a>
+      </div>
+    );
+  }
+
   if (gesendet !== null) {
     return (
       <div className="leerzustand">
@@ -296,7 +326,8 @@ export function Bewertungsformular({
         </p>
         <p className="hinweis">
           Erst nach der Bestätigung wird deine Bewertung geprüft und veröffentlicht. Deine
-          Kontaktdaten erscheinen nie öffentlich.
+          Kontaktdaten erscheinen nie öffentlich. Kommt nichts an, kannst du den Link unter{" "}
+          <a href="/konto/anmelden">Deine Bewertungen</a> noch einmal anfordern.
         </p>
         <a className="knopf zweitrangig" href={`/schule/${schulSlug}`}>Zurück zur Schule</a>
       </div>
@@ -625,6 +656,14 @@ function Kategorieschritt({
         <p className="hinweis">Beziehe dich auf die Zeit, in der du an dieser Schule warst.</p>
       ) : ansprache === "eltern" ? (
         <p className="hinweis">Beziehe dich auf das, was du an der Schule deines Kindes erlebst.</p>
+      ) : ansprache === "lehrkraft" ? (
+        // Die Lehrkraft war die einzige Rolle ohne eigenen Satz - und
+        // ausgerechnet bei ihr ist die Blickrichtung nicht selbstverständlich:
+        // Gefragt ist die Schule, wie sie ist, nicht die eigene Arbeit darin.
+        <p className="hinweis">
+          Beziehe dich auf die Schule, wie du sie im Arbeitsalltag erlebst - nicht auf deinen
+          eigenen Unterricht.
+        </p>
       ) : null}
 
       <ol className="fragen">

@@ -24,6 +24,7 @@ import type { Bundesland } from "../domain/bundesland";
 import type { Schulart } from "../import/schulart";
 import type { Gepruefte } from "../domain/schulpflege";
 import { istKennung } from "../domain/kennung";
+import { maskierePlatzhalter } from "./schulsuche";
 
 export interface Importlage {
   readonly gesamt: number;
@@ -122,7 +123,11 @@ export async function listeSchulen(
   // beim ersten Entwurf auseinander, und die Seitenzahl stimmte nicht.
   const bedingung = sql`
     where true
-      ${suche.length >= 2 ? sql`and s.suchtext like ${"%" + suche + "%"}` : sql``}
+      ${
+        suche.length >= 2
+          ? sql`and s.suchtext like ${"%" + maskierePlatzhalter(suche) + "%"} escape '\\'`
+          : sql``
+      }
       ${f.bundesland ? sql`and s.bundesland = ${f.bundesland}::bundesland` : sql``}
       ${f.nur === "manuell" ? sql`and s.manuell_gepflegt` : sql``}
       ${f.nur === "ohne_koordinate" ? sql`and s.lat is null` : sql``}

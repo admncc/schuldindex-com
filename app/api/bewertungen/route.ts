@@ -164,6 +164,15 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
     );
     return NextResponse.json(ergebnis, { status: ergebnis.ok ? 201 : 422 });
   } catch (fehler) {
+    // Zwei gleichzeitige Abgaben - zwei offene Tabs, oder ein zweiter Klick
+    // während die erste Anfrage noch läuft - liefen in einen
+    // Eindeutigkeitskonflikt und kamen als 500 „Bitte versuche es später noch
+    // einmal" zurück. Später führt hier nie zum Erfolg: Die Bewertung steht
+    // schon da. Beides ist eine Antwort auf die Eingabe, kein Serverfehler.
+    const doppelt = konflikt(fehler);
+    if (doppelt !== null) {
+      return NextResponse.json({ ok: false, fehler: [doppelt] }, { status: 422 });
+    }
     console.error("Bewertung konnte nicht angenommen werden:", fehler);
     return NextResponse.json(
       {
@@ -173,4 +182,28 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
       { status: 500 },
     );
   }
+}
+
+/** Erkennt die beiden Eindeutigkeitsverletzungen, die eine Doppelabgabe auslöst. */
+function konflikt(fehler: unknown): { feld: string; meldung: string } | null {
+  if (typeof fehler !== "object" || fehler === null) return null;
+  const f = fehler as { code?: unknown; constraint_name?: unknown };
+  if (f.code !== "23505") return null;
+  const bedingung = typeof f.constraint_name === "string" ? f.constraint_name : "";
+
+  if (bedingung.includes("eine_bewertung_je_schule")) {
+    return {
+      feld: "",
+      meldung:
+        "Für diese Schule liegt von dir schon eine Bewertung vor. Ändern kannst du sie unter „Deine Bewertungen“.",
+    };
+  }
+  if (bedingung.includes("kontakt_hash")) {
+    return {
+      feld: "kontakt",
+      meldung:
+        "Zu diesem Kontakt läuft gerade schon eine Abgabe. Lade die Seite neu und sieh nach, ob deine Bewertung angekommen ist.",
+    };
+  }
+  return null;
 }

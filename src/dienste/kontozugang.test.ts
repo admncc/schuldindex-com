@@ -19,6 +19,8 @@ beforeAll(() => {
 interface Aufzeichnung {
   gespeichert: string[];
   gesendet: string[];
+  /** Getrennt geführt: Ein unbestätigtes Konto bekommt einen anderen Link. */
+  bestaetigung: string[];
 }
 
 function umgebung(
@@ -26,7 +28,7 @@ function umgebung(
   links = 0,
   versandKlappt = true,
 ): { u: Kontoumgebung; auf: Aufzeichnung } {
-  const auf: Aufzeichnung = { gespeichert: [], gesendet: [] };
+  const auf: Aufzeichnung = { gespeichert: [], gesendet: [], bestaetigung: [] };
   return {
     auf,
     u: {
@@ -41,6 +43,13 @@ function umgebung(
       },
       async sendeAnmeldelink(id, klartext) {
         auf.gesendet.push(`${id}:${klartext}`);
+        return versandKlappt;
+      },
+      async speichereBestaetigungslink(id, token) {
+        auf.gespeichert.push(`${id}:${token.hash}`);
+      },
+      async sendeBestaetigungslink(id, klartext) {
+        auf.bestaetigung.push(`${id}:${klartext}`);
         return versandKlappt;
       },
     },
@@ -80,13 +89,28 @@ describe("fordereAnmeldelinkAn", () => {
     expect(mit.meldung).toBe(ohne.meldung);
   });
 
-  it("schickt an ein unbestätigtes Konto keinen Link - sagt es aber nicht", async () => {
+  it("schickt einem unbestätigten Konto den Bestätigungslink, nicht den Anmeldelink", async () => {
+    // Vorher endete es hier ohne jede Nachricht. Wer bewertet hatte und die
+    // Bestätigung nie bekam, stand vor einer geschlossenen Tür: nicht
+    // anmelden, nicht erneut bewerten - die Sperre gegen Mehrfachabgaben
+    // greift -, und nichts nachfordern. Die Bewertung lag unbestätigt und für
+    // Menschen unsichtbar in der Datenbank, für immer.
     const { u, auf } = umgebung({ id: "k2", verifiziertAm: null });
     const e = await fordereAnmeldelinkAn(u, { kontakt: "0170 1234567", art: "sms" });
 
-    expect(e.intern).toBe("unbestaetigt");
+    expect(e.intern).toBe("bestaetigung_verschickt");
     expect(e.meldung).toBe(LINK_ANGEFORDERT);
+    // Kein Anmeldelink - der bliebe die Hintertür um die Bestätigung herum.
     expect(auf.gesendet).toEqual([]);
+    expect(auf.bestaetigung).toHaveLength(1);
+  });
+
+  it("begrenzt auch die Bestätigungslinks eines unbestätigten Kontos", async () => {
+    const { u, auf } = umgebung({ id: "k2", verifiziertAm: null }, LINKS_JE_STUNDE);
+    const e = await fordereAnmeldelinkAn(u, { kontakt: "0170 1234567", art: "sms" });
+
+    expect(e.intern).toBe("begrenzt");
+    expect(auf.bestaetigung).toEqual([]);
   });
 
   it("begrenzt die Zahl der Links je Stunde", async () => {

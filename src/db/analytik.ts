@@ -15,6 +15,7 @@ import { sql } from "./verbindung";
 import type { Bundesland } from "../domain/bundesland";
 import type { Zustand } from "../domain/bewertungsstatus";
 import { istKennung } from "../domain/kennung";
+import { maskierePlatzhalter } from "./schulsuche";
 
 export interface Gesamtlage {
   readonly bewertungen: number;
@@ -117,7 +118,9 @@ export async function sucheSchulenFuerAnalyse(begriff: string, grenze = 20): Pro
     select s.id, s.slug, s.name, s.ort, s.bundesland,
            count(b.id)::int as bewertungen
     from schulen s left join bewertungen b on b.schule_id = s.id
-    where s.suchtext like ${"%" + wort + "%"}
+    -- Maskiert wie in der oeffentlichen Suche: Ein _ oder % in der Eingabe
+    -- traf sonst mehr, als dastand.
+    where s.suchtext like ${"%" + maskierePlatzhalter(wort) + "%"} escape '\\' 
     group by s.id
     order by count(b.id) desc, s.name
     limit ${grenze}

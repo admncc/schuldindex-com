@@ -23,6 +23,12 @@ export interface Kontoumgebung {
   zaehleLinks(kontoId: string): Promise<number>;
   speichereAnmeldelink(kontoId: string, token: Zugangstoken): Promise<void>;
   sendeAnmeldelink(kontoId: string, klartext: string): Promise<boolean>;
+  /**
+   * Dasselbe für ein noch unbestätigtes Konto - Bestätigungslink statt
+   * Anmeldelink. Siehe die Begründung in `fordereAnmeldelinkAn`.
+   */
+  speichereBestaetigungslink(kontoId: string, token: Zugangstoken): Promise<void>;
+  sendeBestaetigungslink(kontoId: string, klartext: string): Promise<boolean>;
 }
 
 export interface Anforderung {
@@ -38,7 +44,12 @@ export interface Anforderungsergebnis {
    * Browser: „gab es das Konto?" ist genau die Auskunft, die hier nicht
    * herausdringen darf.
    */
-  readonly intern: "verschickt" | "kein_konto" | "unbestaetigt" | "begrenzt" | "versand_fehlgeschlagen";
+  readonly intern:
+    | "verschickt"
+    | "bestaetigung_verschickt"
+    | "kein_konto"
+    | "begrenzt"
+    | "versand_fehlgeschlagen";
 }
 
 export async function fordereAnmeldelinkAn(
@@ -51,10 +62,6 @@ export async function fordereAnmeldelinkAn(
   const konto = await u.findeKonto(kontaktHash(a.kontakt, a.art));
   if (konto === null) return { meldung: LINK_ANGEFORDERT, intern: "kein_konto" };
 
-  // Ein Konto, dessen Kontakt nie bestätigt wurde, bekommt keinen Anmeldelink:
-  // sonst würde die Anmeldung zur Hintertür um die Bestätigung herum.
-  if (konto.verifiziertAm === null) return { meldung: LINK_ANGEFORDERT, intern: "unbestaetigt" };
-
   // Dieselbe Meldung wie in allen anderen Fällen: Ein eigener Text für die
   // erreichte Grenze verriete, dass es das Konto gibt (siehe `LINKS_JE_STUNDE`
   // in `domain/kontozugang.ts`).
@@ -63,6 +70,32 @@ export async function fordereAnmeldelinkAn(
   }
 
   const token = erzeugeAnmeldelink();
+
+  /**
+   * Ein unbestätigtes Konto bekommt einen **Bestätigungslink**, keinen
+   * Anmeldelink.
+   *
+   * Vorher endete es hier: kein Anmeldelink, weil die Anmeldung sonst die
+   * Bestätigung überspränge - das stimmt weiterhin. Nur war damit gar kein
+   * Weg mehr da. Wer bewertet hatte und die Nachricht nie bekam (verlorene
+   * SMS, Tippfehler in der Nummer, abgelaufene 24 Stunden), stand vor einer
+   * geschlossenen Tür: nicht anmelden, nicht erneut bewerten - die Sperre
+   * gegen Mehrfachabgaben greift -, und nichts nachfordern. Die Bewertung lag
+   * unbestätigt und für Menschen unsichtbar in der Datenbank, für immer.
+   *
+   * Der Bestätigungslink ist keine Hintertür: Er tut genau das, wofür er
+   * gedacht ist, und wer ihn anfordert, muss den Kontakt kennen - dieselbe
+   * Bedingung wie beim ersten Mal. Die Antwort nach aussen bleibt dieselbe.
+   */
+  if (konto.verifiziertAm === null) {
+    await u.speichereBestaetigungslink(konto.id, token);
+    const zugestellt = await u.sendeBestaetigungslink(konto.id, token.klartext);
+    return {
+      meldung: LINK_ANGEFORDERT,
+      intern: zugestellt ? "bestaetigung_verschickt" : "versand_fehlgeschlagen",
+    };
+  }
+
   await u.speichereAnmeldelink(konto.id, token);
   const versandt = await u.sendeAnmeldelink(konto.id, token.klartext);
 

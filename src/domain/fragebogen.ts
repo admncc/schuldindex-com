@@ -181,6 +181,10 @@ export const FRAGEN: readonly Frage[] = [
     text: "Wie häufig erlebst du Mobbing, Drohungen oder aggressives Verhalten unter Schülerinnen und Schülern?",
     varianten: {
       eltern: "Wie häufig bekommst du Mobbing, Drohungen oder aggressives Verhalten unter Schülerinnen und Schülern mit?",
+      // „Erlebst du" ist an eine Lehrkraft falsch gestellt: Sie ist nicht die
+      // Betroffene, sie sieht es. Die Fassung fehlte - als einzige der vier
+      // Ansprachen war die Lehrkraft hier auf den Schülertext zurückgefallen.
+      lehrkraft: "Wie häufig beobachtest du Mobbing, Drohungen oder aggressives Verhalten unter Schülerinnen und Schülern?",
       ehemalig: "Wie häufig hast du Mobbing, Drohungen oder aggressives Verhalten unter Schülerinnen und Schülern erlebt?",
     },
   },
@@ -189,6 +193,9 @@ export const FRAGEN: readonly Frage[] = [
     text: "Wie häufig erlebst du Mobbing, Drohungen oder aggressives Verhalten gegenüber Lehrkräften?",
     varianten: {
       eltern: "Wie häufig bekommst du Mobbing, Drohungen oder aggressives Verhalten gegenüber Lehrkräften mit?",
+      // Hier ist die Lehrkraft die Betroffene - und die einzige Ansprache, für
+      // die beides zutrifft: selbst erleben und bei Kolleginnen sehen.
+      lehrkraft: "Wie häufig erlebst du selbst oder bei Kolleginnen und Kollegen Mobbing, Drohungen oder aggressives Verhalten?",
       ehemalig: "Wie häufig hast du Mobbing, Drohungen oder aggressives Verhalten gegenüber Lehrkräften erlebt?",
     },
   },

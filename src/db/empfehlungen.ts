@@ -178,16 +178,43 @@ export async function empfehlungszahlen(zeitraum: Zeitraum): Promise<{
   gesamt: number;
   zaehlend: number;
   werber: number;
+  /**
+   * Aus demselben Browser wie eine Bewertung des Werbers.
+   *
+   * Eigene Abfrage über den ganzen Monat. Vorher rechnete die Seite diese Zahl
+   * aus der auf 200 Zeilen gedeckelten Liste - ab dem 201. Eintrag war sie
+   * still zu klein, und mit gesetztem Filter bedeutete sie plötzlich etwas
+   * anderes. Ausgerechnet die Zahl, auf die man vor einem Gutschein über 1000
+   * Euro schaut.
+   */
+  selbesGeraet: number;
 }> {
-  const [zeile] = await sql<{ gesamt: number; zaehlend: number; werber: number }[]>`
+  const [zeile] = await sql<
+    { gesamt: number; zaehlend: number; werber: number; selbes_geraet: number }[]
+  >`
     select
       (select count(*)::int from empfehlungen e
        where e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}) as gesamt,
       (select count(*)::int from (${zaehlendeEmpfehlungen(zeitraum)}) z) as zaehlend,
       (select count(distinct e.werber_konto_id)::int from empfehlungen e
-       where e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}) as werber
+       where e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}) as werber,
+      (select count(*)::int
+       from empfehlungen e
+       join bewertungen gb on gb.id = e.bewertung_id
+       where e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}
+         and exists (
+           select 1 from bewertungen wb
+           where wb.konto_id = e.werber_konto_id
+             and wb.geraet_hash is not null
+             and wb.geraet_hash = gb.geraet_hash
+         )) as selbes_geraet
   `;
-  return zeile ?? { gesamt: 0, zaehlend: 0, werber: 0 };
+  return {
+    gesamt: zeile?.gesamt ?? 0,
+    zaehlend: zeile?.zaehlend ?? 0,
+    werber: zeile?.werber ?? 0,
+    selbesGeraet: zeile?.selbes_geraet ?? 0,
+  };
 }
 
 export interface Empfehlungszeile {

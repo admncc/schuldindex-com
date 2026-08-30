@@ -27,8 +27,17 @@ export default async function Kontoanmeldung({
         <p className="fehler" role="alert">{GRUND_TEXT[grund]}</p>
       ) : null}
       <p className="hinweis">
-        Gib den Kontakt an, mit dem du deine Bewertung bestätigt hast. Wir schicken dir einen
-        Anmeldelink - ein Kennwort brauchst du hier nicht.
+        Gib den Kontakt an, mit dem du bewertet hast. Wir schicken dir einen Anmeldelink - ein
+        Kennwort brauchst du hier nicht.
+      </p>
+      {/* Der Weg heraus aus der Sackgasse: Wer bewertet hat und die
+          Bestätigung nie bekam, kam nirgendwo mehr hin - nicht anmelden, nicht
+          erneut bewerten, nichts nachfordern. Dasselbe Formular schickt jetzt
+          den Bestätigungslink, wenn das Konto noch unbestätigt ist. */}
+      <p className="hinweis">
+        Ist deine Bewertung noch nicht bestätigt - weil die Nachricht nie ankam oder die 24
+        Stunden abgelaufen sind -, schicken wir dir stattdessen den Bestätigungslink noch einmal.
+        Dasselbe Formular, dieselbe Angabe.
       </p>
       <Anmeldeformular />
     </section>

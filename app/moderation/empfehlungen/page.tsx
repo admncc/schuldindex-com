@@ -79,7 +79,6 @@ export default async function Empfehlungsseite({
     topWerber(zeitraum),
   ]);
 
-  const auffaellig = liste.filter((z) => z.gleichesGeraet).length;
 
   return (
     <section className="abschnitt">
@@ -125,7 +124,7 @@ export default async function Empfehlungsseite({
           <span className="beschriftung">werbende Konten</span>
         </div>
         <div className="kennzahl">
-          <span className="zahl">{ZAHL.format(auffaellig)}</span>
+          <span className="zahl">{ZAHL.format(zahlen.selbesGeraet)}</span>
           <span className="beschriftung">davon selbes Gerät</span>
         </div>
       </div>

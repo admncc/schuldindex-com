@@ -17,6 +17,7 @@ import { hasheSitzung } from "../domain/anmeldung";
 import type { Aktion } from "../domain/moderation";
 import { aktualisiereAggregat } from "./aggregate";
 import { istKennung } from "../domain/kennung";
+import { maskierePlatzhalter } from "./schulsuche";
 
 /* ---------------------------------------------------------------- Anmeldung */
 
@@ -167,7 +168,11 @@ export async function warteschlange(f: Warteschlangenfilter = {}): Promise<Warte
     where b.status in ('in_pruefung_geo', 'in_pruefung_betrug')
       ${f.status ? sql`and b.status = ${f.status}::bewertungsstatus` : sql``}
       ${f.bundesland ? sql`and s.bundesland = ${f.bundesland}::bundesland` : sql``}
-      ${f.suche ? sql`and s.suchtext ilike ${"%" + f.suche + "%"}` : sql``}
+      ${
+        f.suche
+          ? sql`and s.suchtext ilike ${"%" + maskierePlatzhalter(f.suche) + "%"} escape '\\'`
+          : sql``
+      }
     order by b.erstellt_am asc
     limit ${f.limit ?? 200}
   `;

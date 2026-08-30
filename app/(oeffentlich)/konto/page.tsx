@@ -42,6 +42,18 @@ export default async function Kontoseite() {
     (b) => b.verlosung_teilnahme && TEILNAHMEBERECHTIGT.includes(b.rolle),
   );
 
+  // **Und zwar mit einer veröffentlichten Bewertung.** Die Ziehung verlangt
+  // das (`db/verlosung.ts`), die Seite fragte nur nach dem Häkchen. Wessen
+  // eigene Bewertung noch in der Prüfung lag, während eine geworbene Person
+  // schon erschienen war, las hier „Du bist diesen Monat dabei" und war es
+  // nicht.
+  const eigeneZaehlt = bewertungen.some(
+    (b) =>
+      b.verlosung_teilnahme &&
+      TEILNAHMEBERECHTIGT.includes(b.rolle) &&
+      b.status === "freigegeben",
+  );
+
   const basis = process.env["BASIS_URL"] ?? "";
   const link = code === null ? null : empfehlungslink(basis, code);
 
@@ -97,11 +109,13 @@ export default async function Kontoseite() {
             </div>
 
             <p className="hinweis">
-              {stand.zaehlend >= GEWINNE.mega.mindestEmpfehlungen
-                ? `Du bist diesen Monat in allen drei Ziehungen dabei - auch in der ${VERLOSUNG_LABEL.mega}.`
-                : stand.zaehlend >= GEWINNE.super.mindestEmpfehlungen
-                  ? `Du bist diesen Monat in der ${VERLOSUNG_LABEL.super} dabei. Ab ${GEWINNE.mega.mindestEmpfehlungen} Freundinnen und Freunden kommt die ${VERLOSUNG_LABEL.mega} dazu.`
-                  : "Sobald eine einzige Person über deinen Link bewertet, bist du dabei."}
+              {!eigeneZaehlt
+                ? `Sobald deine eigene Bewertung veröffentlicht ist, zählen die Empfehlungen für dich - ab einer bist du dann in der ${VERLOSUNG_LABEL.super} dabei.`
+                : stand.zaehlend >= GEWINNE.mega.mindestEmpfehlungen
+                  ? `Du bist diesen Monat in allen drei Ziehungen dabei - auch in der ${VERLOSUNG_LABEL.mega}.`
+                  : stand.zaehlend >= GEWINNE.super.mindestEmpfehlungen
+                    ? `Du bist diesen Monat in der ${VERLOSUNG_LABEL.super} dabei. Ab ${GEWINNE.mega.mindestEmpfehlungen} Freundinnen und Freunden kommt die ${VERLOSUNG_LABEL.mega} dazu.`
+                    : "Sobald eine einzige Person über deinen Link bewertet, bist du dabei."}
             </p>
 
             <Teilen link={link} text={teilentext("meine Schule", link)} kompakt />
