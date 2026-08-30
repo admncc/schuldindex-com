@@ -92,11 +92,36 @@ export function istMeldegrund(wert: string): wert is Meldegrund {
  * kommt hier deshalb auch ohne Adresse durch - nur bekommt er dann keine
  * Antwort, und darauf weist das Formular hin.
  */
+/**
+ * Obergrenzen der Felder.
+ *
+ * Sie fehlten, und die Spalten sind `text` ohne Grenze: Eine Meldung konnte
+ * knapp ein Megabyte groß sein, und die Warteschlange der Moderation ließ sich
+ * damit füllen. Die Werte sind großzügig - eine ausführliche Begründung nach
+ * Art. 16 Abs. 2 lit. a DSA passt bequem hinein.
+ */
+export const HOECHSTLAENGEN = {
+  url: 500,
+  erlaeuterung: 5000,
+  name: 200,
+  kontakt: 254,
+} as const;
+
 export function pruefeMeldung(e: Meldeeingabe): Meldefehler[] {
   const fehler: Meldefehler[] = [];
   const url = e.url.trim();
   const erlaeuterung = e.erlaeuterung.trim();
   const kontakt = e.kontakt.trim();
+
+  for (const feld of ["url", "erlaeuterung", "kontakt"] as const) {
+    const grenze = HOECHSTLAENGEN[feld];
+    if (e[feld].length > grenze) {
+      fehler.push({ feld, meldung: `Diese Angabe ist zu lang - höchstens ${grenze} Zeichen.` });
+    }
+  }
+  if (e.name.length > HOECHSTLAENGEN.name) {
+    fehler.push({ feld: "kontakt", meldung: "Der Name ist zu lang." });
+  }
 
   if (url === "") {
     fehler.push({ feld: "url", meldung: "Bitte gib die Adresse der Seite an, um die es geht." });

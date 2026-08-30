@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { fordereZugangAn, beendeSchulsitzung } from "@/db/schulzugang";
 import { wegtext } from "@/domain/schulzugang";
@@ -8,6 +8,8 @@ import { baueSchulzugang, sende } from "@/versand/nachricht";
 import { versandkette } from "@/versand/wege";
 import { holeSchule } from "@/db/schulen";
 import { SCHULCOOKIE_NAMEN } from "./sitzung";
+import { zaehle } from "@/domain/drosselung";
+import { absenderadresse } from "@/geo/mmdb";
 
 export interface Anfragezustand {
   readonly meldung?: string;
@@ -15,6 +17,11 @@ export interface Anfragezustand {
   readonly werte?: Record<string, string>;
   readonly versuch?: number;
 }
+
+/** Höchstens so viele Anfragen je Absender und Stunde. */
+const ANFRAGEN_JE_STUNDE = 5;
+/** Und höchstens so viele je Schule und Stunde, von wem auch immer. */
+const ANFRAGEN_JE_SCHULE_UND_STUNDE = 3;
 
 export async function zugangAnfordern(
   vorher: Anfragezustand,
@@ -28,6 +35,21 @@ export async function zugangAnfordern(
 
   const schule = await holeSchule(slug);
   if (schule === null) return { fehler: "Diese Schule kennen wir nicht.", werte, versuch };
+
+  // Zwei Grenzen: je Absender und je Schule. Ohne die zweite ließe sich die im
+  // Verzeichnis hinterlegte Adresse jeder der rund 32.000 Schulen beliebig oft
+  // anschreiben - von wechselnden Anschlüssen aus.
+  const absender = absenderadresse(await headers());
+  const erlaubt =
+    zaehle("schulzugang", absender, ANFRAGEN_JE_STUNDE, 3_600_000).erlaubt &&
+    zaehle("schulzugang-schule", schule.id, ANFRAGEN_JE_SCHULE_UND_STUNDE, 3_600_000).erlaubt;
+  if (!erlaubt) {
+    return {
+      fehler: "Zu dieser Schule liegt bereits eine Anfrage vor. Bitte versuche es später noch einmal.",
+      werte,
+      versuch,
+    };
+  }
 
   if (notiz.trim().length < 20) {
     return {

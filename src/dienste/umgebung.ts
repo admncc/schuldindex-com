@@ -228,10 +228,24 @@ export function aenderungsumgebungMitDatenbank(): Aenderungsumgebung {
           )
         `;
 
+        // Die Signale der Abgabe (Ort, Klickverhalten, Menge) bleiben stehen -
+        // sie gehören zum Zeitpunkt der Abgabe. Die Mustersignale der alten
+        // Fassung werden durch die der neuen ersetzt, sonst trüge eine
+        // ausgetauschte Bewertung die Beurteilung der alten weiter.
+        const [alt] = await tx<{ signale: { art: string; gewicht: number }[] }[]>`
+          select coalesce(signale, '[]'::jsonb) as signale from bewertungen where id = ${daten.bewertungId}
+        `;
+        const MUSTERARTEN = ["nur_extremwerte", "alles_gleich"];
+        const ohneMuster = (alt?.signale ?? []).filter((sig) => !MUSTERARTEN.includes(sig.art));
+        const neueSignale = [...ohneMuster, ...daten.musterSignale];
+        const punkte = neueSignale.reduce((summe, sig) => summe + sig.gewicht, 0);
+
         await tx`
           update bewertungen
           set aktuelle_version = ${daten.version},
               status = ${daten.status}::bewertungsstatus,
+              signale = ${tx.json(neueSignale as never)},
+              signalpunkte = ${punkte},
               rolle = ${daten.eingabe.rolle!}::rolle,
               klassenstufe = ${daten.eingabe.klassenstufe},
               abgangsjahr = ${daten.eingabe.abgangsjahr},

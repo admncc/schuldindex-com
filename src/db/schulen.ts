@@ -5,7 +5,7 @@ import type { Bundesland } from "../domain/bundesland";
 import type { Schulart } from "../import/schulart";
 import { MINDESTZAHL_PROFIL } from "../domain/aggregation";
 import { sql } from "./verbindung";
-import { zerlegeEingabe } from "./schulsuche";
+import { maskierePlatzhalter, normalisiereEingabe, zerlegeEingabe } from "./schulsuche";
 
 export interface Schulprofil {
   id: string;
@@ -79,6 +79,8 @@ export interface Trefferfilter {
   schulart?: Schulart;
   /** Ort oder Postleitzahl - beides steht im selben Feld der Suchmaske. */
   ort?: string;
+  /** Genau dieser Ort statt „beginnt mit“ - gesetzt beim Klick auf eine Ortsfacette. */
+  ortGenau?: boolean;
   /** Nur Schulen mit veröffentlichter Wertung. */
   nurBewertet?: boolean;
 }
@@ -107,7 +109,9 @@ function bedingung(begriff: string, filter: Trefferfilter, ohne?: "bundesland" |
   // findet die Schillerschule in Öhringen, obwohl im Suchtext „grundschule“
   // dazwischensteht. Begründung ausführlich in `db/schulsuche.ts`.
   for (const wort of zerlegeEingabe(begriff)) {
-    b = sql`${b} and s.suchtext like ${"%" + wort + "%"}`;
+    // Maskiert, sonst findet die Eingabe „__“ jede Schule und „%“ alle
+    // (`maskierePlatzhalter` in `db/schulsuche.ts`).
+    b = sql`${b} and s.suchtext like ${"%" + maskierePlatzhalter(wort) + "%"} escape '\'`;
   }
 
   if (filter.bundesland !== undefined && ohne !== "bundesland") {
@@ -120,9 +124,15 @@ function bedingung(begriff: string, filter: Trefferfilter, ohne?: "bundesland" |
   if (ort !== "" && ohne !== "ort") {
     // Ein Feld für beides: Ziffern sind eine Postleitzahl, alles andere ein
     // Ortsname. Beim Ort von vorn, damit „Berg“ nicht jedes „…berg“ trifft.
+    const sicher = maskierePlatzhalter(ort);
     b = /^\d+$/.test(ort)
-      ? sql`${b} and s.plz like ${ort + "%"}`
-      : sql`${b} and lower(s.ort) like ${ort + "%"}`;
+      ? sql`${b} and s.plz like ${sicher + "%"} escape '\'`
+      : filter.ortGenau === true
+        // Nach einem Klick auf eine Ortsfacette wird genau dieser Ort gemeint -
+        // sonst zählte die Facette „Berlin 818“ und die Liste zeigte 821, weil
+        // „Berlin-Buch“ mitkommt.
+        ? sql`${b} and lower(s.ort) = ${ort}`
+        : sql`${b} and lower(s.ort) like ${sicher + "%"} escape '\'`;
   }
   if (filter.nurBewertet === true) {
     b = sql`${b} and coalesce(a.anzahl, 0) >= ${MINDESTZAHL_PROFIL}`;
@@ -146,7 +156,7 @@ export async function sucheSchulen(
   filter: Trefferfilter = {},
   grenze = 40,
 ): Promise<Suchergebnis[]> {
-  const begriff = eingabe.toLowerCase().replace(/\s+/g, " ").trim();
+  const begriff = normalisiereEingabe(eingabe);
   if (begriff.length < 2 && !istEingegrenzt(filter)) return [];
 
   // Erst die zusammenhängenden Treffer, dann die verstreuten: Wer „gymnasium
@@ -156,8 +166,8 @@ export async function sucheSchulen(
   const reihenfolge =
     begriff === ""
       ? sql`coalesce(a.anzahl, 0) desc, length(s.name), s.name`
-      : sql`case when s.suchtext like ${begriff + "%"} then 0
-                 when s.suchtext like ${"%" + begriff + "%"} then 1
+      : sql`case when s.suchtext like ${maskierePlatzhalter(begriff) + "%"} escape '\' then 0
+                 when s.suchtext like ${"%" + maskierePlatzhalter(begriff) + "%"} escape '\' then 1
                  else 2 end,
             coalesce(a.anzahl, 0) desc, length(s.name), s.name`;
 
@@ -189,7 +199,7 @@ export async function bundeslandFacetten(
   eingabe: string,
   filter: Trefferfilter = {},
 ): Promise<Facette<Bundesland>[]> {
-  const begriff = eingabe.toLowerCase().replace(/\s+/g, " ").trim();
+  const begriff = normalisiereEingabe(eingabe);
   if (begriff.length < 2 && !istEingegrenzt(filter)) return [];
 
   return sql<Facette<Bundesland>[]>`
@@ -208,7 +218,7 @@ export async function ortFacetten(
   filter: Trefferfilter = {},
   grenze = 10,
 ): Promise<Facette<string>[]> {
-  const begriff = eingabe.toLowerCase().replace(/\s+/g, " ").trim();
+  const begriff = normalisiereEingabe(eingabe);
   if (begriff.length < 2 && !istEingegrenzt(filter)) return [];
 
   return sql<Facette<string>[]>`

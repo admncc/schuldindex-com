@@ -16,7 +16,7 @@ export default function Meldeseite() {
         Verfahren erfüllt Art. 16 des Digital Services Act.
       </p>
       <p className="hinweis">
-        Für falsche Stammdaten - Adresse, Schulart, Website - brauchst du dieses Formular nicht;
+        Für falsche Stammdaten - Adresse, Schulart, Internetseite - brauchst du dieses Formular nicht;
         eine kurze Nachricht an die Adresse im <a href="/impressum">Impressum</a> genügt.
       </p>
 

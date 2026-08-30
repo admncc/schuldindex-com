@@ -125,21 +125,50 @@ export async function datenbanklage(): Promise<Datenbanklage> {
 }
 
 /**
+ * Wie viele eigene Proxys vor der Anwendung stehen (`VERTRAUTE_PROXYS`).
+ *
+ * Ohne Angabe: keiner. Dann wird `X-Forwarded-For` **nicht ausgewertet**, und
+ * der Ort bleibt unbekannt - was die Bewertung in die Moderation schickt,
+ * statt sie ungeprüft durchzulassen.
+ */
+function vertrauteProxys(): number {
+  const roh = Number(process.env["VERTRAUTE_PROXYS"] ?? "0");
+  return Number.isInteger(roh) && roh > 0 ? roh : 0;
+}
+
+/**
  * Die Adresse des Absenders aus den Kopfzeilen.
  *
- * Hinter einem Reverse Proxy steht die echte Adresse in `X-Forwarded-For`; die
- * erste Angabe ist die des Browsers, die weiteren sind die Proxys. Ohne Proxy
- * ist der Kopf leer, und dann gibt es hier nichts zu holen - der Fall wird als
- * „unbekannt“ behandelt.
+ * **Der Kopf kommt vom Client, nicht vom Netz.** Hier stand einmal „nimm den
+ * ersten Eintrag“ - und der erste Eintrag ist genau der, den der Browser selbst
+ * schreiben kann. Wer `X-Forwarded-For: <IP in der Nähe der Schule>` setzte,
+ * schaltete damit das Entfernungssignal ab, das schwerste der ganzen Prüfung.
+ *
+ * Vertrauenswürdig ist nur, was die **eigenen** Proxys angehängt haben: Jeder
+ * Proxy hängt hinten an, also ist die Adresse `n` Stellen von rechts die, die
+ * der äußerste eigene Proxy gesehen hat. Alles links davon ist Behauptung des
+ * Absenders. Steht kein Proxy davor (`VERTRAUTE_PROXYS` nicht gesetzt), wird
+ * der Kopf gar nicht erst gelesen.
  *
  * **Nichts davon wird gespeichert.** Der Rückgabewert lebt bis zum Ende der
  * Anfrage.
  */
-export function absenderadresse(kopf: Headers): string | null {
+export function absenderadresse(kopf: Headers, proxys = vertrauteProxys()): string | null {
+  if (proxys <= 0) return null;
+
   const weitergereicht = kopf.get("x-forwarded-for");
   if (weitergereicht) {
-    const erste = weitergereicht.split(",")[0]?.trim();
-    if (erste) return erste;
+    const kette = weitergereicht.split(",").map((t) => t.trim()).filter((t) => t !== "");
+    // Der äußerste eigene Proxy hat als letzter angehängt. Sind es weniger
+    // Einträge als Proxys, hat jemand den Kopf entfernt - dann ist keine
+    // Angabe belastbar.
+    const stelle = kette.length - proxys;
+    if (stelle >= 0 && kette[stelle]) return kette[stelle]!;
+    return null;
   }
+
+  // `X-Real-IP` setzt der Proxy selbst und überschreibt dabei, was der Client
+  // geschickt hat - deshalb ist er hier brauchbar, sobald überhaupt ein
+  // eigener Proxy davorsteht.
   return kopf.get("x-real-ip")?.trim() ?? null;
 }

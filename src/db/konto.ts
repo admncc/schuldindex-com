@@ -10,6 +10,7 @@
 import type postgres from "postgres";
 import { sql } from "./verbindung";
 import { aktualisiereAggregat } from "./aggregate";
+import { istKennung } from "../domain/kennung";
 import { hasheKontotoken, type Zugangstoken } from "../domain/kontozugang";
 import type { Kontaktart } from "../domain/kontakt";
 import { entschluesseleWennMoeglich, verschleiere } from "../domain/kontakt";
@@ -196,6 +197,10 @@ export async function eigeneBewertungen(kontoId: string): Promise<EigeneBewertun
  * den Fall daran, dass die Zahl der Freitexte gesunken ist (`istFaellig`).
  */
 export async function loescheBewertung(kontoId: string, bewertungId: string): Promise<boolean> {
+  // Der Wert kommt aus einem Formularfeld. Ohne diese Zeile liefe ein
+  // manipulierter Wert als Datenbankfehler in die Server Action.
+  if (!istKennung(bewertungId)) return false;
+
   return sql.begin(async (tx: postgres.TransactionSql) => {
     const [zeile] = await tx<{ schule_id: string }[]>`
       delete from bewertungen where id = ${bewertungId} and konto_id = ${kontoId}
@@ -247,7 +252,7 @@ export async function holeFassungZumAendern(
   bewertungId: string,
   schuleId: string,
 ): Promise<FassungZumAendern | null> {
-  if (!/^[0-9a-f-]{36}$/i.test(bewertungId)) return null;
+  if (!istKennung(bewertungId)) return null;
 
   const [zeile] = await sql<FassungZumAendern[]>`
     select b.id, b.rolle::text as rolle, b.klassenstufe, b.abgangsjahr,

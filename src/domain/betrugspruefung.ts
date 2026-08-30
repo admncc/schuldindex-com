@@ -21,6 +21,8 @@ export type Signalart =
   | "zu_schnell"
   | "zu_schnell_geklickt"
   | "gleichmaessige_klicks"
+  | "klickfolge_unplausibel"
+  | "ohne_formularstempel"
   | "abweichung_vom_mittel"
   | "ort_unbekannt"
   | "zu_viele_von_einer_quelle"
@@ -57,6 +59,16 @@ export interface Pruefkontext {
    */
   readonly dauerSekunden?: number | null | undefined;
   /**
+   * Kam die Abgabe ohne gültigen Formularstempel an?
+   *
+   * Der Stempel wird beim Aufruf des Formulars ausgestellt und ist an die
+   * Schule gebunden. Fehlt er, ist das kein Zufall: Ein Browser schickt ihn
+   * immer mit. Vorher war sein Weglassen der einfachste Weg, die Tempoprüfung
+   * und die Plausibilisierung der Klickfolge zugleich abzuschalten - beide
+   * schweigen ohne gemessene Dauer.
+   */
+  readonly stempelFehlt?: boolean | undefined;
+  /**
    * Der Gesamtscore dieser Bewertung und der bisherige Stand der Schule, beide
    * auf der Anzeigeskala 0–10. Ohne genug Bewertungen hat die Schule kein
    * Mittel, von dem jemand abweichen könnte.
@@ -66,8 +78,9 @@ export interface Pruefkontext {
   readonly schulAnzahl?: number | undefined;
   /**
    * Abstände zwischen den Antwortklicks in Millisekunden, aus dem Browser.
-   * Werden gegen die vom Server gemessene Dauer plausibilisiert; die Klickfolge
-   * selbst wird nirgends gespeichert (`domain/klickmuster.ts`).
+   * Werden gegen die vom Server gemessene Dauer plausibilisiert. Die Prüfung
+   * selbst braucht nur Median und Streuung; gespeichert wird zusätzlich die
+   * Folge (`dienste/bewertungAbgeben.ts`, Entscheidung vom 27.08.2026).
    */
   readonly klickabstaende?: readonly number[] | null | undefined;
   /** Bewertungen von derselben Quelle in den letzten zehn Minuten. */
@@ -276,6 +289,14 @@ export function pruefe(k: Pruefkontext, e: Einstellungen = VORGABEN): Pruefergeb
     });
   }
 
+  if (k.stempelFehlt === true) {
+    signale.push({
+      art: "ohne_formularstempel",
+      gewicht: 2,
+      erlaeuterung: "Abgabe ohne gültigen Formularstempel",
+    });
+  }
+
   signale.push(...pruefeAntwortmuster(k.antworten));
   signale.push(...pruefeTempo(k.dauerSekunden, k.antworten, e));
   const klick = pruefeKlickmuster(k.klickabstaende, k.dauerSekunden, e);
@@ -295,4 +316,31 @@ export function pruefe(k: Pruefkontext, e: Einstellungen = VORGABEN): Pruefergeb
     grund: !halten ? null : wegenGeo ? "geo" : "betrug",
     klick: klick.auswertung,
   };
+}
+
+
+/**
+ * Wie es nach der Bestätigung des Kontos weitergeht.
+ *
+ * Eine erste Bewertung wartet zunächst auf die Bestätigung des Kontos - der
+ * Zustand `wartet_auf_verifizierung` sagt nichts darüber, ob sie auffällig war.
+ * Die Signale sind zu diesem Zeitpunkt längst gespeichert; bei der Bestätigung
+ * müssen sie **wieder gelesen** werden, sonst geht jede Erstabgabe ungeprüft
+ * online - egal wie viele Punkte sie gesammelt hat. Genau das war hier einmal
+ * der Fall.
+ *
+ * Gewertet wird gegen die **heutige** Halteschwelle, nicht gegen die von
+ * gestern: Wird sie gesenkt, gilt die neue Regel auch für das, was noch wartet.
+ */
+export function ausloeserNachBestaetigung(
+  signalpunkte: number | null,
+  signale: readonly { readonly art: string }[],
+  halteschwelle: number,
+): "pruefung_bestanden" | "pruefung_geo" | "pruefung_betrug" {
+  const punkte = signalpunkte ?? 0;
+  if (punkte < halteschwelle) return "pruefung_bestanden";
+  // Dieselbe Vorrangregel wie bei der Abgabe: „zu weit entfernt“ lässt sich
+  // erklären, „auffälliges Muster“ nicht, ohne die Prüfung zu verraten.
+  const wegenGeo = signale.some((s) => s.art === "entfernung" || s.art === "ort_unbekannt");
+  return wegenGeo ? "pruefung_geo" : "pruefung_betrug";
 }

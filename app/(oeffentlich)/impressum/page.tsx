@@ -18,8 +18,7 @@ export default function Impressumsseite() {
           <strong>Dieses Impressum ist unvollständig.</strong>
           <p>
             {fehlen.length} Pflichtangabe{fehlen.length === 1 ? "" : "n"} nach § 5 DDG fehl
-            {fehlen.length === 1 ? "t" : "en"} noch. Sie werden über Umgebungsvariablen gesetzt
-            (siehe <code>.env.example</code>); vor dem Start muss das erledigt sein.
+            {fehlen.length === 1 ? "t" : "en"} noch. Wir tragen sie nach.
           </p>
         </div>
       ) : null}

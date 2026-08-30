@@ -5,6 +5,7 @@ import { sucheSchulen } from "@/db/schulen";
 import { BUNDESLAND_LABEL } from "@/domain/bundesland";
 import { holeAngemeldeteSchule } from "../sitzung";
 import Anfrageformular from "./formular";
+import { einer } from "@/domain/suchparameter";
 
 export const metadata: Metadata = {
   title: "Zugang für Schulen",
@@ -21,13 +22,16 @@ const GRUND_TEXT: Readonly<Record<string, string>> = {
 export default async function Anfrageseite({
   searchParams,
 }: {
-  searchParams: Promise<{ schule?: string; q?: string; grund?: string }>;
+  searchParams: Promise<{ schule?: string | string[]; q?: string | string[]; grund?: string | string[] }>;
 }) {
   const p = await searchParams;
   if (await holeAngemeldeteSchule()) redirect("/schulsupport");
 
-  const schule = p.schule ? await holeSchule(p.schule) : null;
-  const treffer = !schule && p.q && p.q.length >= 2 ? await sucheSchulen(p.q) : [];
+  const slug = einer(p.schule);
+  const suchbegriff = einer(p.q);
+  const grundtext = GRUND_TEXT[einer(p.grund) ?? ""] ?? null;
+  const schule = slug ? await holeSchule(slug) : null;
+  const treffer = !schule && suchbegriff && suchbegriff.length >= 2 ? await sucheSchulen(suchbegriff) : [];
 
   return (
     <section className="abschnitt rechtstext">
@@ -39,9 +43,7 @@ export default async function Anfrageseite({
         Sonst wäre die Zusage der Anonymität nichts wert.
       </p>
 
-      {p.grund && GRUND_TEXT[p.grund] ? (
-        <p className="fehler" role="alert">{GRUND_TEXT[p.grund]}</p>
-      ) : null}
+      {grundtext ? <p className="fehler" role="alert">{grundtext}</p> : null}
 
       {schule ? (
         <>
@@ -90,7 +92,7 @@ export default async function Anfrageseite({
           Zugangslink dorthin - nicht an eine Adresse, die in diesem Formular steht.
         </li>
         <li>
-          <strong>Sonst</strong> nehmen wir eine Adresse an der Domäne der Schulwebsite, sofern
+          <strong>Sonst</strong> nehmen wir eine Adresse an der Domäne der Internetseite der Schule, sofern
           diese Domäne nur zu dieser einen Schule gehört.
         </li>
         <li>

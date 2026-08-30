@@ -118,7 +118,23 @@ export function pruefeKlickmuster(
   e: Einstellungen = VORGABEN,
 ): { readonly signale: Signal[]; readonly auswertung: Klickauswertung | null } {
   if (!abstaendeMs || abstaendeMs.length === 0) return { signale: [], auswertung: null };
-  if (!plausibel(abstaendeMs, dauerSekunden ?? null)) return { signale: [], auswertung: null };
+
+  // Eine erfundene Reihe ist ein Befund, kein fehlender Befund. Vorher stand
+  // hier ein leeres Ergebnis - damit schaltete ein einziger überhöhter Wert am
+  // Ende der Folge beide Klicksignale ab, und ein gleichmäßig klickendes Skript
+  // kam durch, indem es die Reihe unplausibel machte.
+  if (!plausibel(abstaendeMs, dauerSekunden ?? null)) {
+    return {
+      signale: [
+        {
+          art: "klickfolge_unplausibel",
+          gewicht: 3,
+          erlaeuterung: "Die gemeldeten Klickabstände passen nicht zur gemessenen Dauer",
+        },
+      ],
+      auswertung: null,
+    };
+  }
 
   const auswertung = auswerteKlicks(abstaendeMs);
   if (auswertung === null) return { signale: [], auswertung: null };

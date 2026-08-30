@@ -29,6 +29,20 @@ describe("Normalisierung von Mobilnummern", () => {
     expect(normalisiereKontakt("+43 664 1234567", "sms")).toBe("+436641234567");
   });
 
+  it("führt Plus-Kennzeichen einer E-Mail-Adresse zusammen", () => {
+    // `name+schule1@` und `name+schule2@` sind dasselbe Postfach. Ohne diese
+    // Zusammenführung ergab ein Postfach beliebig viele Konten - und „eine
+    // Bewertung je Schule“ war damit ausgehebelt.
+    expect(normalisiereKontakt("Name+schule1@example.org", "email")).toBe("name@example.org");
+    expect(normalisiereKontakt("name+a+b@example.org", "email")).toBe("name@example.org");
+    expect(normalisiereKontakt("name@example.org", "email")).toBe("name@example.org");
+  });
+
+  it("lässt Punkte im lokalen Teil stehen", () => {
+    // Bei den meisten Anbietern sind das zwei verschiedene Postfächer.
+    expect(normalisiereKontakt("a.b@example.org", "email")).toBe("a.b@example.org");
+  });
+
   it("behandelt WhatsApp und SMS gleich", () => {
     expect(normalisiereKontakt("0170 1234567", "whatsapp")).toBe(normalisiereKontakt("0170 1234567", "sms"));
   });

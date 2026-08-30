@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { bewertungAbgeben } from "@/dienste/bewertungAbgeben";
 import { umgebungMitDatenbank } from "@/dienste/umgebung";
 import type { Bewertungseingabe } from "@/domain/bewertungseingabe";
-import { pruefeStempel } from "@/domain/formularstempel";
+import { pruefeStempel, STEMPEL_HINWEIS } from "@/domain/formularstempel";
 import { MAX_ABSTAENDE } from "@/domain/klickmuster";
 import { absenderadresse, ortungFuerIp } from "@/geo/mmdb";
+import { zaehle } from "@/domain/drosselung";
 
 type Anfragekoerper = Bewertungseingabe & { stempel?: string; klickabstaende?: unknown };
 
@@ -31,7 +32,35 @@ function klickabstaende(wert: unknown): number[] | null {
  * Die eigentliche Prüfung steckt in `bewertungAbgeben` - hier steht nur, was
  * zur Anbindung gehört: Anfrage lesen, Umgebung bauen, Antwort formen.
  */
+/** Ein vollständiges Formular ist wenige Kilobyte groß. 64 KB sind großzügig. */
+const HOECHSTGROESSE = 64 * 1024;
+
+/** Höchstens so viele Abgaben je Absender und Stunde. */
+const ABGABEN_JE_STUNDE = 20;
+
 export async function POST(anfrage: Request): Promise<NextResponse> {
+  // Die Adresse wird gezählt und nicht gespeichert (`domain/drosselung.ts`).
+  const absender = absenderadresse(anfrage.headers);
+  if (!zaehle("bewertung", absender, ABGABEN_JE_STUNDE, 3_600_000).erlaubt) {
+    return NextResponse.json(
+      {
+        ok: false,
+        fehler: [{ feld: "", meldung: "Das waren gerade viele Abgaben. Bitte versuche es später noch einmal." }],
+      },
+      { status: 429 },
+    );
+  }
+
+  // Vor dem Parsen: Ein 20 MB großer Rumpf wurde bisher vollständig gelesen und
+  // in den Speicher gelegt, bevor irgendeine Prüfung griff.
+  const laenge = Number(anfrage.headers.get("content-length") ?? "0");
+  if (Number.isFinite(laenge) && laenge > HOECHSTGROESSE) {
+    return NextResponse.json(
+      { ok: false, fehler: [{ feld: "", meldung: "Die Anfrage ist zu groß." }] },
+      { status: 413 },
+    );
+  }
+
   let eingabe: Anfragekoerper;
   try {
     eingabe = (await anfrage.json()) as Anfragekoerper;
@@ -50,19 +79,36 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
   // bleibt der Ort unbekannt und die Bewertung geht in die Moderation, statt
   // ungeprüft durchzugehen.
   const ortung = async () => {
-    const treffer = await ortungFuerIp(absenderadresse(anfrage.headers));
+    const treffer = await ortungFuerIp(absender);
     return treffer === null ? null : { lat: treffer.lat, lon: treffer.lon };
   };
 
   // Die Dauer rechnet der Server aus seinem eigenen Stempel - nicht aus einer
-  // Zahl, die die Anfrage mitbringt. Ohne gültigen Stempel bleibt sie leer, und
-  // das Tempo-Signal entfällt; abgewiesen wird deswegen niemand.
-  const stempel = typeof eingabe.stempel === "string" ? pruefeStempel(eingabe.stempel) : null;
+  // Zahl, die die Anfrage mitbringt. Der Stempel ist an die Schule gebunden;
+  // ein für eine andere Schule geholter gilt hier nicht.
+  //
+  // Fehlt er ganz oder passt er nicht, ist das ein **Signal** und kein
+  // stillschweigendes Nichts: Vorher war „Stempel weglassen“ der einfachste
+  // Weg, die Tempoprüfung und die Plausibilisierung der Klickfolge zugleich
+  // abzuschalten.
+  const slug = typeof eingabe.schulSlug === "string" ? eingabe.schulSlug : "";
+  const stempel = typeof eingabe.stempel === "string" ? pruefeStempel(eingabe.stempel, slug) : null;
   const dauerSekunden = stempel?.ok ? stempel.dauerSekunden : null;
+  const stempelFehlt = stempel === null || !stempel.ok;
+
+  // Ist der Stempel abgelaufen, ist das kein Verdachtsfall, sondern ein
+  // offenes Formular von gestern - und dafür gibt es eine Erklärung, die
+  // bisher geschrieben war und nie ausgeliefert wurde.
+  if (stempel !== null && !stempel.ok && stempel.grund === "abgelaufen") {
+    return NextResponse.json(
+      { ok: false, fehler: [{ feld: "", meldung: STEMPEL_HINWEIS.abgelaufen }] },
+      { status: 422 },
+    );
+  }
 
   try {
     const ergebnis = await bewertungAbgeben(
-      { ...eingabe, dauerSekunden, klickabstaende: klickabstaende(eingabe.klickabstaende) },
+      { ...eingabe, dauerSekunden, stempelFehlt, klickabstaende: klickabstaende(eingabe.klickabstaende) },
       umgebungMitDatenbank(basis, ortung),
     );
     return NextResponse.json(ergebnis, { status: ergebnis.ok ? 201 : 422 });

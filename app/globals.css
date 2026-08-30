@@ -16,10 +16,14 @@
   --flaeche-2: #eef1f7;
   --schrift: #151a23;
   --schrift-2: #454e60;
-  --schrift-3: #6b7488;
+  /* 5,0:1 auf dem Seitengrund. #6b7488 stand hier einmal und lag mit 4,38:1
+     knapp unter dem Mindestkontrast - betroffen war jede Hilfszeile im Portal. */
+  --schrift-3: #626a7d;
   --akzent: #2733d4;
   --akzent-dunkel: #1b23a8;
   --akzent-sanft: #e8eaff;
+  /* Schrift auf dem Akzent. Fest „#fff“ war im dunklen Schema 2,39:1. */
+  --knopf-schrift: #ffffff;
   /* Signalfarbe, sparsam: Verlosung und das, was jemanden zum Mitmachen bringt.
      Nicht für Bewertungen - dafür sind die Ampelfarben da. */
   --signal: #d8380f;
@@ -46,6 +50,10 @@
     --schrift-3: #878fa1;
     --akzent: #8aa6f0;
     --akzent-sanft: #1d2740;
+    /* Auf dem hellen Akzent des dunklen Schemas ist Weiß unlesbar. */
+    --knopf-schrift: #101319;
+    --signal: #ff9273;
+    --signal-sanft: #33180f;
     --linie: #2a303c;
     --linie-stark: #3a4252;
     --gut: #6dc79a;
@@ -73,7 +81,14 @@ body {
 /* Serifen sind raus: Die Zielgruppe ist überwiegend minderjährig und liest auf
    dem Telefon. Eine kräftige serifenlose Schrift wird schneller erfasst und
    wirkt weniger nach Amtsblatt. */
-h1, h2, h3 { margin: 0; text-wrap: balance; letter-spacing: -0.02em; }
+h1, h2, h3 {
+  margin: 0; text-wrap: balance; letter-spacing: -0.02em;
+  /* „Nutzungsbedingungen“ und „Förderschwerpunkten“ sind länger als ein
+     Telefon breit ist. Ohne diese beiden Zeilen schob die Überschrift die
+     ganze Seite seitlich aus dem Bild. */
+  overflow-wrap: anywhere; hyphens: auto;
+}
+h1, h2, h3 { overflow-wrap: anywhere; hyphens: auto; }
 h1 { font-size: clamp(2.1rem, 6vw, 3.2rem); font-weight: 800; line-height: 1.08; }
 h2 { font-size: clamp(1.35rem, 3vw, 1.7rem); font-weight: 750; line-height: 1.2; }
 h3 { font-size: 1.05rem; font-weight: 700; }
@@ -97,6 +112,13 @@ a { color: var(--akzent); }
   font-weight: 800; font-size: 1.1rem; letter-spacing: -0.01em;
   color: var(--schrift); text-decoration: none; white-space: nowrap;
 }
+/* Auf dem Telefon ist die Navigation ein Waagerecht-Scroller. Ohne den
+   Verlauf am rechten Rand sah sie aus wie eine vollständige Liste - „Karte“,
+   „Über uns“ und „Deine Bewertungen“ waren unauffindbar. */
+.kopf-inhalt { position: relative; }
+@media (max-width: 44rem) {
+  .kopf nav { -webkit-mask-image: linear-gradient(to right, #000 85%, transparent); mask-image: linear-gradient(to right, #000 85%, transparent); }
+}
 .kopf nav {
   display: flex; gap: 1.1rem; font-size: 0.93rem; margin-left: auto;
   overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
@@ -106,12 +128,22 @@ a { color: var(--akzent); }
 .kopf nav a:hover { color: var(--akzent); }
 .kopf .knopf { padding: 0.5rem 1rem; font-size: 0.9rem; }
 @media (max-width: 40rem) {
-  .kopf nav { gap: 0.9rem; font-size: 0.88rem; }
+  /* Auf dem Telefon ist die Navigation ein Waagerecht-Scroller. Ohne den
+   Verlauf am rechten Rand sah sie aus wie eine vollständige Liste - „Karte“,
+   „Über uns“ und „Deine Bewertungen“ waren unauffindbar. */
+.kopf-inhalt { position: relative; }
+@media (max-width: 44rem) {
+  .kopf nav { -webkit-mask-image: linear-gradient(to right, #000 85%, transparent); mask-image: linear-gradient(to right, #000 85%, transparent); }
+}
+.kopf nav { gap: 0.9rem; font-size: 0.88rem; }
   .kopf .knopf { display: none; }
 }
 
 .fuss { margin-top: 4rem; border-top: 1px solid var(--linie); padding: 1.5rem 0 3rem; font-size: 0.87rem; color: var(--schrift-3); }
+/* Tippziele von mindestens 24 px (WCAG 2.2, 2.5.8) - vorher waren die Links
+   16 px hoch und auf dem Telefon kaum zu treffen. */
 .fuss ul { display: flex; gap: 1.25rem; list-style: none; margin: 0 0 0.6rem; padding: 0; flex-wrap: wrap; }
+.fuss ul a { display: inline-flex; align-items: center; min-height: 1.6rem; }
 .fuss a { color: var(--schrift-2); text-decoration: none; }
 
 /* ---------- Suche ---------- */
@@ -135,7 +167,7 @@ a { color: var(--akzent); }
      Mauszeiger, ist hier das Eingabegerät. */
   min-height: 2.75rem; padding: 0.7rem 1.5rem; font-size: 1rem; font-family: inherit; font-weight: 650;
   border: 1px solid transparent; border-radius: 999px;
-  background: var(--akzent); color: #fff; cursor: pointer; text-decoration: none;
+  background: var(--akzent); color: var(--knopf-schrift); cursor: pointer; text-decoration: none;
   display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;
   transition: background 0.15s, transform 0.05s;
 }
@@ -272,6 +304,8 @@ a { color: var(--akzent); }
 .plakette.gut { background: var(--gut-flaeche); color: var(--gut); }
 .plakette.mittel { background: var(--mittel-flaeche); color: var(--mittel); }
 .plakette.schlecht { background: var(--schlecht-flaeche); color: var(--schlecht); }
+/* „Nicht gemessen“: grau statt grün - eine fehlende Prüfung ist kein guter Wert. */
+.plakette.neutral { background: var(--flaeche-2); color: var(--schrift-3); }
 
 .marke-schulart {
   display: inline-block; font-size: 0.78rem; color: var(--schrift-2);
@@ -378,14 +412,14 @@ a { color: var(--akzent); }
 .antwort:hover { border-color: var(--linie-stark); }
 .antwort:active { transform: scale(0.97); }
 .antwort.gewaehlt {
-  border-color: var(--akzent); background: var(--akzent); color: #fff; font-weight: 650;
+  border-color: var(--akzent); background: var(--akzent); color: var(--knopf-schrift); font-weight: 650;
 }
-.antwort.gewaehlt input { accent-color: #fff; }
+.antwort.gewaehlt input { accent-color: var(--knopf-schrift); }
 .antwort input { accent-color: var(--akzent); }
 /* „Kann ich nicht beurteilen“ steht bewusst abgesetzt - es ist keine Bewertung
    auf der Skala, sondern deren Verweigerung. */
 .antwort.weiss-nicht { color: var(--schrift-3); border-style: dashed; }
-.antwort.weiss-nicht.gewaehlt { color: #fff; border-style: solid; }
+.antwort.weiss-nicht.gewaehlt { color: var(--knopf-schrift); border-style: solid; }
 
 .warnung {
   font-size: 0.87rem; color: var(--schrift-2); background: var(--mittel-flaeche);
@@ -582,7 +616,12 @@ a { color: var(--akzent); }
 .rechtstext dl { display: grid; grid-template-columns: auto 1fr; gap: 0.4rem 1.2rem; margin: 0; }
 .rechtstext dt { color: var(--schrift-3); }
 .rechtstext dd { margin: 0; color: var(--schrift-2); }
-.rechtstext table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+/* Die Tabelle rollt für sich, nicht die Seite: Auf dem Telefon fehlte sonst
+   die dritte Spalte, und man musste die ganze Seite schieben, um sie zu sehen. */
+.rechtstext table {
+  border-collapse: collapse; width: 100%; font-size: 0.92rem;
+  display: block; overflow-x: auto; max-width: 100%;
+}
 .rechtstext th, .rechtstext td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--linie); vertical-align: top; }
 .rechtstext th { color: var(--schrift-3); font-weight: 500; }
 mark.fehlt {
@@ -783,7 +822,7 @@ mark.fehlt {
 .schritte li::before {
   counter-increment: schritt; content: counter(schritt);
   width: 1.9rem; height: 1.9rem; border-radius: 50%;
-  background: var(--akzent); color: #fff; font-weight: 750; font-size: 0.95rem;
+  background: var(--akzent); color: var(--knopf-schrift); font-weight: 750; font-size: 0.95rem;
   display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.2rem;
 }
 .schritte strong { font-size: 1.02rem; font-weight: 700; }

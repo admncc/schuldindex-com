@@ -19,6 +19,7 @@ import { bewerte, type Bewertungsergebnis } from "../domain/scoring";
 import { wechsle, type Zustand } from "../domain/bewertungsstatus";
 import type { Antworten } from "../domain/scoring";
 import { freitexteAlsObjekt } from "./bewertungAbgeben";
+import { pruefeAntwortmuster } from "../domain/betrugspruefung";
 
 export interface Bestand {
   readonly id: string;
@@ -40,6 +41,8 @@ export interface Aenderungsumgebung {
     readonly status: Zustand;
     readonly eingabe: Bewertungseingabe;
     readonly scores: Bewertungsergebnis;
+    /** Signale aus dem Antwortmuster der neuen Fassung. */
+    readonly musterSignale: readonly { readonly art: string; readonly gewicht: number }[];
   }): Promise<void>;
 }
 
@@ -82,6 +85,14 @@ export async function bewertungAendern(
   const texte = Object.values(eingabe.freitexte).filter((t): t is string => !!t && t.trim() !== "");
   const auffaellig = texte.length > 0 && (await umgebung.pruefeFreitext(texte));
 
+  // **Die neue Fassung wird neu beurteilt.** Sonst war der Weg offen: eine
+  // unauffällige Bewertung abgeben, sie vor der Bestätigung inhaltlich
+  // austauschen, bestätigen - und die Bestätigung rechnete mit den Signalen
+  // der alten Fassung. Geo- und Klicksignale bleiben, wie sie waren; sie
+  // gehören zur Abgabe, nicht zum Text. Neu bewertet wird das Antwortmuster.
+  const muster = pruefeAntwortmuster(eingabe.antworten as Antworten);
+  const signale = muster.map((sig) => ({ art: sig.art, gewicht: sig.gewicht }));
+
   // Ein auffälliger Freitext hält die geänderte Fassung zurück, auch wenn die
   // vorherige veröffentlicht war. Genau dafür ist die Rückkehr in die Prüfung da.
   const status: Zustand = auffaellig && uebergang.nach === "freigegeben" ? "in_pruefung_betrug" : uebergang.nach;
@@ -94,6 +105,7 @@ export async function bewertungAendern(
     status,
     eingabe,
     scores,
+    musterSignale: signale,
   });
 
   return { ok: true, status, version };

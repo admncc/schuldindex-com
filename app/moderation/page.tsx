@@ -7,6 +7,7 @@ import type { Zustand } from "@/domain/bewertungsstatus";
 import type { Bundesland } from "@/domain/bundesland";
 import { verlangeAnmeldung } from "./sitzung";
 import Warteschlange from "./warteschlange";
+import { einer } from "@/domain/suchparameter";
 
 export const metadata: Metadata = { title: "Warteschlange", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -14,16 +15,20 @@ export const dynamic = "force-dynamic";
 export default async function Warteschlangenseite({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; bundesland?: string; suche?: string }>;
+  searchParams: Promise<{ status?: string | string[]; bundesland?: string | string[]; suche?: string | string[] }>;
 }) {
   await verlangeAnmeldung();
   const p = await searchParams;
 
-  const status = p.status === "in_pruefung_geo" || p.status === "in_pruefung_betrug"
-    ? (p.status as Zustand)
-    : undefined;
-  const bundesland = p.bundesland !== undefined && istBundesland(p.bundesland) ? p.bundesland : undefined;
-  const suche = p.suche?.trim() ? p.suche.trim() : undefined;
+  const rohStatus = einer(p.status);
+  const status =
+    rohStatus === "in_pruefung_geo" || rohStatus === "in_pruefung_betrug"
+      ? (rohStatus as Zustand)
+      : undefined;
+  const rohLand = einer(p.bundesland);
+  const bundesland = rohLand !== undefined && istBundesland(rohLand) ? rohLand : undefined;
+  const rohSuche = einer(p.suche)?.trim();
+  const suche = rohSuche ? rohSuche : undefined;
 
   const [eintraege, lage, zusammenfassungen] = await Promise.all([
     warteschlange({ status, bundesland, suche }),

@@ -26,7 +26,7 @@ export async function GET(anfrage: Request): Promise<Response> {
 
   const ausschnitt = ausschnittFuer(bundesland);
   const feld = bildfeld(ausschnitt, BREITE);
-  const zellen = await rasterpunkte(ausschnitt, rasterweite(ausschnitt));
+  const zellen = await rasterpunkte(ausschnitt, rasterweite(ausschnitt), bundesland);
 
   /**
    * Die Punkte als wenige Pfade statt als elftausend Kreise.

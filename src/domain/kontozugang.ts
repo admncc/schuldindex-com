@@ -96,7 +96,14 @@ export const LINK_ANGEFORDERT =
   "Wenn zu diesem Kontakt ein Konto besteht, haben wir dir gerade einen Anmeldelink geschickt. " +
   `Er gilt ${ANMELDELINK_STUNDEN} Stunden.`;
 
-/** Dasselbe gilt, wenn die Begrenzung greift. */
-export const ZU_VIELE_LINKS =
-  `Du hast in der letzten Stunde schon ${LINKS_JE_STUNDE} Anmeldelinks angefordert. ` +
-  "Sieh in deinen Nachrichten nach; der zuletzt geschickte Link gilt weiter.";
+/**
+ * Wie viele Anmeldelinks je Stunde und Konto verschickt werden.
+ *
+ * Wird die Grenze erreicht, bleibt die **Meldung dieselbe** wie sonst auch
+ * (`LINK_ANGEFORDERT`). Ein eigener Text dafür hatte hier einmal gestanden und
+ * war ein Existenzorakel: Wer viermal dieselbe Nummer eingibt und beim vierten
+ * Mal „schon 3 Links angefordert“ liest, weiß, dass es zu dieser Nummer ein
+ * bestätigtes Konto gibt - also dass diese Person eine Schule bewertet hat.
+ * Genau die Auskunft, die dieses Portal niemandem geben darf. Dass die Grenze
+ * gegriffen hat, steht nur im internen Vermerk und damit im Protokoll.
+ */

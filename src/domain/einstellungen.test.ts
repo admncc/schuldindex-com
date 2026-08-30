@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   abweichungen,
+  erlaubteKontaktarten,
   beschreibung,
   GRUPPEN_HILFE,
   GRUPPEN_LABEL,
@@ -136,5 +137,23 @@ describe("zahl", () => {
   it("fällt auf die Vorgabe zurück", () => {
     expect(zahl({}, "halteschwelle")).toBe(VORGABEN["halteschwelle"]);
     expect(zahl({ halteschwelle: 7 }, "halteschwelle")).toBe(7);
+  });
+});
+
+describe("erlaubteKontaktarten", () => {
+  it("bietet nach Vorgabe alle drei Wege an", () => {
+    expect(erlaubteKontaktarten(VORGABEN)).toEqual(["whatsapp", "sms", "email"]);
+  });
+
+  it("lässt einen abgeschalteten Weg weg", () => {
+    const ohneSms = mitVorgaben({ kontakt_sms: 0 });
+    expect(erlaubteKontaktarten(ohneSms)).toEqual(["whatsapp", "email"]);
+  });
+
+  it("fällt auf alle zurück, wenn jemand alle abschaltet", () => {
+    // Ohne Bestätigung nimmt das Portal gar nichts an - eine leere Auswahl
+    // wäre keine Einstellung, sondern ein stillgelegtes Formular.
+    const keiner = mitVorgaben({ kontakt_whatsapp: 0, kontakt_sms: 0, kontakt_email: 0 });
+    expect(erlaubteKontaktarten(keiner)).toEqual(["whatsapp", "sms", "email"]);
   });
 });

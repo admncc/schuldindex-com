@@ -41,13 +41,17 @@ export async function nimmMeldungAn(m: NeueMeldung): Promise<{ id: string; einge
       : null;
 
   const kontakt = m.kontakt.trim();
+  // Auch der Name wird verschlüsselt abgelegt. Im Klartext entstünde neben den
+  // Bewertungen genau die Liste, die die Verschlüsselung des Kontakts
+  // verhindern soll: wer wen gemeldet hat.
+  const name = m.name.trim();
   const [zeile] = await sql<{ id: string; eingegangen_am: Date }[]>`
     insert into meldungen (
       url, schule_id, bewertung_id, grund, erlaeuterung,
-      melder_name, melder_chiffre, melder_hash, gutglauben_am
+      melder_name_chiffre, melder_chiffre, melder_hash, gutglauben_am
     ) values (
       ${m.url.trim()}, ${schuleId}, ${bewertungId}, ${m.grund}::meldegrund, ${m.erlaeuterung.trim()},
-      ${m.name.trim() || null},
+      ${name === "" ? null : verschluessele(name)},
       ${kontakt === "" ? null : verschluessele(kontakt)},
       ${kontakt === "" ? null : kontaktHash(kontakt, "email")},
       now()
@@ -62,6 +66,7 @@ export interface Meldungsuebersicht {
   url: string;
   grund: Meldegrund;
   erlaeuterung: string;
+  /** Entschlüsselt, sobald die Moderation die Liste ansieht - so wie der Kontakt auch. */
   melder_name: string | null;
   status: Meldestatus;
   eingegangen_am: Date;
@@ -74,8 +79,8 @@ export interface Meldungsuebersicht {
 
 /** Die offenen Meldungen für die Moderation, älteste zuerst. */
 export async function offeneMeldungen(grenze = 50): Promise<Meldungsuebersicht[]> {
-  return sql<Meldungsuebersicht[]>`
-    select m.id, m.url, m.grund::text as grund, m.erlaeuterung, m.melder_name,
+  const zeilen = await sql<(Omit<Meldungsuebersicht, "melder_name"> & { melder_name_chiffre: Buffer | null })[]>`
+    select m.id, m.url, m.grund::text as grund, m.erlaeuterung, m.melder_name_chiffre,
            m.status::text as status, m.eingegangen_am,
            s.name as schule_name, s.slug as schule_slug, m.bewertung_id,
            (
@@ -88,6 +93,14 @@ export async function offeneMeldungen(grenze = 50): Promise<Meldungsuebersicht[]
     order by m.eingegangen_am asc
     limit ${grenze}
   `;
+
+  return zeilen.map(({ melder_name_chiffre, ...rest }) => ({
+    ...rest,
+    // Unlesbar nach einem Schlüsselwechsel: dann bleibt das Feld leer, statt
+    // die ganze Liste scheitern zu lassen.
+    melder_name:
+      melder_name_chiffre === null ? null : entschluesseleWennMoeglich(melder_name_chiffre),
+  }));
 }
 
 /** Entscheidet über eine Meldung und hält die Begründung fest (Art. 16 Abs. 5). */

@@ -5,6 +5,7 @@ import {
   ROLLEN,
   beantwortet,
   fortschritt,
+  FREITEXT_HOECHSTLAENGE,
   istGueltig,
   pruefeEingabe,
   sieht_aus_wie_email,
@@ -179,5 +180,60 @@ describe("Fortschritt", () => {
     const halb = alleAntworten(["A"]);
     expect(fortschritt(halb)).toBeGreaterThan(0);
     expect(fortschritt(halb)).toBeLessThan(1);
+  });
+});
+
+
+describe("Prüfung der Rohwerte", () => {
+  // Diese Prüfungen fehlten, und die Lücke war die schwerste des Projekts: Die
+  // Antworten kommen als JSON aus dem Browser, und jeder Wert außer „kann ich
+  // nicht beurteilen“ zählte als beantwortet.
+  it("weist Antworten außerhalb der Skala zurück", () => {
+    const alle = alleAntworten();
+    const erste = Object.keys(alle)[0]!;
+    for (const wert of [0, 6, 7, 99, -1, 1.5]) {
+      const felder = pruefeEingabe(eingabe({ antworten: { ...alle, [erste]: wert as never } })).map(
+        (f) => f.feld,
+      );
+      expect(felder, `Wert ${wert} kam durch`).toContain("antworten");
+    }
+  });
+
+  it("weist Fragen zurück, die es nicht gibt", () => {
+    const felder = pruefeEingabe(
+      eingabe({ antworten: { ...alleAntworten(), erfunden: 5 as never } }),
+    ).map((f) => f.feld);
+    expect(felder).toContain("antworten");
+  });
+
+  it("weist alles zurück, was gar kein Objekt ist", () => {
+    for (const unsinn of [null, "text", 42, []]) {
+      const felder = pruefeEingabe(eingabe({ antworten: unsinn as never })).map((f) => f.feld);
+      expect(felder).toContain("antworten");
+    }
+  });
+
+  it("begrenzt die Länge der Freitexte", () => {
+    const zuLang = "a".repeat(FREITEXT_HOECHSTLAENGE + 1);
+    const felder = pruefeEingabe(
+      eingabe({ antworten: alleAntworten(), freitexte: { A: zuLang } }),
+    ).map((f) => f.feld);
+    expect(felder).toContain("kategorie.A");
+  });
+
+  it("begrenzt die Länge des Kontakts", () => {
+    const felder = pruefeEingabe(
+      eingabe({ antworten: alleAntworten(), kontakt: "a".repeat(300) + "@example.org" }),
+    ).map((f) => f.feld);
+    expect(felder).toContain("kontakt");
+  });
+
+  it("lässt „sieben“ nicht als Klassenstufe durch", () => {
+    // `"sieben" < 1` und `"sieben" > 13` sind beide falsch - der Wert lief bis
+    // in die Datenbank.
+    const felder = pruefeEingabe(
+      eingabe({ antworten: alleAntworten(), klassenstufe: "sieben" as never }),
+    ).map((f) => f.feld);
+    expect(felder).toContain("klassenstufe");
   });
 });

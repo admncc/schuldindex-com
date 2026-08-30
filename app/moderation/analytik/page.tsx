@@ -16,6 +16,7 @@ import { holeEinstellungen } from "@/db/einstellungen";
 import { zahl } from "@/domain/einstellungen";
 import { verlangeAnmeldung } from "../sitzung";
 import Risikotabelle from "./risikotabelle";
+import { einer } from "@/domain/suchparameter";
 
 export const metadata: Metadata = { title: "Auswertung", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -79,17 +80,20 @@ function Balkenzeile({
 export default async function Analyseseite({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; schule?: string; status?: string }>;
+  searchParams: Promise<{ q?: string | string[]; schule?: string | string[]; status?: string | string[] }>;
 }) {
   const moderatorin = await verlangeAnmeldung();
   const p = await searchParams;
-  const status = p.status !== undefined && istZustand(p.status) ? p.status : "alle";
+  const rohStatus = einer(p.status);
+  const status = rohStatus !== undefined && istZustand(rohStatus) ? rohStatus : "alle";
+  const suchbegriff = einer(p.q);
+  const schulkennung = einer(p.schule);
 
   const [lage, signale, verlauf, treffer, einstellungen] = await Promise.all([
     gesamtlage(),
     signalhaeufigkeit(),
     verlaufNachMonat(),
-    p.q ? sucheSchulenFuerAnalyse(p.q) : Promise.resolve([]),
+    suchbegriff ? sucheSchulenFuerAnalyse(suchbegriff) : Promise.resolve([]),
     holeEinstellungen(),
   ]);
   // Die Risikofarben hängen an derselben Halteschwelle, die auch entscheidet,
@@ -97,7 +101,7 @@ export default async function Analyseseite({
   // was das Portal tatsächlich zurückhält.
   const halteschwelle = zahl(einstellungen, "halteschwelle");
 
-  const analyse = p.schule ? await analysiereSchule(p.schule) : null;
+  const analyse = schulkennung ? await analysiereSchule(schulkennung) : null;
   const bewertungen = analyse === null ? [] : await bewertungenDerSchule(analyse.schule.id, status);
 
   const hoechsterMonat = Math.max(1, ...verlauf.map((m) => m.abgaben));
@@ -212,7 +216,7 @@ export default async function Analyseseite({
         <h2>Einzelne Schule ansehen</h2>
         <form className="filter" method="get">
           <label htmlFor="q" className="versteckt">Schule suchen</label>
-          <input id="q" name="q" defaultValue={p.q ?? ""} placeholder="Name, Ort oder Postleitzahl" />
+          <input id="q" name="q" defaultValue={suchbegriff ?? ""} placeholder="Name, Ort oder Postleitzahl" />
           <button className="knopf zweitrangig">Suchen</button>
         </form>
 
@@ -222,7 +226,7 @@ export default async function Analyseseite({
               <li key={s.id}>
                 <a
                   className={analyse?.schule.id === s.id ? "eintrag gewaehlt" : "eintrag"}
-                  href={`/moderation/analytik?schule=${s.id}${p.q ? `&q=${encodeURIComponent(p.q)}` : ""}`}
+                  href={`/moderation/analytik?schule=${s.id}${suchbegriff ? `&q=${encodeURIComponent(suchbegriff)}` : ""}`}
                 >
                   <span className="name">
                     {s.name}
@@ -235,7 +239,7 @@ export default async function Analyseseite({
               </li>
             ))}
           </ul>
-        ) : p.q ? (
+        ) : suchbegriff ? (
           <p className="gedaempft">Kein Treffer.</p>
         ) : null}
       </section>
@@ -329,7 +333,7 @@ export default async function Analyseseite({
                   key={z}
                   className={status === z ? "wahlfeld gewaehlt" : "wahlfeld"}
                   href={`/moderation/analytik?schule=${analyse.schule.id}${
-                    p.q ? `&q=${encodeURIComponent(p.q)}` : ""
+                    suchbegriff ? `&q=${encodeURIComponent(suchbegriff)}` : ""
                   }${z === "alle" ? "" : `&status=${z}`}`}
                 >
                   {/* Zwei Zustände heißen beide „Wird geprüft“ - in einer

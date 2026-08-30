@@ -2,6 +2,9 @@
 
 import { nimmMeldungAn } from "@/db/meldungen";
 import { EINGANGSBESTAETIGUNG, istMeldegrund, pruefeMeldung } from "@/domain/meldung";
+import { absenderadresse } from "@/geo/mmdb";
+import { zaehle } from "@/domain/drosselung";
+import { headers } from "next/headers";
 
 export interface Meldezustand {
   readonly fehler?: readonly { feld: string; meldung: string }[];
@@ -22,7 +25,21 @@ export interface Meldezustand {
   readonly versuch?: number;
 }
 
+/** Höchstens so viele Meldungen je Absender und Stunde. */
+const MELDUNGEN_JE_STUNDE = 10;
+
 export async function melden(_vorher: Meldezustand, formular: FormData): Promise<Meldezustand> {
+  // Die Warteschlange der Meldungen ist die Stelle, an der Menschen arbeiten.
+  // Ohne Grenze ließ sie sich beliebig füllen.
+  const absender = absenderadresse(await headers());
+  if (!zaehle("meldung", absender, MELDUNGEN_JE_STUNDE, 3_600_000).erlaubt) {
+    return {
+      fehler: [
+        { feld: "", meldung: "Das waren gerade viele Meldungen. Bitte versuche es später noch einmal." },
+      ],
+    };
+  }
+
   const eingabe = {
     url: String(formular.get("url") ?? ""),
     grund: String(formular.get("grund") ?? ""),

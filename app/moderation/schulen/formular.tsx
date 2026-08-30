@@ -158,7 +158,7 @@ export default function Schulformular({
           <input name="traeger" defaultValue={w.traeger} disabled={!darfAendern} />
         </label>
         <label className="feld">
-          <span>Website</span>
+          <span>Internetseite</span>
           <input name="website" defaultValue={w.website} placeholder="https://" disabled={!darfAendern} />
         </label>
         {fehlerZu("website") ? <p className="fehler">{fehlerZu("website")}</p> : null}

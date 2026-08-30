@@ -55,7 +55,7 @@ export async function loescheDemodaten(moderatorId: string): Promise<Demobestand
 
     await tx`
       insert into moderationsprotokoll (aktion, moderator_id, kennung_versuch, begruendung)
-      values ('aufbewahrung_ausgefuehrt', ${moderatorId}, '',
+      values ('demodaten_geloescht', ${moderatorId}, '',
               ${`Demodaten entfernt: ${bewertungen.count} Bewertungen, ${konten.count} Konten`})
     `;
 

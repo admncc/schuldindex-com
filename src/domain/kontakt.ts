@@ -33,9 +33,19 @@ export function istKontaktart(wert: string): wert is Kontaktart {
  */
 export function normalisiereKontakt(wert: string, art: Kontaktart): string {
   if (art === "email") {
-    // Nur Kleinschreibung. Punkte im lokalen Teil zu entfernen wäre bequem für
-    // die Dublettenerkennung, ist aber bei den meisten Anbietern schlicht falsch.
-    return wert.trim().toLowerCase();
+    // Kleinschreibung - und das Plus-Kennzeichen fällt weg. Punkte im lokalen
+    // Teil zu entfernen wäre bequem, ist aber bei den meisten Anbietern
+    // schlicht falsch: `a.b@` und `ab@` sind dort zwei Postfächer.
+    //
+    // Beim Plus liegt es anders: `name+1@`, `name+2@` … landen überall im
+    // **selben** Postfach. Ohne diese Zeile ergab ein einziges Postfach
+    // beliebig viele Konten, und „eine Bewertung je Schule“ griff nicht mehr.
+    const sauber = wert.trim().toLowerCase();
+    const at = sauber.lastIndexOf("@");
+    if (at <= 0) return sauber;
+    const lokal = sauber.slice(0, at);
+    const plus = lokal.indexOf("+");
+    return plus < 0 ? sauber : lokal.slice(0, plus) + sauber.slice(at);
   }
 
   let ziffern = wert.replace(/[^\d+]/g, "");

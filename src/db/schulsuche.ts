@@ -51,6 +51,21 @@ export function normalisiereEingabe(eingabe: string): string {
   return eingabe.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Maskiert die Platzhalter von `like` in einer Eingabe.
+ *
+ * `%` und `_` sind in `like` Platzhalter, `\` ist das Fluchtzeichen. Ohne
+ * Maskierung findet die Eingabe `__` jede Schule mit mindestens zwei Zeichen im
+ * Suchtext - also alle 31.770 - und `8_` jede Postleitzahl, die mit einer 8
+ * beginnt. Kein Sicherheitsproblem (die Werte sind gebunden), aber die
+ * Trefferzahl ist dann eine andere als die versprochene.
+ *
+ * Die Abfragen dazu schreiben `escape '\\'`, damit die Maskierung auch gilt.
+ */
+export function maskierePlatzhalter(eingabe: string): string {
+  return eingabe.replace(/[\\%_]/g, "\\$&");
+}
+
 /** Mehr Wörter wertet niemand aus - und jedes weitere kostet eine Bedingung. */
 const HOECHSTZAHL_WOERTER = 6;
 
@@ -82,8 +97,8 @@ export function zerlegeEingabe(eingabe: string): string[] {
 function wortbedingungen(woerter: readonly string[], werte: unknown[]): string {
   return woerter
     .map((wort) => {
-      werte.push(`%${wort}%`);
-      return `and suchtext like $${werte.length}`;
+      werte.push(`%${maskierePlatzhalter(wort)}%`);
+      return `and suchtext like $${werte.length} escape '\\'`;
     })
     .join("\n       ");
 }
@@ -99,8 +114,8 @@ function filterBedingungen(filter: Suchfilter, werte: unknown[]): string {
     teile.push(`and $${werte.length} = any(schularten)`);
   }
   if (filter.ort) {
-    werte.push(`%${normalisiereEingabe(filter.ort)}%`);
-    teile.push(`and lower(ort) like $${werte.length}`);
+    werte.push(`%${maskierePlatzhalter(normalisiereEingabe(filter.ort))}%`);
+    teile.push(`and lower(ort) like $${werte.length} escape '\\'`);
   }
   return teile.join("\n        ");
 }
@@ -134,15 +149,16 @@ export async function autovervollstaendige(
   if (begriff.length < 2) return [];
   const woerter = zerlegeEingabe(begriff);
 
-  const werte: unknown[] = [`${begriff}%`, `%${begriff}%`];
+  const maskiert = maskierePlatzhalter(begriff);
+  const werte: unknown[] = [`${maskiert}%`, `%${maskiert}%`];
   const wortteil = wortbedingungen(woerter, werte);
   const bedingungen = filterBedingungen(filter, werte);
   werte.push(grenze);
 
   const zeilen = await sql<Record<string, unknown>>(
     `select ${SPALTEN},
-            case when suchtext like $1 then 0
-                 when suchtext like $2 then 1
+            case when suchtext like $1 escape '\\' then 0
+                 when suchtext like $2 escape '\\' then 1
                  else 2 end as rang
      from schulen
      where ist_aktiv
@@ -172,12 +188,12 @@ export async function suche(
   if (begriff.length < 2) return [];
   const woerter = zerlegeEingabe(begriff);
 
-  const werte: unknown[] = [begriff, `%${begriff}%`];
+  const werte: unknown[] = [begriff, `%${maskierePlatzhalter(begriff)}%`];
   // Jedes Wort für sich - sonst fällt „schiller öhringen“ durch, weil im
   // Suchtext „grundschule“ dazwischensteht.
   const wortteil = woerter.map((wort) => {
-    werte.push(`%${wort}%`);
-    return `suchtext like $${werte.length}`;
+    werte.push(`%${maskierePlatzhalter(wort)}%`);
+    return `suchtext like $${werte.length} escape '\\'`;
   });
   const bedingungen = filterBedingungen(filter, werte);
   werte.push(grenze);
@@ -185,9 +201,9 @@ export async function suche(
   const zeilen = await sql<Record<string, unknown>>(
     `select ${SPALTEN}, similarity(suchtext, $1) as guete
      from schulen
-     where ist_aktiv and (suchtext % $1 or suchtext like $2 or (${wortteil.join(" and ")}))
+     where ist_aktiv and (suchtext % $1 or suchtext like $2 escape '\\' or (${wortteil.join(" and ")}))
        ${bedingungen}
-     order by case when suchtext like $2 then 0 else 1 end, guete desc, length(name), name
+     order by case when suchtext like $2 escape '\\' then 0 else 1 end, guete desc, length(name), name
      limit $${werte.length}`,
     werte,
   );

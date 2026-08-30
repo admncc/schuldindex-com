@@ -2,14 +2,19 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BUNDESLAND_LABEL } from "@/domain/bundesland";
 import { ZUSTAND_LABEL, type Zustand } from "@/domain/bewertungsstatus";
-import { FRAGE_NACH_ID, KATEGORIEN, KEINE_ANGABE, LABEL_KEINE_ANGABE, SKALEN, fragenDerKategorie } from "@/domain/fragebogen";
+import { FRAGE_NACH_ID, KATEGORIEN, KEINE_ANGABE, LABEL_KEINE_ANGABE, SKALEN,
+  frageText, fragenDerKategorie } from "@/domain/fragebogen";
+import { ansprachefuer } from "@/domain/bewertungseingabe";
 import { pruefeAntwortmuster } from "@/domain/betrugspruefung";
-import { SCHWELLE_KM } from "@/domain/geopruefung";
+import { verlangeAnmeldung } from "../sitzung";
+
 import { alterInStunden, dringlichkeit, DRINGLICHKEIT_LABEL } from "@/domain/moderation";
 import { fristtext, regel } from "@/domain/aufbewahrung";
 import { holeVorgang, protokollZurBewertung, weitereBewertungenDesKontos } from "@/db/moderation";
 import Entscheidungsfeld from "./entscheidung";
 import Kontaktfeld from "./kontakt";
+import { zahl } from "@/domain/einstellungen";
+import { holeEinstellungen } from "@/db/einstellungen";
 
 export const metadata: Metadata = { title: "Bewertung prüfen", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -34,6 +39,11 @@ const PROTOKOLL_LABEL: Readonly<Record<string, string>> = {
 };
 
 export default async function Vorgangsseite({ params }: { params: Promise<{ id: string }> }) {
+  // **Als erstes**, vor jeder Datenbankabfrage. Hier stehen Betrugssignale,
+  // Klickfolge, Geoentfernung, Kontaktstand und das Protokoll mit Namen -
+  // die Kennung einer Bewertung kennt aber auch, wer sie abgegeben hat.
+  await verlangeAnmeldung();
+
   const { id } = await params;
 
   // Ohne diese Prüfung liefe eine erfundene Kennung als Datenbankfehler auf,
@@ -42,6 +52,10 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
 
   const vorgang = await holeVorgang(id);
   if (vorgang === null) notFound();
+
+  // Der eingestellte Grenzwert, nicht die Konstante: Sonst steht hier eine
+  // andere Zahl als die, gegen die tatsächlich geprüft wurde.
+  const grenzeKm = zahl(await holeEinstellungen(), "entfernung_km");
 
   const [weitere, protokoll] = await Promise.all([
     weitereBewertungenDesKontos(vorgang.konto_id, vorgang.id),
@@ -121,7 +135,7 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
                 ? "unbekannt - der Absenderort ließ sich nicht bestimmen"
                 : entfernung === null
                   ? "nicht geprüft"
-                  : `${entfernung.toLocaleString("de-DE", { maximumFractionDigits: 0 })} km zur Schule (Grenze ${SCHWELLE_KM} km)`}
+                  : `${entfernung.toLocaleString("de-DE", { maximumFractionDigits: 0 })} km zur Schule (Grenze ${grenzeKm} km)`}
             </li>
             <li>
               <strong>Antwortmuster:</strong>{" "}
@@ -254,7 +268,9 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
                         : (SKALEN[f.skala].find((o) => o.wert === wert)?.label ?? String(wert));
                     return (
                       <li key={f.id}>
-                        <span className="frage">{f.text}</span>
+                        {/* Der Wortlaut, der dieser Person gestellt wurde - Eltern und
+                            Ehemalige bekommen andere Fassungen zu sehen. */}
+                        <span className="frage">{frageText(f, ansprachefuer(vorgang.rolle))}</span>
                         <span className="antwortwert">{label}</span>
                       </li>
                     );

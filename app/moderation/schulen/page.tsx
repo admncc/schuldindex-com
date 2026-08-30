@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
 import { BUNDESLAENDER, BUNDESLAND_LABEL, istBundesland, type Bundesland } from "@/domain/bundesland";
 import { SCHULART_LABEL } from "@/import/schulart";
-import { importlage, letzteAenderungen, listeSchulen, SEITENGROESSE } from "@/db/schulverwaltung";
+import {
+  dublettenbericht,
+  importlage,
+  letzteAenderungen,
+  listeSchulen,
+  SEITENGROESSE,
+} from "@/db/schulverwaltung";
+import { Dublettenknopf } from "./dubletten";
 import { verlangeAnmeldung } from "../sitzung";
+import { einer } from "@/domain/suchparameter";
 
 export const metadata: Metadata = { title: "Schulen", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -24,28 +32,32 @@ const ZEIT = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium", timeStyle: 
 export default async function Schulenseite({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; bundesland?: string; nur?: string; seite?: string }>;
+  searchParams: Promise<{ q?: string | string[]; bundesland?: string | string[]; nur?: string | string[]; seite?: string | string[] }>;
 }) {
   const moderatorin = await verlangeAnmeldung();
   const p = await searchParams;
 
+  const rohLand = einer(p.bundesland);
   const bundesland: Bundesland | undefined =
-    p.bundesland !== undefined && istBundesland(p.bundesland) ? p.bundesland : undefined;
+    rohLand !== undefined && istBundesland(rohLand) ? rohLand : undefined;
+  const rohNur = einer(p.nur);
   const nur = (["manuell", "ohne_koordinate", "stillgelegt", "bewertet"] as const).find(
-    (n) => n === p.nur,
+    (n) => n === rohNur,
   );
-  const seite = Math.max(1, Number(p.seite ?? 1) || 1);
+  const suchbegriff = einer(p.q);
+  const seite = Math.max(1, Number(einer(p.seite) ?? 1) || 1);
 
-  const [lage, liste, aenderungen] = await Promise.all([
+  const [lage, liste, aenderungen, dubletten] = await Promise.all([
     importlage(),
-    listeSchulen({ suche: p.q, bundesland, nur, seite }),
+    listeSchulen({ suche: suchbegriff, bundesland, nur, seite }),
     letzteAenderungen(),
+    dublettenbericht(),
   ]);
 
   const seiten = Math.max(1, Math.ceil(liste.gesamt / SEITENGROESSE));
   const verweis = (neueSeite: number) => {
     const felder = new URLSearchParams();
-    if (p.q) felder.set("q", p.q);
+    if (suchbegriff) felder.set("q", suchbegriff);
     if (bundesland) felder.set("bundesland", bundesland);
     if (nur) felder.set("nur", nur);
     if (neueSeite > 1) felder.set("seite", String(neueSeite));
@@ -84,7 +96,49 @@ export default async function Schulenseite({
             <span className="zahl">{ZAHL.format(lage.manuell)}</span>
             <span className="beschriftung">von Hand gepflegt</span>
           </div>
+          <div className="kennzahl">
+            <span className="zahl">{ZAHL.format(dubletten.length)}</span>
+            <span className="beschriftung">Dublettengruppen</span>
+          </div>
         </div>
+      </section>
+
+      {/* Der Abgleich gegen die eigene Regel: gleicher Name, gleiche
+          Postleitzahl. Der Import führt solche Zeilen schon beim Einlesen
+          zusammen - von Hand angelegte Schulen gehen daran vorbei, und eine
+          geänderte Postleitzahl kann zwei Zeilen nachträglich zu Dubletten
+          machen. */}
+      <section className="abschnitt">
+        <h2>Doppelt im Bestand</h2>
+        {dubletten.length === 0 ? (
+          <p className="hinweis">
+            Keine Schule steht zweimal mit demselben Namen und derselben Postleitzahl im Bestand.
+          </p>
+        ) : (
+          <>
+            <p className="hinweis">
+              {ZAHL.format(dubletten.length)} Gruppe{dubletten.length === 1 ? "" : "n"} mit
+              gleichem Namen und gleicher Postleitzahl. Gleicher Name im selben Ort ist keine
+              Dublette - in Berlin heißen mehrere Schulen „12. Schule (Gymnasium)“.
+            </p>
+            <ul className="treffer">
+              {dubletten.slice(0, 10).map((g) => (
+                <li key={`${g.name}-${g.plz ?? ""}`}>
+                  <a href={`/moderation/schulen?q=${encodeURIComponent(g.name)}`}>
+                    <span className="eintrag">
+                      <span className="titel">{g.name}</span>
+                      <span className="beiwerk">
+                        {g.plz ?? "ohne PLZ"} · {g.schulen.length} Einträge ·{" "}
+                        {g.schulen.reduce((n, s) => n + s.bewertungen, 0)} Bewertungen
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            {moderatorin.rolle === "leitung" ? <Dublettenknopf anzahl={dubletten.length} /> : null}
+          </>
+        )}
       </section>
 
       <section className="abschnitt">
@@ -141,7 +195,7 @@ npx tsx scripts/geokodiere.ts --anzahl 1000`}
         <h2>Bestand durchsehen</h2>
         <form className="filter" method="get">
           <label htmlFor="q" className="versteckt">Suche</label>
-          <input id="q" name="q" defaultValue={p.q ?? ""} placeholder="Name, Ort oder Postleitzahl" />
+          <input id="q" name="q" defaultValue={suchbegriff ?? ""} placeholder="Name, Ort oder Postleitzahl" />
 
           <label htmlFor="bundesland" className="versteckt">Bundesland</label>
           <select id="bundesland" name="bundesland" defaultValue={bundesland ?? ""}>
@@ -161,7 +215,7 @@ npx tsx scripts/geokodiere.ts --anzahl 1000`}
           </select>
 
           <button className="knopf zweitrangig">Filtern</button>
-          {p.q || bundesland || nur ? (
+          {suchbegriff || bundesland || nur ? (
             <a className="zuruecksetzen" href="/moderation/schulen">Filter zurücksetzen</a>
           ) : null}
         </form>

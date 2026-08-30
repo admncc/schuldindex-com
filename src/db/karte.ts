@@ -28,7 +28,11 @@ export interface Rasterzelle {
  * hieße, für jede Kartenansicht ein paar Megabyte durch die Verbindung zu
  * schieben, von denen 95 Prozent im selben Punkt landen.
  */
-export async function rasterpunkte(a: Ausschnitt, weite: number): Promise<Rasterzelle[]> {
+export async function rasterpunkte(
+  a: Ausschnitt,
+  weite: number,
+  bundesland: Bundesland | null = null,
+): Promise<Rasterzelle[]> {
   return sql<Rasterzelle[]>`
     select round((lat / ${weite})::numeric)::float8 * ${weite} as lat,
            round((lon / ${weite})::numeric)::float8 * ${weite} as lon,
@@ -37,6 +41,11 @@ export async function rasterpunkte(a: Ausschnitt, weite: number): Promise<Raster
     where ist_aktiv and lat is not null and lon is not null
       and lat between ${a.sued} and ${a.nord}
       and lon between ${a.west} and ${a.ost}
+      -- Bei gewähltem Bundesland nur dessen Schulen. Der Ausschnitt ist ein
+      -- Rechteck und reicht über die Landesgrenze hinaus; ohne diese Zeile
+      -- stünde unter der Karte „518 Schulen dargestellt“, gezeichnet wären
+      -- 1.325.
+      ${bundesland ? sql`and bundesland = ${bundesland}::bundesland` : sql``}
     group by 1, 2
   `;
 }
@@ -66,7 +75,11 @@ export interface BewerteteSchule {
  * Trend. Das sind wenige hundert Zeilen - die Alternative wäre ein zweiter
  * Abruf beim Antippen jedes Punktes.
  */
-export async function bewerteteSchulen(a: Ausschnitt, grenze = 2000): Promise<BewerteteSchule[]> {
+export async function bewerteteSchulen(
+  a: Ausschnitt,
+  grenze = 2000,
+  bundesland: Bundesland | null = null,
+): Promise<BewerteteSchule[]> {
   return sql<BewerteteSchule[]>`
     select s.slug, s.name, s.ort, s.plz, s.bundesland, s.schularten, s.lat, s.lon,
            ag.gesamtscore, ag.anzahl, ag.aggressionsindex, ag.gesamtscore_vor_6m
@@ -76,6 +89,7 @@ export async function bewerteteSchulen(a: Ausschnitt, grenze = 2000): Promise<Be
       and ag.gesamtscore is not null and ag.anzahl >= ${MINDESTZAHL_PROFIL}
       and s.lat between ${a.sued} and ${a.nord}
       and s.lon between ${a.west} and ${a.ost}
+      ${bundesland ? sql`and s.bundesland = ${bundesland}::bundesland` : sql``}
     order by ag.anzahl desc
     limit ${grenze}
   `;

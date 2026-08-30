@@ -1,7 +1,7 @@
 {
   "allgemein": {
     "portalname": "SCHULINDEX",
-    "beschreibung": "Schulen in Deutschland – anonym und geprüft bewertet",
+    "beschreibung": "Schulen in Deutschland - anonym und geprüft bewertet",
     "laden": "Wird geladen …",
     "fehler": "Da ist etwas schiefgegangen. Bitte versuche es später noch einmal.",
     "zurueck": "Zurück",
@@ -63,7 +63,7 @@
     "adresse": "Adresse",
     "schulart": "Schulart",
     "traeger": "Träger",
-    "website": "Website"
+    "website": "Internetseite"
   },
   "ampel": {
     "gering": "Geringe Häufigkeit",

@@ -225,14 +225,47 @@ export function scorestufe(score: number): Scorestufe {
  *
  * Es ist eine **Deckelung, keine Umrechnung**: Wer 6,2 hat, behält 6,2. Nur wer
  * über die Grenze käme, wird auf sie gesetzt.
+ *
+ * **Der Zuschlag hängt daran, wie gut der zusätzliche Bereich ausfällt.** Diese
+ * Feinheit ist teuer erkauft: Zuerst hob jeder beantwortete Bereich die Grenze
+ * um volle 0,5, ganz gleich wie er ausfiel. Damit war die Wertung nicht mehr
+ * monoton - bei A=B=C=„Sehr gut“ stand 8,5, und ein hinzugefügtes
+ * „Sehr schlecht“ in Bereich D hob den Wert auf 8,9. Die schlechteste denkbare
+ * Zusatzangabe verbesserte die Schule, und wer das merkt, füllt D, E und F mit
+ * Unsinn aus. Jetzt bringt ein freiwilliger Bereich zwischen 0 und 0,5, je
+ * nach seinem eigenen Wert: „Sehr gut“ die vollen 0,5, „Sehr schlecht“ nichts.
+ * Die Beispiele der Festlegung stimmen dadurch unverändert - Bestnoten in
+ * A-D ergeben genau 9,0, in allen sechs Bereichen genau 10,0.
  */
 export const HOECHSTWERT_PFLICHT = 8.5;
 export const ZUSCHLAG_JE_FREIWILLIGER_BEREICH = 0.5;
 
+/**
+ * Die höchste Wertung, die mit so vielen freiwilligen Bereichen erreichbar ist.
+ *
+ * Die vorausschauende Fassung: Sie sagt, was **möglich wäre**, und steht
+ * deshalb im Formular („Zurzeit möglich: 9,0 von 10"). Für die Rechnung selbst
+ * gilt `erreichteObergrenze`, die auch die Güte der Bereiche einbezieht.
+ */
 export function hoechstwert(freiwilligeBeantwortet: number): number {
   const optionale = KATEGORIEN.filter((k) => !k.pflicht).length;
   const gezaehlt = Math.min(Math.max(0, freiwilligeBeantwortet), optionale);
   return Math.min(10, HOECHSTWERT_PFLICHT + gezaehlt * ZUSCHLAG_JE_FREIWILLIGER_BEREICH);
+}
+
+/**
+ * Die Obergrenze, die mit diesen freiwilligen Bereichen tatsächlich erreicht ist.
+ *
+ * Übergeben werden die Kategoriewerte der beantworteten freiwilligen Bereiche
+ * auf der Antwortskala 1-5. Jeder bringt anteilig bis zu
+ * `ZUSCHLAG_JE_FREIWILLIGER_BEREICH`.
+ */
+export function erreichteObergrenze(freiwilligeWerte: readonly number[]): number {
+  const zuschlag = freiwilligeWerte.reduce(
+    (summe, wert) => summe + (ZUSCHLAG_JE_FREIWILLIGER_BEREICH * aufZehnerskala(wert)) / 10,
+    0,
+  );
+  return Math.min(10, HOECHSTWERT_PFLICHT + zuschlag);
 }
 
 /**
@@ -242,7 +275,7 @@ export function hoechstwert(freiwilligeBeantwortet: number): number {
  *   * optionale Kategorien zählen nur, wenn beantwortet
  *
  * Das Ergebnis wird auf die Anzeigeskala 0–10 umgerechnet und anschließend
- * gedeckelt (siehe `hoechstwert`).
+ * gedeckelt (siehe `erreichteObergrenze`).
  */
 export function bewerte(antworten: Antworten): Bewertungsergebnis {
   const kategorien = KATEGORIEN.map((k) => scoreKategorie(k.id, antworten));
@@ -260,10 +293,14 @@ export function bewerte(antworten: Antworten): Bewertungsergebnis {
     gewichtssumme += ergebnis.gewichtung;
   }
 
-  const freiwillige = kategorien.filter(
-    (e) => e.score !== null && KATEGORIEN.find((k) => k.id === e.kategorie)?.pflicht === false,
-  ).length;
-  const gesamtscore = Math.min(aufZehnerskala(summe / gewichtssumme), hoechstwert(freiwillige));
+  const freiwilligeWerte = kategorien
+    .filter((e) => KATEGORIEN.find((k) => k.id === e.kategorie)?.pflicht === false)
+    .map((e) => e.score)
+    .filter((w): w is number => w !== null);
+  const gesamtscore = Math.min(
+    aufZehnerskala(summe / gewichtssumme),
+    erreichteObergrenze(freiwilligeWerte),
+  );
 
   return {
     gesamtscore,

@@ -3,18 +3,31 @@ import { existsSync } from "node:fs";
 import { absenderadresse, datenbankpfad, ortungFuerIp } from "./mmdb";
 
 describe("absenderadresse", () => {
-  it("nimmt die erste Angabe aus X-Forwarded-For", () => {
-    // Die erste ist die des Browsers, die weiteren sind die Proxys dazwischen.
-    const kopf = new Headers({ "x-forwarded-for": "88.130.50.1, 10.0.0.7, 10.0.0.8" });
-    expect(absenderadresse(kopf)).toBe("88.130.50.1");
+  it("nimmt die Angabe, die der eigene Proxy angehängt hat", () => {
+    // Zwei eigene Proxys: Der äußere hat „88.130.50.1“ gesehen und angehängt,
+    // der innere „10.0.0.7“. Die vorderste Angabe stammt vom Client selbst.
+    const kopf = new Headers({ "x-forwarded-for": "1.2.3.4, 88.130.50.1, 10.0.0.7" });
+    expect(absenderadresse(kopf, 2)).toBe("88.130.50.1");
   });
 
-  it("weicht auf X-Real-IP aus", () => {
-    expect(absenderadresse(new Headers({ "x-real-ip": "88.130.50.1" }))).toBe("88.130.50.1");
+  it("glaubt dem Kopf nicht, wenn kein eigener Proxy davorsteht", () => {
+    // Der teuer erkaufte Fehler: Wer diesen Kopf selbst setzt, schaltete damit
+    // die Entfernungsprüfung ab.
+    const kopf = new Headers({ "x-forwarded-for": "88.130.50.1" });
+    expect(absenderadresse(kopf, 0)).toBeNull();
   });
 
-  it("meldet nichts, wenn kein Proxy davorsteht", () => {
-    expect(absenderadresse(new Headers())).toBeNull();
+  it("verwirft eine zu kurze Kette", () => {
+    // Zwei Proxys erwartet, nur eine Angabe da: Jemand hat den Kopf ersetzt.
+    expect(absenderadresse(new Headers({ "x-forwarded-for": "88.130.50.1" }), 2)).toBeNull();
+  });
+
+  it("weicht auf X-Real-IP aus, sobald ein Proxy davorsteht", () => {
+    expect(absenderadresse(new Headers({ "x-real-ip": "88.130.50.1" }), 1)).toBe("88.130.50.1");
+  });
+
+  it("meldet nichts, wenn gar nichts da ist", () => {
+    expect(absenderadresse(new Headers(), 1)).toBeNull();
   });
 });
 

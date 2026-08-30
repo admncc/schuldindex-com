@@ -53,7 +53,14 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
 
   try {
     let inhalt = Buffer.from(await datei.arrayBuffer());
-    if (istGzip(inhalt)) inhalt = Buffer.from(gunzipSync(inhalt));
+    if (istGzip(inhalt)) {
+      // Mit Obergrenze entpacken: Die Größenprüfung oben gilt der gepackten
+      // Datei. Ohne `maxOutputLength` könnte eine 200-MB-Datei zu mehreren
+      // hundert Gigabyte aufgehen und den ganzen Prozess mitreißen - nicht nur
+      // die Ortung. Die entpackte Datenbank ist rund 100 MB groß, die Grenze
+      // ist also großzügig.
+      inhalt = Buffer.from(gunzipSync(inhalt, { maxOutputLength: HOECHSTGROESSE }));
+    }
 
     if (!istMmdb(inhalt)) {
       const gefunden = findeInTar(inhalt, ".mmdb");
@@ -86,7 +93,7 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
 
     await sql`
       insert into moderationsprotokoll (aktion, moderator_id, kennung_versuch, begruendung)
-      values ('schule_geaendert', ${angemeldet.id}, '',
+      values ('geoip_ersetzt', ${angemeldet.id}, '',
               ${`GeoIP-Datenbank ersetzt (${Math.round(inhalt.length / 1024 / 1024)} MB)`})
     `;
 

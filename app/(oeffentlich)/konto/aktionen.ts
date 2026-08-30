@@ -1,9 +1,9 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { KONTOCOOKIE_NAMEN } from "@/domain/kontozugang";
+import { KONTOCOOKIE_NAMEN, LINK_ANGEFORDERT } from "@/domain/kontozugang";
 import { fordereAnmeldelinkAn } from "@/dienste/kontozugang";
 import {
   beendeAlleSitzungen,
@@ -14,12 +14,17 @@ import {
 } from "@/db/konto";
 import { istKontaktart } from "@/domain/kontakt";
 import { holeAngemeldetesKonto, verlangeKonto } from "./sitzung";
+import { absenderadresse } from "@/geo/mmdb";
+import { zaehle } from "@/domain/drosselung";
 
 export interface Anmeldezustand {
   readonly meldung?: string;
   readonly kontakt?: string;
   readonly versuch?: number;
 }
+
+/** Höchstens so viele Anfragen je Absender und Stunde. */
+const ANFRAGEN_JE_STUNDE = 10;
 
 /** Fordert einen Anmeldelink an. Die Antwort ist immer dieselbe. */
 export async function linkAnfordern(
@@ -30,6 +35,14 @@ export async function linkAnfordern(
   const rohArt = String(formular.get("kontaktart") ?? "");
   const art = istKontaktart(rohArt) ? rohArt : "email";
   const versuch = (vorher.versuch ?? 0) + 1;
+
+  // Je Konto begrenzt `LINKS_JE_STUNDE`, je Absender diese Zeile: Sonst ließe
+  // sich mit wechselnden Adressen beliebig oft Versand auslösen. Die Meldung
+  // ist dieselbe wie sonst auch - ein eigener Text wäre wieder ein Orakel.
+  const absender = absenderadresse(await headers());
+  if (!zaehle("anmeldelink", absender, ANFRAGEN_JE_STUNDE, 3_600_000).erlaubt) {
+    return { meldung: LINK_ANGEFORDERT, kontakt, versuch };
+  }
 
   const basis = process.env["BASIS_URL"] ?? "http://localhost:3000";
   const ergebnis = await fordereAnmeldelinkAn(kontoumgebung(basis), { kontakt, art });

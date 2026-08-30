@@ -23,6 +23,7 @@ import { slugify, kuerze } from "../import/slug";
 import type { Bundesland } from "../domain/bundesland";
 import type { Schulart } from "../import/schulart";
 import type { Gepruefte } from "../domain/schulpflege";
+import { istKennung } from "../domain/kennung";
 
 export interface Importlage {
   readonly gesamt: number;
@@ -164,6 +165,8 @@ export interface Schuldatensatz extends Schulzeile {
 }
 
 export async function holeSchuldatensatz(id: string): Promise<Schuldatensatz | null> {
+  if (!istKennung(id)) return null;
+
   const [zeile] = await sql<Schuldatensatz[]>`
     select s.id, s.slug, s.name, s.ort, s.plz, s.bundesland, s.schularten, s.ist_aktiv,
            s.manuell_gepflegt, s.lat is not null as hat_koordinate,
@@ -225,8 +228,8 @@ export async function speichereSchule(
       where id = ${id}
     `;
     await tx`
-      insert into moderationsprotokoll (aktion, moderator_id, kennung_versuch, begruendung)
-      values ('schule_geaendert', ${moderatorId}, '', ${beschreibung})
+      insert into moderationsprotokoll (aktion, moderator_id, kennung_versuch, begruendung, schule_id)
+      values ('schule_geaendert', ${moderatorId}, '', ${beschreibung}, ${id})
     `;
   });
 }
@@ -256,11 +259,129 @@ export async function legeSchuleAn(
       returning id
     `;
     await tx`
-      insert into moderationsprotokoll (aktion, moderator_id, kennung_versuch, begruendung)
-      values ('schule_geaendert', ${moderatorId}, '', ${`Schule angelegt: ${g.name} (${slug})`})
+      insert into moderationsprotokoll (aktion, moderator_id, kennung_versuch, begruendung, schule_id)
+      values ('schule_geaendert', ${moderatorId}, '', ${`Schule angelegt: ${g.name} (${slug})`}, ${zeile!.id})
     `;
     return { id: zeile!.id, slug };
   });
+}
+
+/**
+ * Schulen, die zweimal im Bestand stehen.
+ *
+ * Maßgeblich ist dieselbe Regel wie beim Import: **gleicher Name und gleiche
+ * Postleitzahl** (Begründung ausführlich in `import/dubletten.ts`). Der Import
+ * führt sie schon beim Einlesen zusammen; hier steht die Gegenprobe am
+ * gespeicherten Bestand. Sie ist nicht überflüssig: Von Hand angelegte Schulen
+ * gehen am Import vorbei, und eine geänderte Postleitzahl kann zwei Zeilen
+ * nachträglich zu Dubletten machen.
+ *
+ * Nicht als Dublette gilt, was nur denselben Namen im selben Ort trägt: In
+ * Berlin heißen mehrere Schulen „12. Schule (Gymnasium)“ und stehen in
+ * verschiedenen Stadtteilen mit eigener Postleitzahl.
+ */
+export interface Dublettengruppe {
+  readonly name: string;
+  readonly plz: string | null;
+  readonly schulen: readonly {
+    readonly id: string;
+    readonly slug: string;
+    readonly strasse: string | null;
+    readonly bewertungen: number;
+    readonly manuell_gepflegt: boolean;
+  }[];
+}
+
+export async function dublettenbericht(grenze = 50): Promise<Dublettengruppe[]> {
+  const zeilen = await sql<
+    {
+      name: string;
+      plz: string | null;
+      id: string;
+      slug: string;
+      strasse: string | null;
+      bewertungen: number;
+      manuell_gepflegt: boolean;
+    }[]
+  >`
+    with gruppen as (
+      select lower(regexp_replace(name, '\s+', ' ', 'g')) as kennung, plz
+      from schulen
+      where ist_aktiv
+      group by 1, 2
+      having count(*) > 1
+      order by 1
+      limit ${grenze}
+    )
+    select s.name, s.plz, s.id, s.slug, s.strasse, s.manuell_gepflegt,
+           coalesce(a.anzahl, 0) as bewertungen
+    from schulen s
+    join gruppen g
+      on g.kennung = lower(regexp_replace(s.name, '\s+', ' ', 'g'))
+     and g.plz is not distinct from s.plz
+    left join schul_aggregate a on a.schule_id = s.id
+    where s.ist_aktiv
+    order by s.name, s.plz, s.strasse
+  `;
+
+  const gruppen = new Map<string, Dublettengruppe>();
+  for (const z of zeilen) {
+    const schluessel = `${z.name.toLowerCase()}|${z.plz ?? ""}`;
+    const vorhanden = gruppen.get(schluessel);
+    const eintrag = {
+      id: z.id,
+      slug: z.slug,
+      strasse: z.strasse,
+      bewertungen: z.bewertungen,
+      manuell_gepflegt: z.manuell_gepflegt,
+    };
+    if (vorhanden === undefined) {
+      gruppen.set(schluessel, { name: z.name, plz: z.plz, schulen: [eintrag] });
+    } else {
+      (vorhanden.schulen as (typeof eintrag)[]).push(eintrag);
+    }
+  }
+  return [...gruppen.values()];
+}
+
+/**
+ * Legt die Dubletten einer Gruppe still - bis auf eine.
+ *
+ * **Gelöscht wird nichts.** Die überzähligen Zeilen bekommen `ist_aktiv =
+ * false` und verschwinden damit aus Suche, Karte und Ranglisten; ihre
+ * Bewertungen bleiben, wo sie sind. Das ist Absicht: Eine Zusammenführung, die
+ * sich als falsch erweist, muss sich zurücknehmen lassen, und keine Bewertung
+ * darf dabei verlorengehen (Festlegung „keine automatische Löschung“).
+ *
+ * Bestehen bleibt die Zeile mit den meisten Bewertungen; bei Gleichstand die
+ * von Hand gepflegte, sonst die mit einer Straße.
+ */
+export async function fuehreDublettenZusammen(moderatorId: string): Promise<number> {
+  const gruppen = await dublettenbericht(500);
+  let stillgelegt = 0;
+
+  for (const gruppe of gruppen) {
+    const sortiert = [...gruppe.schulen].sort(
+      (a, b) =>
+        b.bewertungen - a.bewertungen ||
+        Number(b.manuell_gepflegt) - Number(a.manuell_gepflegt) ||
+        Number(b.strasse !== null) - Number(a.strasse !== null),
+    );
+    const [haupt, ...ueberzaehlig] = sortiert;
+    if (haupt === undefined || ueberzaehlig.length === 0) continue;
+
+    for (const s of ueberzaehlig) {
+      await sql`update schulen set ist_aktiv = false, aktualisiert_am = now() where id = ${s.id}`;
+      await sql`
+        insert into moderationsprotokoll (aktion, moderator_id, kennung_versuch, begruendung, schule_id)
+        values ('schule_geaendert', ${moderatorId}, '',
+                ${`Dublette stillgelegt: ${gruppe.name} (${gruppe.plz ?? "ohne PLZ"}), zusammengeführt mit ${haupt.slug}`},
+                ${s.id})
+      `;
+      stillgelegt += 1;
+    }
+  }
+  return stillgelegt;
 }
 
 /** Die letzten Eingriffe in den Bestand - für die Übersicht im Panel. */

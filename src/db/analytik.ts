@@ -14,6 +14,7 @@
 import { sql } from "./verbindung";
 import type { Bundesland } from "../domain/bundesland";
 import type { Zustand } from "../domain/bewertungsstatus";
+import { istKennung } from "../domain/kennung";
 
 export interface Gesamtlage {
   readonly bewertungen: number;
@@ -134,6 +135,8 @@ export interface Schulanalyse {
 }
 
 export async function analysiereSchule(schuleId: string): Promise<Schulanalyse | null> {
+  if (!istKennung(schuleId)) return null;
+
   const [schule] = await sql<
     { id: string; slug: string; name: string; ort: string | null; bundesland: Bundesland }[]
   >`
@@ -210,6 +213,8 @@ export interface Analysegrundlage {
 }
 
 export async function grundlageFuerAnalyse(schuleId: string, grenze = 300): Promise<Analysegrundlage[]> {
+  if (!istKennung(schuleId)) return [];
+
   return sql<Analysegrundlage[]>`
     select b.id, b.erstellt_am, b.rolle::text as rolle, v.gesamtscore,
            b.signale, b.signalpunkte, b.klickmuster, v.freitexte

@@ -10,7 +10,15 @@
  * erklärt, die Prüfung entscheidet, die Datenbank verhindert.
  */
 
-import { KATEGORIEN, KEINE_ANGABE, fragenDerKategorie, type Antwort, type KategorieId } from "./fragebogen";
+import {
+  FRAGE_NACH_ID,
+  KATEGORIEN,
+  KEINE_ANGABE,
+  fragenDerKategorie,
+  type Ansprache,
+  type Antwort,
+  type KategorieId,
+} from "./fragebogen";
 
 export const ROLLEN = [
   "schueler_unter_16",
@@ -36,6 +44,28 @@ export function istSchueler(rolle: Rolle): boolean {
   return SCHUELERROLLEN.includes(rolle);
 }
 
+/**
+ * Welche Ansprache der Fragebogen für diese Rolle wählt.
+ *
+ * Beide Schülerrollen teilen sich eine Ansprache - der Unterschied zwischen
+ * unter und ab 16 betrifft die Einwilligung, nicht die Frage. Ohne Rolle wird
+ * die Schülerfassung gezeigt: Sie ist der kanonische Wortlaut, und im Formular
+ * steht die Rollenwahl ohnehin vor der ersten Frage.
+ */
+export function ansprachefuer(rolle: Rolle | string | null): Ansprache {
+  if (rolle === null) return "schueler";
+  switch (rolle) {
+    case "eltern":
+      return "eltern";
+    case "lehrkraft":
+      return "lehrkraft";
+    case "ehemalig":
+      return "ehemalig";
+    default:
+      return "schueler";
+  }
+}
+
 export type Kontaktart = "whatsapp" | "sms" | "email";
 
 export interface Bewertungseingabe {
@@ -57,6 +87,8 @@ export interface Bewertungseingabe {
    * bleibt das Feld leer, und das Tempo-Signal entfällt.
    */
   readonly dauerSekunden?: number | null | undefined;
+  /** Kam die Abgabe ohne gültigen Formularstempel an? Wird vom Server gesetzt. */
+  readonly stempelFehlt?: boolean | undefined;
   /**
    * Abstände zwischen zwei Antwortklicks in Millisekunden, in der Reihenfolge
    * der Klicks. Kommen aus dem Browser und werden gegen `dauerSekunden`
@@ -120,6 +152,26 @@ export interface Pruefoptionen {
   readonly kontaktNoetig?: boolean;
 }
 
+/** Höchstlänge eines Freitextes. Was länger ist, ist kein Kommentar mehr. */
+export const FREITEXT_HOECHSTLAENGE = 2000;
+/** Die längste E-Mail-Adresse nach RFC 5321. */
+export const KONTAKT_HOECHSTLAENGE = 254;
+
+/**
+ * Ist das eine gültige Antwort auf eine Frage des Katalogs?
+ *
+ * Die Prüfung fehlte, und das war teuer: `antworten` kam als JSON aus dem
+ * Browser, und **jeder** Wert außer `undefined` und „kann ich nicht
+ * beurteilen“ zählte als beantwortet. Mit `D1 = 7` statt `5` sprang der
+ * Gesamtscore auf glatte 10,0 - eine einzige Zahl, für die es sonst dreißig
+ * zusätzliche Bestnoten gebraucht hätte. Die Datenbank fing nichts ab: 7 passt
+ * in `numeric`, und 10,00 liegt im erlaubten Bereich.
+ */
+function istGueltigeAntwort(wert: unknown): wert is Antwort {
+  if (wert === KEINE_ANGABE) return true;
+  return typeof wert === "number" && Number.isInteger(wert) && wert >= 1 && wert <= 5;
+}
+
 export function pruefeEingabe(
   e: Bewertungseingabe,
   jetzt = new Date(),
@@ -127,6 +179,56 @@ export function pruefeEingabe(
 ): Eingabefehler[] {
   const kontaktNoetig = optionen.kontaktNoetig ?? true;
   const fehler: Eingabefehler[] = [];
+
+  // **Vor allem anderen**: Sind Antworten und Freitexte überhaupt das, was sie
+  // zu sein vorgeben? Alles Folgende rechnet mit ihnen.
+  if (typeof e.antworten !== "object" || e.antworten === null || Array.isArray(e.antworten)) {
+    fehler.push({ feld: "antworten", meldung: "Die Antworten sind unvollständig angekommen." });
+    return fehler;
+  }
+  for (const [id, wert] of Object.entries(e.antworten)) {
+    if (!FRAGE_NACH_ID.has(id)) {
+      fehler.push({ feld: "antworten", meldung: "Die Antworten passen nicht zum Fragebogen." });
+      break;
+    }
+    if (!istGueltigeAntwort(wert)) {
+      fehler.push({ feld: "antworten", meldung: "Eine der Antworten liegt außerhalb der Skala." });
+      break;
+    }
+  }
+
+  if (typeof e.freitexte !== "object" || e.freitexte === null || Array.isArray(e.freitexte)) {
+    fehler.push({ feld: "freitexte", meldung: "Die Anmerkungen sind unvollständig angekommen." });
+    return fehler;
+  }
+  for (const [id, text] of Object.entries(e.freitexte)) {
+    if (!KATEGORIEN.some((k) => k.id === id) || typeof text !== "string") {
+      fehler.push({ feld: "freitexte", meldung: "Die Anmerkungen passen nicht zum Fragebogen." });
+      break;
+    }
+    if (text.length > FREITEXT_HOECHSTLAENGE) {
+      fehler.push({
+        feld: `kategorie.${id}`,
+        meldung: `Bitte fasse dich kürzer - höchstens ${FREITEXT_HOECHSTLAENGE} Zeichen.`,
+      });
+    }
+  }
+
+  if (typeof e.kontakt !== "string" || e.kontakt.length > KONTAKT_HOECHSTLAENGE) {
+    fehler.push({ feld: "kontakt", meldung: "Diese Angabe können wir nicht annehmen." });
+    return fehler;
+  }
+
+  if (e.klassenstufe !== null && !Number.isInteger(e.klassenstufe)) {
+    // Ohne diese Zeile bestand „sieben“ die Prüfung: `"sieben" < 1` und
+    // `"sieben" > 13` sind beide falsch.
+    fehler.push({ feld: "klassenstufe", meldung: "Bitte wähle deine Klassenstufe." });
+    return fehler;
+  }
+  if (e.abgangsjahr !== null && !Number.isInteger(e.abgangsjahr)) {
+    fehler.push({ feld: "abgangsjahr", meldung: "Bitte gib ein Jahr an." });
+    return fehler;
+  }
 
   if (e.rolle === null) {
     fehler.push({ feld: "rolle", meldung: "Bitte gib an, in welcher Rolle du bewertest." });

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { holeAngemeldetesKonto } from "../sitzung";
 import Anmeldeformular from "./formular";
+import { einer } from "@/domain/suchparameter";
 
 export const metadata: Metadata = { title: "Anmelden", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -14,9 +15,9 @@ const GRUND_TEXT: Readonly<Record<string, string>> = {
 export default async function Kontoanmeldung({
   searchParams,
 }: {
-  searchParams: Promise<{ grund?: string }>;
+  searchParams: Promise<{ grund?: string | string[] }>;
 }) {
-  const { grund } = await searchParams;
+  const grund = einer((await searchParams).grund);
   if (await holeAngemeldetesKonto()) redirect("/konto");
 
   return (

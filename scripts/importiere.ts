@@ -141,7 +141,13 @@ async function schreibe(sql: postgres.Sql, schulen: readonly Importschule[]) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const rohdaten: Rohschule[] = JSON.parse(readFileSync(process.env.SCHULEN_JSON!, "utf8"));
+  const quelle = process.env["SCHULEN_JSON"];
+  if (!quelle) {
+    console.error("SCHULEN_JSON ist nicht gesetzt - erwartet wird der Pfad zur Rohdatei.");
+    process.exitCode = 1;
+    throw new Error("SCHULEN_JSON fehlt");
+  }
+  const rohdaten: Rohschule[] = JSON.parse(readFileSync(quelle, "utf8"));
   const { schulen, bericht } = bereiteVor(rohdaten);
 
   const sql = postgres(process.env.DATABASE_URL!, { onnotice: () => {} });

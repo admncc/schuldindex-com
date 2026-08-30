@@ -29,7 +29,7 @@ export type Einstellungsart = "ganzzahl" | "kommazahl" | "schalter";
 
 export interface Einstellungsbeschreibung {
   readonly schluessel: string;
-  readonly gruppe: "zugang" | "tempo" | "abweichung" | "menge" | "ort" | "gewichtung";
+  readonly gruppe: "zugang" | "kontakt" | "tempo" | "abweichung" | "menge" | "ort" | "gewichtung";
   readonly label: string;
   readonly hilfe: string;
   readonly art: Einstellungsart;
@@ -41,6 +41,7 @@ export interface Einstellungsbeschreibung {
 
 export const GRUPPEN_LABEL: Readonly<Record<Einstellungsbeschreibung["gruppe"], string>> = {
   zugang: "Zugang zur Moderation",
+  kontakt: "Wege der Bestätigung",
   tempo: "Tempo der Beantwortung",
   abweichung: "Abweichung vom Schulmittel",
   menge: "Menge und Häufung",
@@ -51,8 +52,10 @@ export const GRUPPEN_LABEL: Readonly<Record<Einstellungsbeschreibung["gruppe"], 
 export const GRUPPEN_HILFE: Readonly<Record<Einstellungsbeschreibung["gruppe"], string>> = {
   zugang:
     "Betrifft nicht die Betrugserkennung, sondern diese Oberfläche selbst. Hinter ihr liegen entschlüsselbare Kontaktdaten, die Freigabe von Bewertungen und die Schwellen darunter - wer hier etwas lockert, lockert den Zugang zu alldem.",
+  kontakt:
+    "Über welche Wege sich eine Bewertung bestätigen lässt. Mindestens einer muss anbleiben - sind alle aus, gelten wieder alle, denn ohne Bestätigung nimmt das Portal gar nichts an. Ein abgeschalteter Weg verschwindet aus dem Formular und wird auch dann nicht angenommen, wenn ihn jemand von Hand mitschickt.",
   tempo:
-    "Wer den Fragebogen in Sekunden durchklickt, hat ihn nicht gelesen. Die Gesamtdauer misst der Server selbst über einen signierten Zeitstempel - eine Angabe des Browsers wäre wertlos. Die Abstände zwischen den einzelnen Klicks kommen aus dem Browser und werden gegen diese Dauer geprüft; gespeichert wird die Klickfolge nie, nur ihr Mittel und ihre Streuung.",
+    "Wer den Fragebogen in Sekunden durchklickt, hat ihn nicht gelesen. Die Gesamtdauer misst der Server selbst über einen signierten Zeitstempel - eine Angabe des Browsers wäre wertlos. Die Abstände zwischen den einzelnen Klicks kommen aus dem Browser und werden gegen diese Dauer geprüft. Gespeichert werden Median und Streuung - und seit dem 27.08.2026 auch die Folge selbst, damit sich Muster nachträglich auswerten lassen; die Datenschutzerklärung weist das aus.",
   abweichung:
     "Eine Bewertung, die weit vom bisherigen Bild einer Schule abweicht, ist kein Beweis für Missbrauch: Es kann die eine Person sein, die etwas erlebt hat, das die anderen nicht sehen. Deshalb hält dieses Signal die Bewertung an, statt sie abzulehnen - und deshalb wiegt es leicht.",
   menge: "Viele Abgaben in kurzer Zeit, von derselben Quelle oder zu derselben Schule.",
@@ -78,12 +81,45 @@ export const KATALOG: readonly Einstellungsbeschreibung[] = [
     gruppe: "zugang",
     label: "Eine Anmeldung gilt so lange",
     hilfe:
-      "Danach ist eine erneute Anmeldung nötig. Zwölf Stunden decken einen Arbeitstag ab und melden einen vergessenen Rechner über Nacht ab. Läuft die Sitzung mitten in der Arbeit ab, landet man auf der Anmeldeseite - wer das oft erlebt, erhöht den Wert hier. Laufende Sitzungen behalten ihre Frist; die Änderung wirkt ab der nächsten Anmeldung.",
+      "Danach ist eine erneute Anmeldung nötig. Zwölf Stunden decken einen Arbeitstag ab und melden einen vergessenen Rechner über Nacht ab. Läuft die Sitzung mitten in der Arbeit ab, landet man auf der Anmeldeseite - wer das oft erlebt, erhöht den Wert hier. Mehr als eine Woche lässt das Feld nicht zu: Hinter dieser Oberfläche liegen entschlüsselbare Kontaktdaten, und ein Sitzungscookie, das einen Monat gilt, ist ein Monat Zugang für jeden, der es sich holt. Laufende Sitzungen behalten ihre Frist; die Änderung wirkt ab der nächsten Anmeldung.",
     art: "ganzzahl",
     vorgabe: 12,
     min: 1,
-    max: 720,
+    max: 168,
     einheit: "Stunden",
+  },
+  {
+    schluessel: "kontakt_whatsapp",
+    gruppe: "kontakt",
+    label: "Bestätigung über WhatsApp anbieten",
+    hilfe:
+      "Der Weg mit der höchsten Hürde für Mehrfachkonten: Eine Telefonnummer ist nicht in Sekunden neu angelegt. Setzt eine freigeschaltete WhatsApp-Business-Nummer voraus.",
+    art: "schalter",
+    vorgabe: 1,
+    min: 0,
+    max: 1,
+  },
+  {
+    schluessel: "kontakt_sms",
+    gruppe: "kontakt",
+    label: "Bestätigung über SMS anbieten",
+    hilfe:
+      "Wie WhatsApp, aber über den SMS-Dienstleister - und mit Kosten je Nachricht. Aus, solange kein Vertrag besteht.",
+    art: "schalter",
+    vorgabe: 1,
+    min: 0,
+    max: 1,
+  },
+  {
+    schluessel: "kontakt_email",
+    gruppe: "kontakt",
+    label: "Bestätigung über E-Mail anbieten",
+    hilfe:
+      "Der bequemste Weg - und der mit der geringsten Hürde: Eine Adresse ist in Sekunden neu angelegt. Abgaben über E-Mail bekommen deshalb ohnehin einen Signalpunkt.",
+    art: "schalter",
+    vorgabe: 1,
+    min: 0,
+    max: 1,
   },
   {
     schluessel: "tempo_sekunden_je_frage",
@@ -330,4 +366,18 @@ export function abweichungen(e: Einstellungen): readonly string[] {
 export function zahl(e: Einstellungen, schluessel: string): number {
   const wert = e[schluessel];
   return wert === undefined ? (VORGABEN[schluessel] ?? 0) : wert;
+}
+
+/**
+ * Welche Wege der Bestätigung angeboten werden.
+ *
+ * Sind alle drei abgeschaltet, gelten wieder alle: Ohne Bestätigung nimmt das
+ * Portal gar keine Bewertung an, und eine leere Auswahl wäre keine Einstellung,
+ * sondern ein stillgelegtes Formular.
+ */
+export function erlaubteKontaktarten(e: Einstellungen): ("whatsapp" | "sms" | "email")[] {
+  const erlaubt = (["whatsapp", "sms", "email"] as const).filter(
+    (art) => zahl(e, `kontakt_${art}`) === 1,
+  );
+  return erlaubt.length > 0 ? [...erlaubt] : ["whatsapp", "sms", "email"];
 }

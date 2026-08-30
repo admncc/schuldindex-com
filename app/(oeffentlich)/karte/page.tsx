@@ -3,6 +3,7 @@ import { BUNDESLAENDER, BUNDESLAND_LABEL, istBundesland, type Bundesland } from 
 import { ausschnittFuer, bildfeld } from "@/domain/karte";
 import { bewerteteSchulen, kartenzahlen } from "@/db/karte";
 import { Kartenansicht } from "./ansicht";
+import { einer } from "@/domain/suchparameter";
 
 export const metadata: Metadata = {
   title: "Karte",
@@ -18,17 +19,17 @@ const BREITE = 800;
 export default async function Kartenseite({
   searchParams,
 }: {
-  searchParams: Promise<{ bundesland?: string }>;
+  searchParams: Promise<{ bundesland?: string | string[] }>;
 }) {
   const p = await searchParams;
-  const bundesland: Bundesland | null =
-    p.bundesland !== undefined && istBundesland(p.bundesland) ? p.bundesland : null;
+  const roh = einer(p.bundesland);
+  const bundesland: Bundesland | null = roh !== undefined && istBundesland(roh) ? roh : null;
 
   const ausschnitt = ausschnittFuer(bundesland);
   const feld = bildfeld(ausschnitt, BREITE);
 
   const [bewertet, zahlen] = await Promise.all([
-    bewerteteSchulen(ausschnitt),
+    bewerteteSchulen(ausschnitt, undefined, bundesland),
     kartenzahlen(ausschnitt, bundesland),
   ]);
 

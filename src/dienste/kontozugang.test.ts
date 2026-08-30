@@ -7,7 +7,6 @@ import {
   KONTOCOOKIE_NAMEN,
   LINKS_JE_STUNDE,
   LINK_ANGEFORDERT,
-  ZU_VIELE_LINKS,
   erzeugeAnmeldelink,
   erzeugeKontositzung,
 } from "../domain/kontozugang";
@@ -95,7 +94,9 @@ describe("fordereAnmeldelinkAn", () => {
     const e = await fordereAnmeldelinkAn(u, { kontakt: "0170 1234567", art: "sms" });
 
     expect(e.intern).toBe("begrenzt");
-    expect(e.meldung).toBe(ZU_VIELE_LINKS);
+    // Nach außen ununterscheidbar von jedem anderen Ausgang - sonst wäre die
+    // Meldung ein Existenzorakel für die Nummer.
+    expect(e.meldung).toBe(LINK_ANGEFORDERT);
     expect(auf.gesendet).toEqual([]);
   });
 

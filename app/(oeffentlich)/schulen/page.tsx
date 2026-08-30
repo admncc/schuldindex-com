@@ -12,6 +12,7 @@ import { BUNDESLAENDER, BUNDESLAND_LABEL, istBundesland, type Bundesland } from 
 import { SCHULART_LABEL, schulartAnzeige, type Schulart } from "@/import/schulart";
 import { scorestufe } from "@/domain/scoring";
 import { Suchfeld } from "../suchfeld";
+import { einer, text } from "@/domain/suchparameter";
 
 export const metadata: Metadata = {
   title: "Schulen finden",
@@ -28,16 +29,24 @@ const WERT = new Intl.NumberFormat("de-DE", {
 /** So viele Treffer liefert eine Seite. Alles Weitere gehört eingegrenzt. */
 const GRENZE = 40;
 
+/**
+ * Was in der Adresse stehen darf. Jeder Wert kann doppelt vorkommen
+ * (`?q=a&q=b`) - dann liefert Next.js ein Array (siehe `domain/suchparameter`).
+ */
 interface Suchparameter {
-  q?: string;
-  bundesland?: string;
-  schulart?: string;
-  ort?: string;
-  bewertet?: string;
+  q?: string | string[];
+  bundesland?: string | string[];
+  schulart?: string | string[];
+  ort?: string | string[];
+  ortGenau?: string | string[];
+  bewertet?: string | string[];
 }
 
 function istSchulart(wert: string): wert is Schulart {
-  return wert in SCHULART_LABEL;
+  // `in` trifft auch die Prototypkette: `"constructor" in SCHULART_LABEL` ist
+  // wahr, und der Wert liefe als `'constructor'::schulart` in einen
+  // Datenbankfehler statt in eine leere Liste.
+  return Object.hasOwn(SCHULART_LABEL, wert);
 }
 
 /**
@@ -47,11 +56,13 @@ function istSchulart(wert: string): wert is Schulart {
  * anderen Filter unverändert weitertragen. Leere Werte fallen heraus, damit
  * `/schulen` sauber bleibt und nicht `?q=&ort=` heißt.
  */
-function mitParametern(aktuell: Suchparameter, aenderung: Partial<Suchparameter>): string {
+type Bereinigt = Record<string, string>;
+
+function mitParametern(aktuell: Bereinigt, aenderung: Bereinigt): string {
   const zusammen = { ...aktuell, ...aenderung };
   const suche = new URLSearchParams();
   for (const [name, wert] of Object.entries(zusammen)) {
-    if (typeof wert === "string" && wert.trim() !== "") suche.set(name, wert.trim());
+    if (wert.trim() !== "") suche.set(name, wert.trim());
   }
   const text = suche.toString();
   return text === "" ? "/schulen" : `/schulen?${text}`;
@@ -65,28 +76,35 @@ export default async function Suchseite({
   const t = await getTranslations();
   const p = await searchParams;
 
-  const eingabe = (p.q ?? "").trim();
+  const eingabe = text(p.q).trim();
+  const rohLand = einer(p.bundesland);
   const bundesland: Bundesland | undefined =
-    p.bundesland !== undefined && istBundesland(p.bundesland) ? p.bundesland : undefined;
+    rohLand !== undefined && istBundesland(rohLand) ? rohLand : undefined;
+  const rohArt = einer(p.schulart);
   const schulart: Schulart | undefined =
-    p.schulart !== undefined && istSchulart(p.schulart) ? p.schulart : undefined;
-  const ort = (p.ort ?? "").trim();
-  const nurBewertet = p.bewertet === "1";
+    rohArt !== undefined && istSchulart(rohArt) ? rohArt : undefined;
+  const ort = text(p.ort).trim();
+  // Der Klick auf eine Ortsfacette meint genau diesen Ort; eine getippte
+  // Eingabe meint „beginnt mit“.
+  const ortGenau = text(p.ortGenau) === "1";
+  const nurBewertet = text(p.bewertet) === "1";
 
   const filter: Trefferfilter = {
     ...(bundesland ? { bundesland } : {}),
     ...(schulart ? { schulart } : {}),
     ...(ort !== "" ? { ort } : {}),
+    ...(ort !== "" && ortGenau ? { ortGenau: true } : {}),
     ...(nurBewertet ? { nurBewertet: true } : {}),
   };
 
   // Die bereinigten Werte, nicht die rohen: Ein erfundenes Bundesland im Link
   // darf nicht in den nächsten Link weiterwandern.
-  const stand: Suchparameter = {
+  const stand: Bereinigt = {
     ...(eingabe !== "" ? { q: eingabe } : {}),
     ...(bundesland ? { bundesland } : {}),
     ...(schulart ? { schulart } : {}),
     ...(ort !== "" ? { ort } : {}),
+    ...(ort !== "" && ortGenau ? { ortGenau: "1" } : {}),
     ...(nurBewertet ? { bewertet: "1" } : {}),
   };
 
@@ -95,7 +113,9 @@ export default async function Suchseite({
     ? await Promise.all([
         sucheSchulen(eingabe, filter, GRENZE),
         bundeslandFacetten(eingabe, filter),
-        ortFacetten(eingabe, filter, 8),
+        // Nur wenn die Leiste auch gezeigt wird: Bei gesetztem Ortsfilter wäre
+        // die Abfrage samt Facettenausschluss Last ohne Wirkung.
+        ort === "" ? ortFacetten(eingabe, filter, 8) : Promise.resolve([]),
       ])
     : [[], [], []];
   // Ohne Suche stehen die Bundesländer als Einstieg da - mit ihrer Größe, damit
@@ -109,7 +129,7 @@ export default async function Suchseite({
   const aktiveFilter = [
     bundesland ? { text: BUNDESLAND_LABEL[bundesland], weg: { bundesland: "" } } : null,
     schulart ? { text: SCHULART_LABEL[schulart], weg: { schulart: "" } } : null,
-    ort !== "" ? { text: ort, weg: { ort: "" } } : null,
+    ort !== "" ? { text: ort, weg: { ort: "", ortGenau: "" } } : null,
     nurBewertet ? { text: t("suche.nurBewertet"), weg: { bewertet: "" } } : null,
   ].filter((f) => f !== null);
 
@@ -128,6 +148,7 @@ export default async function Suchseite({
             ...(bundesland ? { bundesland } : {}),
             ...(schulart ? { schulart } : {}),
             ...(ort !== "" ? { ort } : {}),
+            ...(ort !== "" && ortGenau ? { ortGenau: "1" } : {}),
             ...(nurBewertet ? { bewertet: "1" } : {}),
           }}
         />
@@ -178,7 +199,7 @@ export default async function Suchseite({
         {aktiveFilter.length > 0 ? (
           <ul className="filtermarken">
             {aktiveFilter.map((f) => (
-              <li key={f.text}>
+              <li key={`${f.text}-${Object.keys(f.weg)[0]}`}>
                 <a href={mitParametern(stand, f.weg)}>
                   {f.text}
                   <span aria-hidden="true">×</span>
@@ -245,7 +266,7 @@ export default async function Suchseite({
                 <ul>
                   {orte.map((f) => (
                     <li key={f.wert}>
-                      <a href={mitParametern(stand, { ort: f.wert })}>
+                      <a href={mitParametern(stand, { ort: f.wert, ortGenau: "1" })}>
                         {f.wert} <span>{ZAHL.format(f.anzahl)}</span>
                       </a>
                     </li>

@@ -189,7 +189,7 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
           </div>
           <div className="karte">
             <span className="beschriftung">{t("schule.traeger")}</span>
-            <p>{schule.traeger ?? "-"}</p>
+            <p>{schule.traeger ?? "nicht bekannt"}</p>
             {schule.website && (
               <p>
                 <a href={schule.website} rel="noopener noreferrer nofollow" target="_blank">

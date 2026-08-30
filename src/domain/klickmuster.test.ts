@@ -43,6 +43,22 @@ describe("auswerteKlicks", () => {
   });
 });
 
+describe("unplausible Folgen", () => {
+  it("meldet eine erfundene Reihe als eigenes Signal", () => {
+    // Der Fehler, den dieser Test festhält: Zuerst gab eine unplausible Folge
+    // ein leeres Ergebnis zurück. Ein gleichmäßig klickendes Skript hängte
+    // deshalb einen überhöhten Wert an und schaltete damit beide Klicksignale
+    // ab, statt aufzufallen.
+    const gleichmaessig = Array.from({ length: 30 }, () => 300);
+    const mitAusreisser = [...gleichmaessig, 10_000_000];
+    const e = pruefeKlickmuster(mitAusreisser, 20);
+    expect(e.signale.map((s) => s.art)).toContain("klickfolge_unplausibel");
+    expect(e.signale.reduce((summe, s) => summe + s.gewicht, 0)).toBeGreaterThanOrEqual(3);
+    // Ausgewertet wird die Folge nicht - die Zahlen wären ja erfunden.
+    expect(e.auswertung).toBeNull();
+  });
+});
+
 describe("plausibel", () => {
   it("glaubt ohne Serverzeit alles", () => {
     expect(plausibel([500_000], null)).toBe(true);
@@ -71,9 +87,9 @@ describe("pruefeKlickmuster", () => {
     expect(e.auswertung?.anzahl).toBe(3);
   });
 
-  it("wertet nichts aus, was nicht zur Serverzeit passt", () => {
+  it("wertet nichts aus, was nicht zur Serverzeit passt - meldet es aber", () => {
     const e = pruefeKlickmuster(skript(300), 2);
-    expect(e.signale).toEqual([]);
+    expect(e.signale.map((s) => s.art)).toEqual(["klickfolge_unplausibel"]);
     expect(e.auswertung).toBeNull();
   });
 

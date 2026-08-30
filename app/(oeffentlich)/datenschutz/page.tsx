@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { betreiber } from "@/recht/betreiber";
 import { GUELTIG_STUNDEN } from "@/domain/verifizierung";
-import { SCHWELLE_KM } from "@/domain/geopruefung";
 import { MINDESTZAHL_FREITEXTE } from "@/ki/pruefung";
 import { fristtext, regel, REGELN } from "@/domain/aufbewahrung";
 import { Angabe, Fehlt } from "../rechtsteile";
@@ -134,10 +133,10 @@ export default function Datenschutzseite() {
         Verarbeitung nach Art. 21 DSGVO auch insgesamt widersprechen.
       </p>
       <p>
-        Diese Messungen entscheiden nichts. Fallen sie auf - etwa weil alle Abstände auf die
-        Millisekunde gleich sind, was bei Menschen nicht vorkommt -, wird deine Bewertung einem
-        Menschen aus unserer Redaktion vorgelegt, statt automatisch veröffentlicht oder abgelehnt
-        zu werden. Rechtsgrundlage ist unser berechtigtes Interesse an belastbaren Bewertungen
+        Diese Messungen entscheiden nichts. Fällt etwas auf, wird deine Bewertung einem Menschen
+        aus unserer Redaktion vorgelegt, statt automatisch veröffentlicht oder abgelehnt zu
+        werden. Welche Muster wir dabei genau betrachten, steht hier nicht - eine solche Liste
+        wäre eine Anleitung, sie zu umgehen. Rechtsgrundlage ist unser berechtigtes Interesse an belastbaren Bewertungen
         (Art. 6 Abs. 1 lit. f DSGVO). Eine automatisierte Entscheidung im Sinne von Art. 22 DSGVO
         findet nicht statt.
       </p>
@@ -145,9 +144,9 @@ export default function Datenschutzseite() {
       <h3>3.3 Was wir ausdrücklich nicht speichern</h3>
       <ul>
         <li>
-          <strong>Deine IP-Adresse bei der Abgabe.</strong> Aus ihr wird einmalig die Entfernung
-          zur Schule berechnet ({SCHWELLE_KM} Kilometer sind die Schwelle für eine Prüfung durch
-          Menschen); danach wird sie verworfen. In der Datenbank steht die Zahl der Kilometer,
+          <strong>Deine IP-Adresse bei der Abgabe.</strong> Aus ihr wird einmalig die ungefähre
+          Entfernung zur Schule berechnet; danach wird sie verworfen. Liegt die Abgabe weit von
+          der Schule entfernt, sieht ein Mensch sie sich an. In der Datenbank steht die Zahl der Kilometer,
           nicht die Adresse. Nachgeschlagen wird sie <strong>auf unserem eigenen Server</strong>,
           in einer dort gespeicherten Datenbank - kein Dienstleister erfährt, wer bewertet.
         </li>
@@ -184,6 +183,15 @@ export default function Datenschutzseite() {
         einen Auftragsverarbeitungsvertrag nach Art. 28 DSGVO. Verarbeitungsregion:{" "}
         {a.kiRegion ?? <Fehlt feld="kiRegion" />}. Übermittelt werden nur die Texte, nicht deine
         Kontaktdaten und nicht deine Rolle.
+      </p>
+      <p>
+        Dasselbe Modell setzen wir in der Moderation ein, um Bewertungen einer Schule auf Muster
+        zu prüfen, die auf gefälschte Abgaben hindeuten (Art. 6 Abs. 1 lit. f DSGVO; unser
+        berechtigtes Interesse ist ein Portal, dessen Wertungen etwas wert sind). Übermittelt
+        werden dabei dieselben Angaben wie oben, ergänzt um Abgabezeitpunkt und Wertung; weiterhin
+        nicht deine Kontaktdaten und nicht deine Rolle. <strong>Eine Entscheidung trifft das
+        Modell nicht</strong> - abgelehnt wird eine Bewertung nur von einem Menschen (siehe
+        Abschnitt zu Art. 22 DSGVO).
       </p>
 
       <h2>5. Wer sonst noch Daten erhält</h2>

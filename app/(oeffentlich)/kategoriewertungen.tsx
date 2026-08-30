@@ -26,6 +26,9 @@ export interface Kategoriewert {
   readonly kategorie: (typeof KATEGORIEN)[number]["id"];
 }
 
+/** Wie viele Bereiche freiwillig sind - nicht die Zahl 3 von Hand. */
+const FREIWILLIGE_BEREICHE = KATEGORIEN.filter((k) => !k.pflicht).length;
+
 export function Kategoriewertungen({ werte }: { werte: readonly Kategoriewert[] }) {
   const zeilen = werte
     .map((w) => {
@@ -47,7 +50,8 @@ export function Kategoriewertungen({ werte }: { werte: readonly Kategoriewert[] 
       <h3>Wertung nach Kategorien</h3>
       <p className="hinweis">
         Jede Kategorie auf derselben Skala von 0 bis 10. Die Gesamtwertung ist der gewichtete
-        Schnitt daraus - die Gewichtung steht am Namen, wenn du darauf zeigst.
+        Schnitt daraus, begrenzt durch die Vollständigkeit der Bewertung - die Gewichtung steht am
+        Namen, wenn du darauf zeigst.
       </p>
       <div className="kategoriewertungen">
       {zeilen.map((z) => (
@@ -74,7 +78,7 @@ export function Kategoriewertungen({ werte }: { werte: readonly Kategoriewert[] 
         <p className="hinweis">
           Zu {fehlendeFreiwillige === 1 ? "einem freiwilligen Bereich" : `${fehlendeFreiwillige} freiwilligen Bereichen`}{" "}
           liegt noch keine Bewertung vor. Solange das so ist, kann diese Schule höchstens{" "}
-          <strong>{ZAHL.format(hoechstwert(3 - fehlendeFreiwillige))} von 10</strong> erreichen.
+          <strong>{ZAHL.format(hoechstwert(FREIWILLIGE_BEREICHE - fehlendeFreiwillige))} von 10</strong> erreichen.
         </p>
       ) : null}
     </>

@@ -19,16 +19,21 @@ import { aktualisiereAggregat } from "../src/db/aggregate";
 const sql = postgres(process.env["DATABASE_URL"] ?? "", { onnotice: () => {} });
 
 try {
-  // Nur Schulen mit freigegebenen Bewertungen: Für alle anderen gibt es nichts
-  // zu rechnen, und 34.000 leere Durchläufe kosten nur Zeit.
+  // Schulen mit freigegebenen Bewertungen **und** Schulen, die schon ein
+  // Aggregat haben. Die zweite Hälfte ist nicht überflüssig: Wird die letzte
+  // Bewertung einer Schule gelöscht oder abgelehnt, bleibt ihr altes Aggregat
+  // stehen. Ohne diesen Lauf zeigte das Profil weiter „6,6 von 10 · 12
+  // Bewertungen“, obwohl keine einzige mehr da ist. 34.000 leere Durchläufe
+  // wären trotzdem verschwendet, deshalb nicht einfach alle Schulen.
   const schulen = await sql<{ id: string; name: string }[]>`
-    select distinct s.id, s.name
+    select s.id, s.name
     from schulen s
-    join bewertungen b on b.schule_id = s.id and b.status = 'freigegeben'
+    where exists (select 1 from bewertungen b where b.schule_id = s.id and b.status = 'freigegeben')
+       or exists (select 1 from schul_aggregate a where a.schule_id = s.id)
     order by s.name
   `;
 
-  console.error(`${schulen.length} Schulen mit freigegebenen Bewertungen.`);
+  console.error(`${schulen.length} Schulen mit Bewertungen oder bestehendem Aggregat.`);
 
   let fertig = 0;
   for (const schule of schulen) {

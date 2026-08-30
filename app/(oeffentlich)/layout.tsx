@@ -32,6 +32,8 @@ export default async function OeffentlichesLayout({ children }: { children: Reac
             <li><a href="/datenschutz">{t("fusszeile.datenschutz")}</a></li>
             <li><a href="/nutzungsbedingungen">{t("fusszeile.nutzungsbedingungen")}</a></li>
             <li><a href="/inhalt-melden">{t("fusszeile.melden")}</a></li>
+            <li><a href="/verlosung">{t("fusszeile.verlosung")}</a></li>
+            <li><a href="/schulsupport">{t("fusszeile.schulen")}</a></li>
           </ul>
           <p className="fussmarke">
             <Markenzeichen groesse={18} />

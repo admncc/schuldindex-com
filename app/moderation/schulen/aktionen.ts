@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { holeSchuldatensatz, legeSchuleAn, speichereSchule } from "@/db/schulverwaltung";
+import {
+  fuehreDublettenZusammen,
+  holeSchuldatensatz,
+  legeSchuleAn,
+  speichereSchule,
+} from "@/db/schulverwaltung";
 import {
   aenderungstext,
   pruefeSchulangaben,
@@ -131,4 +136,30 @@ export async function schuleAnlegen(
   // `typedRoutes` kennt den Pfad mit eingesetzter Kennung nicht als Literal;
   // die Umleitung ist trotzdem gültig.
   redirect(`/moderation/schulen/${id}` as "/moderation/schulen");
+}
+
+export interface Dublettenzustand {
+  readonly meldung?: string;
+  readonly erfolg?: string;
+}
+
+/**
+ * Führt gefundene Dubletten zusammen.
+ *
+ * Nur die Leitung, und nur auf ausdrücklichen Klick: Der Bestand ist die
+ * Grundlage von allem anderen, und eine falsche Zusammenführung sähe niemand
+ * sofort. Gelöscht wird nichts - die überzähligen Zeilen werden stillgelegt
+ * und lassen sich einzeln wieder aktivieren.
+ */
+export async function dublettenZusammenfuehren(): Promise<Dublettenzustand> {
+  const moderatorin = await verlangeAnmeldung();
+  if (moderatorin.rolle !== "leitung") {
+    return { meldung: "Das darf nur die Leitung." };
+  }
+
+  const anzahl = await fuehreDublettenZusammen(moderatorin.id);
+  revalidatePath("/moderation/schulen");
+  return anzahl === 0
+    ? { erfolg: "Es gab nichts zusammenzuführen." }
+    : { erfolg: `${anzahl} Dublette${anzahl === 1 ? "" : "n"} stillgelegt.` };
 }

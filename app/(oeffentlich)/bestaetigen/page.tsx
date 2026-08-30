@@ -1,10 +1,22 @@
 import type { Metadata } from "next";
 import { sql } from "@/db/verbindung";
 import { PRUEFUNG_HINWEIS, hashe, pruefeToken } from "@/domain/verifizierung";
+import { ausloeserNachBestaetigung } from "@/domain/betrugspruefung";
+import { wechsle } from "@/domain/bewertungsstatus";
+import { zahl } from "@/domain/einstellungen";
+import { holeEinstellungen } from "@/db/einstellungen";
 import { aktualisiereAggregate } from "@/db/aggregate";
+import { einer } from "@/domain/suchparameter";
 
 export const metadata: Metadata = { title: "Bewertung bestätigen" };
 export const dynamic = "force-dynamic";
+
+interface Wartend {
+  id: string;
+  schule_id: string;
+  signalpunkte: number | null;
+  signale: { art: string }[];
+}
 
 interface Gespeichert {
   id: string;
@@ -17,9 +29,9 @@ interface Gespeichert {
 export default async function Bestaetigungsseite({
   searchParams,
 }: {
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ token?: string | string[] }>;
 }) {
-  const { token } = await searchParams;
+  const token = einer((await searchParams).token);
 
   if (!token) {
     return (
@@ -51,28 +63,54 @@ export default async function Bestaetigungsseite({
   }
 
   // Bestätigen: Token verbrauchen, Konto verifizieren, wartende Bewertungen
-  // freigeben. In einer Transaktion, damit kein Zwischenzustand entsteht, in dem
-  // das Token verbraucht, das Konto aber unbestätigt ist.
-  const freigegeben = await sql.begin(async (tx) => {
+  // weiterschicken. In einer Transaktion, damit kein Zwischenzustand entsteht,
+  // in dem das Token verbraucht, das Konto aber unbestätigt ist.
+  //
+  // **Nicht pauschal freigeben.** Bei der Abgabe wartet eine erste Bewertung
+  // zuerst auf die Bestätigung; ihre Betrugssignale sind gespeichert, aber noch
+  // nicht angewandt. Wer hier stumpf auf „freigegeben“ setzte, ließe jede
+  // Erstabgabe ungeprüft durch - mit einer frischen E-Mail-Adresse also jede.
+  const schwelle = zahl(await holeEinstellungen(), "halteschwelle");
+
+  const bearbeitet = await sql.begin(async (tx) => {
     await tx`update verifizierungstoken set verbraucht_am = now() where id = ${gespeichert!.id}`;
     await tx`update konten set verifiziert_am = coalesce(verifiziert_am, now()) where id = ${gespeichert!.konto_id}`;
-    const zeilen = await tx<{ schule_id: string }[]>`
-      update bewertungen set status = 'freigegeben', aktualisiert_am = now()
+
+    const wartende = await tx<Wartend[]>`
+      select id, schule_id, signalpunkte, coalesce(signale, '[]'::jsonb) as signale
+      from bewertungen
       where konto_id = ${gespeichert!.konto_id} and status = 'wartet_auf_verifizierung'
-      returning schule_id
+      for update
     `;
+
+    let veroeffentlicht = 0;
+    for (const b of wartende) {
+      const ausloeser = ausloeserNachBestaetigung(b.signalpunkte, b.signale, schwelle);
+      const uebergang = wechsle("wartet_auf_verifizierung", ausloeser);
+      if (!uebergang.ok) continue;
+      if (uebergang.nach === "freigegeben") veroeffentlicht += 1;
+      await tx`
+        update bewertungen set status = ${uebergang.nach}::bewertungsstatus, aktualisiert_am = now()
+        where id = ${b.id}
+      `;
+    }
+
     // Ohne diese Zeile bleibt die Bewertung sichtbar freigegeben, das
-    // Schulprofil zeigt aber weiter den Stand von vorher.
-    await aktualisiereAggregate(zeilen.map((z) => z.schule_id), tx);
-    return zeilen.length;
+    // Schulprofil zeigt aber weiter den Stand von vorher. Die Aggregate rechnen
+    // ohnehin nur mit freigegebenen Bewertungen.
+    await aktualisiereAggregate(wartende.map((z) => z.schule_id), tx);
+    return { gesamt: wartende.length, veroeffentlicht };
   });
 
+  // **Ein Text für beide Ausgänge.** Ob eine Bewertung sofort erscheint oder
+  // erst noch angesehen wird, steht hier bewusst nicht: Sonst wäre die Seite
+  // eine Rückmeldung darüber, ob die Prüfung angeschlagen hat.
   return (
     <Rueckmeldung
       titel="Danke - deine Bewertung ist bestätigt"
       text={
-        freigegeben > 0
-          ? "Sie erscheint in Kürze auf dem Schulprofil. Von jetzt an kannst du weitere Schulen bewerten, ohne dich erneut zu bestätigen."
+        bearbeitet.gesamt > 0
+          ? "Sie wird noch geprüft und erscheint danach auf dem Schulprofil. Von jetzt an kannst du weitere Schulen bewerten, ohne dich erneut zu bestätigen."
           : "Dein Konto ist bestätigt. Von jetzt an kannst du Schulen bewerten, ohne dich erneut zu bestätigen."
       }
       gut

@@ -9,6 +9,9 @@ import { ablehnungsgrund } from "@/domain/moderation";
 import { sql } from "@/db/verbindung";
 import type { Zustand } from "@/domain/bewertungsstatus";
 import { verlangeAnmeldung } from "../sitzung";
+import { pruefeEntscheidung } from "@/domain/moderation";
+import { istKennung } from "@/domain/kennung";
+import { betreiber } from "@/recht/betreiber";
 
 export interface Analysezustand {
   readonly meldung?: string;
@@ -69,7 +72,7 @@ export async function analyseStarten(
   }));
 
   try {
-    const befund = await analysiere(zeilen, claudeAnalyse(schluessel));
+    const befund = await analysiere(zeilen, claudeAnalyse(schluessel, undefined, betreiber().kiRegion ?? undefined));
     if (befund === null) {
       return { meldung: "Das Modell hat keine verwertbare Antwort geliefert.", versuch };
     }
@@ -109,7 +112,7 @@ export async function ausAnalyseAblehnen(
   const bewertungId = String(formular.get("bewertung") ?? "");
   const grundId = String(formular.get("grund") ?? "");
   const grund = ablehnungsgrund(grundId);
-  if (bewertungId === "" || grund === null) {
+  if (!istKennung(bewertungId) || grund === null) {
     return { meldung: "Bitte einen Ablehnungsgrund wählen.", versuch };
   }
 
@@ -120,6 +123,14 @@ export async function ausAnalyseAblehnen(
     select status::text as status from bewertungen where id = ${bewertungId}
   `;
   if (zustand === undefined) return { meldung: "Diese Bewertung gibt es nicht mehr.", versuch };
+
+  // Dieselbe Zustandsprüfung wie in der Warteschlange. Ohne sie ließe sich von
+  // hier aus ein Übergang auslösen, den die Zustandsmaschine nicht kennt - etwa
+  // aus „wartet auf Bestätigung“ heraus, wo noch niemand bestätigt hat.
+  const erlaubt = pruefeEntscheidung(zustand.status, { aktion: "ablehnen", grundId: grund.id });
+  if (!erlaubt.ok) {
+    return { meldung: erlaubt.fehler[0]?.meldung ?? "Dieser Schritt ist hier nicht vorgesehen.", versuch };
+  }
 
   const geaendert = await entscheide({
     bewertungId,

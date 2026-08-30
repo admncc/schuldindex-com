@@ -15,6 +15,7 @@ import {
   bewerte,
   formatiereScore,
   formatiereScoreMitSkala,
+  erreichteObergrenze,
   hoechstwert,
   punktwert,
   scoreKategorie,
@@ -169,6 +170,16 @@ describe("Kategorie A", () => {
 // ---- Optionale Kategorien ----
 
 describe("Obergrenze nach Vollständigkeit", () => {
+  /** Schlechtestmögliche Antworten in genau den genannten Kategorien. */
+  function schlechtIn(kategorien: readonly KategorieId[]): Antworten {
+    const antworten: Record<string, Antwort> = {};
+    for (const f of FRAGEN) {
+      if (!kategorien.includes(f.kategorie)) continue;
+      antworten[f.id] = (f.wertung === "invertiert" ? 5 : 1) as Skalenwert;
+    }
+    return antworten;
+  }
+
   /** Bestnoten in genau den genannten Kategorien. */
   function bestensIn(kategorien: readonly KategorieId[]): Antworten {
     const antworten: Record<string, Antwort> = {};
@@ -194,10 +205,40 @@ describe("Obergrenze nach Vollständigkeit", () => {
 
   it("lässt eine mittelmäßige Bewertung unberührt", () => {
     // Die Deckelung ist keine Umrechnung: Wer die Grenze nicht erreicht, merkt
-    // nichts von ihr.
-    const ohneDeckel = bewerte(roh({ A: 3, B: 3, C: 3 })).gesamtscore;
-    expect(ohneDeckel).toBeLessThan(8.5);
-    expect(ohneDeckel).toBeCloseTo(bewerte(roh({ A: 3, B: 3, C: 3 })).gesamtscore, 10);
+    // nichts von ihr. „Befriedigend“ in allen Pflichtbereichen bleibt 5,0 und
+    // damit gelb - nicht 4,25 und rot.
+    expect(bewerte(roh({ A: 3, B: 3, C: 3 })).gesamtscore).toBeCloseTo(5, 6);
+  });
+
+  it("belohnt keine schlechte Zusatzangabe", () => {
+    // Der teuer erkaufte Fehler: Als jeder beantwortete Bereich die Grenze um
+    // volle 0,5 hob, stieg eine Bestbewertung der Pflichtbereiche von 8,5 auf
+    // 8,9, sobald ein „Sehr schlecht“ in Bereich D dazukam. Wer das merkt,
+    // füllt D, E und F mit Unsinn aus.
+    const nurPflicht = bewerte(bestensIn(["A", "B", "C"])).gesamtscore;
+    const mitSchlechtemD = bewerte({
+      ...bestensIn(["A", "B", "C"]),
+      ...schlechtIn(["D"]),
+    }).gesamtscore;
+    expect(mitSchlechtemD).toBeLessThanOrEqual(nurPflicht);
+  });
+
+  it("steigt mit der Güte des zusätzlichen Bereichs", () => {
+    const pflicht = bestensIn(["A", "B", "C"]);
+    const schlecht = bewerte({ ...pflicht, ...schlechtIn(["D"]) }).gesamtscore;
+    const mittel = bewerte({ ...pflicht, ...roh({ D: 3 }) }).gesamtscore;
+    const gut = bewerte({ ...pflicht, ...bestensIn(["D"]) }).gesamtscore;
+    expect(schlecht).toBeLessThan(mittel);
+    expect(mittel).toBeLessThan(gut);
+    expect(gut).toBeCloseTo(9.0, 6);
+  });
+
+  it("rechnet die erreichte Grenze aus den Werten der freiwilligen Bereiche", () => {
+    expect(erreichteObergrenze([])).toBe(8.5);
+    expect(erreichteObergrenze([5])).toBe(9);
+    expect(erreichteObergrenze([1])).toBe(8.5);
+    expect(erreichteObergrenze([3])).toBeCloseTo(8.75, 6);
+    expect(erreichteObergrenze([5, 5, 5])).toBe(10);
   });
 
   it("rechnet die Grenze aus der Zahl der freiwilligen Bereiche", () => {

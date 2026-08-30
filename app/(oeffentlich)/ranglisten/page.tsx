@@ -4,6 +4,7 @@ import { BUNDESLAENDER, BUNDESLAND_LABEL, istBundesland, type Bundesland } from 
 import { SCHULART_LABEL, type Schulart } from "@/import/schulart";
 import { rangliste, ranglistenlage, trendZu, type Ranglisteneintrag } from "@/db/ranglisten";
 import { scorestufe } from "@/domain/scoring";
+import { einer } from "@/domain/suchparameter";
 
 export const metadata: Metadata = {
   title: "Ranglisten",
@@ -24,19 +25,23 @@ const VERAENDERUNG = new Intl.NumberFormat("de-DE", {
 });
 
 function istSchulart(wert: string): wert is Schulart {
-  return wert in SCHULART_LABEL;
+  // `Object.hasOwn` statt `in`: `in` trifft auch die Prototypkette, und
+  // „constructor“ liefe als Schulart in einen Datenbankfehler.
+  return Object.hasOwn(SCHULART_LABEL, wert);
 }
 
 export default async function Ranglistenseite({
   searchParams,
 }: {
-  searchParams: Promise<{ bundesland?: string; schulart?: string }>;
+  searchParams: Promise<{ bundesland?: string | string[]; schulart?: string | string[] }>;
 }) {
   const p = await searchParams;
+  const rohLand = einer(p.bundesland);
   const bundesland: Bundesland | undefined =
-    p.bundesland !== undefined && istBundesland(p.bundesland) ? p.bundesland : undefined;
+    rohLand !== undefined && istBundesland(rohLand) ? rohLand : undefined;
+  const rohArt = einer(p.schulart);
   const schulart: Schulart | undefined =
-    p.schulart !== undefined && istSchulart(p.schulart) ? p.schulart : undefined;
+    rohArt !== undefined && istSchulart(rohArt) ? rohArt : undefined;
 
   const lage = await ranglistenlage(bundesland, schulart);
 

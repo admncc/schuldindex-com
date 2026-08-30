@@ -69,7 +69,7 @@ export function pruefeSchulangaben(a: Schulangaben): Feldfehler[] {
   }
 
   for (const art of a.schularten) {
-    if (!(art in SCHULART_LABEL)) {
+    if (!Object.hasOwn(SCHULART_LABEL, art)) {
       fehler.push({ feld: "schularten", meldung: `Unbekannte Schulart: ${art}` });
       break;
     }
@@ -154,7 +154,7 @@ export function uebernimm(a: Schulangaben): Gepruefte {
   return {
     name: a.name.trim(),
     bundesland: (istBundesland(a.bundesland) ? a.bundesland : BUNDESLAENDER[0]) as Bundesland,
-    schularten: a.schularten.filter((s): s is Schulart => s in SCHULART_LABEL),
+    schularten: a.schularten.filter((s): s is Schulart => Object.hasOwn(SCHULART_LABEL, s)),
     schulartOriginal: oderNull(a.schulartOriginal),
     strasse: oderNull(a.strasse),
     plz: oderNull(a.plz),

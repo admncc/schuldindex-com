@@ -12,7 +12,6 @@ import {
   erzeugeAnmeldelink,
   LINKS_JE_STUNDE,
   LINK_ANGEFORDERT,
-  ZU_VIELE_LINKS,
   type Zugangstoken,
 } from "../domain/kontozugang";
 import { kontaktHash, normalisiereKontakt, type Kontaktart } from "../domain/kontakt";
@@ -56,8 +55,11 @@ export async function fordereAnmeldelinkAn(
   // sonst würde die Anmeldung zur Hintertür um die Bestätigung herum.
   if (konto.verifiziertAm === null) return { meldung: LINK_ANGEFORDERT, intern: "unbestaetigt" };
 
+  // Dieselbe Meldung wie in allen anderen Fällen: Ein eigener Text für die
+  // erreichte Grenze verriete, dass es das Konto gibt (siehe `LINKS_JE_STUNDE`
+  // in `domain/kontozugang.ts`).
   if ((await u.zaehleLinks(konto.id)) >= LINKS_JE_STUNDE) {
-    return { meldung: ZU_VIELE_LINKS, intern: "begrenzt" };
+    return { meldung: LINK_ANGEFORDERT, intern: "begrenzt" };
   }
 
   const token = erzeugeAnmeldelink();

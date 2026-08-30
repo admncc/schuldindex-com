@@ -27,7 +27,18 @@ import { headers } from "next/headers";
  * Erkennung sorgt nur dafür, dass der Testbetrieb nicht an einem Attribut
  * scheitert, das ohne TLS ohnehin nichts schützt.
  */
+/**
+ * Nur hinter einem eigenen Proxy ist der Kopf eine Auskunft, sonst eine
+ * Behauptung des Absenders (dieselbe Überlegung wie in `src/geo/mmdb.ts`).
+ * Ohne Proxy zählt allein die Verbindung selbst.
+ */
+function hinterProxy(): boolean {
+  const roh = Number(process.env["VERTRAUTE_PROXYS"] ?? "0");
+  return Number.isInteger(roh) && roh > 0;
+}
+
 export async function verbindungIstSicher(): Promise<boolean> {
+  if (!hinterProxy()) return false;
   const kopf = await headers();
 
   const weitergereicht = kopf.get("x-forwarded-proto");
@@ -45,6 +56,8 @@ export async function verbindungIstSicher(): Promise<boolean> {
 
 /** Dieselbe Frage für Route Handler, die die Anfrage ohnehin in der Hand haben. */
 export function anfrageIstSicher(anfrage: Request): boolean {
+  if (!hinterProxy()) return new URL(anfrage.url).protocol === "https:";
+
   const weitergereicht = anfrage.headers.get("x-forwarded-proto");
   if (weitergereicht) {
     return weitergereicht.split(",")[0]?.trim().toLowerCase() === "https";

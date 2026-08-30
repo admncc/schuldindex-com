@@ -27,7 +27,7 @@ import { KATEGORIEN, type KategorieId } from "./fragebogen";
 import {
   ampelstufe,
   aufZehnerskala,
-  hoechstwert,
+  erreichteObergrenze,
   scorestufe,
   type Ampelstufe,
   type Bewertungsergebnis,
@@ -58,6 +58,14 @@ export interface Schulaggregat {
    * Gehört nie in eine öffentliche Antwort.
    */
   readonly gesamtscoreIntern: number | null;
+  /**
+   * Derselbe Wert **ohne** Deckelung.
+   *
+   * Nur für die Sortierung: Sobald mehrere Schulen die Obergrenze erreichen,
+   * entschiede sonst die Zahl der Bewertungen über den ersten Platz und nicht
+   * die Qualität. Angezeigt wird er nirgends.
+   */
+  readonly gesamtscoreRoh: number | null;
   readonly stufe: Scorestufe | null;
   readonly kategorien: Readonly<Partial<Record<KategorieId, number>>>;
   readonly aggressionsindex: number | null;
@@ -106,16 +114,25 @@ export function aggregiere(bewertungen: readonly EinzelneBewertung[]): Schulaggr
     gewichtssumme += kategorie.gewichtung;
   }
 
-  const roh = gewichtssumme === 0 ? null : summe / gewichtssumme;
-  // Dieselbe Deckelung wie bei der einzelnen Bewertung, hier auf Schulebene:
+  // **Ohne alle drei Pflichtbereiche gibt es keinen Gesamtwert.** Für die
+  // einzelne Bewertung erzwingt `bewerte()` das mit einer Ausnahme; auf
+  // Schulebene fehlte die Prüfung, und die vorhandenen Bereiche wurden einfach
+  // unter sich neu gewichtet. Eine Schule, zu der nur die Sicherheit beurteilt
+  // wurde, stand dann mit einem vollwertigen Score in der Rangliste.
+  const pflichtVollstaendig = KATEGORIEN.filter((k) => k.pflicht).every(
+    (k) => kategorien[k.id] !== undefined,
+  );
+
+  const roh = gewichtssumme === 0 || !pflichtVollstaendig ? null : summe / gewichtssumme;
+  // Derselbe Maßstab wie bei der einzelnen Bewertung, hier auf Schulebene:
   // Gezählt werden die freiwilligen Bereiche, zu denen überhaupt jemand etwas
   // gesagt hat. Ohne das stünde auf dem Profil eine 9,4, während jede einzelne
-  // Bewertung, aus der sie entstand, auf 8,5 gedeckelt war.
-  const freiwilligeBereiche = KATEGORIEN.filter(
-    (k) => !k.pflicht && kategorien[k.id] !== undefined,
-  ).length;
+  // Bewertung, aus der sie entstand, an 8,5 gemessen wurde.
+  const freiwilligeWerte = KATEGORIEN.filter((k) => !k.pflicht)
+    .map((k) => kategorien[k.id])
+    .filter((w): w is number => w !== undefined);
   const gesamtscore =
-    roh === null ? null : Math.min(aufZehnerskala(roh), hoechstwert(freiwilligeBereiche));
+    roh === null ? null : Math.min(aufZehnerskala(roh), erreichteObergrenze(freiwilligeWerte));
 
   const aggressionswerte = bewertungen
     .map((b) => b.ergebnis.aggression?.index)
@@ -129,6 +146,7 @@ export function aggregiere(bewertungen: readonly EinzelneBewertung[]): Schulaggr
     // existiert intern, taugt aber nicht als Aussage über eine Schule.
     gesamtscore: sichtbar ? gesamtscore : null,
     gesamtscoreIntern: gesamtscore,
+    gesamtscoreRoh: roh === null ? null : aufZehnerskala(roh),
     stufe: sichtbar && gesamtscore !== null ? scorestufe(gesamtscore) : null,
     kategorien,
     aggressionsindex,

@@ -1,11 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { anfrageIstSicher } from "./sichere-verbindung";
 
 function anfrage(kopf: Record<string, string>, url = "http://beispiel.de/x"): Request {
   return new Request(url, { headers: kopf });
 }
 
-describe("anfrageIstSicher", () => {
+describe("anfrageIstSicher hinter einem eigenen Proxy", () => {
+  // Ohne diese Angabe wird der Kopf gar nicht gelesen: Er kommt sonst vom
+  // Absender selbst und ist keine Auskunft, sondern eine Behauptung.
+  beforeEach(() => {
+    process.env["VERTRAUTE_PROXYS"] = "1";
+  });
+  afterEach(() => {
+    delete process.env["VERTRAUTE_PROXYS"];
+  });
+
   it("glaubt dem vorgeschalteten Server", () => {
     expect(anfrageIstSicher(anfrage({ "x-forwarded-proto": "https" }))).toBe(true);
     expect(anfrageIstSicher(anfrage({ "x-forwarded-proto": "http" }))).toBe(false);
@@ -24,7 +33,14 @@ describe("anfrageIstSicher", () => {
     expect(anfrageIstSicher(anfrage({ forwarded: "for=1.2.3.4;proto=http" }))).toBe(false);
   });
 
-  it("fällt ohne Proxy auf die Adresse zurück", () => {
+  it("glaubt dem Kopf nicht, wenn kein eigener Proxy davorsteht", () => {
+    delete process.env["VERTRAUTE_PROXYS"];
+    expect(anfrageIstSicher(anfrage({ "x-forwarded-proto": "https" }))).toBe(false);
+  });
+});
+
+describe("anfrageIstSicher ohne Proxy", () => {
+  it("fällt auf die Adresse zurück", () => {
     expect(anfrageIstSicher(anfrage({}, "https://beispiel.de/x"))).toBe(true);
     expect(anfrageIstSicher(anfrage({}, "http://65.21.50.61:3000/x"))).toBe(false);
   });

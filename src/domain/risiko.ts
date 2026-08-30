@@ -20,16 +20,20 @@
  * Vorgang kommen, nicht aus der Farbe der Zeile.
  */
 
-export type Risikostufe = "gering" | "auffaellig" | "hoch";
+export type Risikostufe = "unbekannt" | "gering" | "auffaellig" | "hoch";
 
 export const RISIKO_LABEL: Readonly<Record<Risikostufe, string>> = {
+  // „Nicht gemessen“ ist etwas anderes als „unauffällig“. Bewertungen aus der
+  // Zeit vor der Signalaufzeichnung trugen sonst eine grüne Plakette, die eine
+  // Prüfung behauptete, die es nie gegeben hat.
+  unbekannt: "nicht gemessen",
   gering: "unauffällig",
   auffaellig: "auffällig",
   hoch: "hohes Risiko",
 };
 
 export function risikostufe(punkte: number | null, halteschwelle: number): Risikostufe {
-  if (punkte === null) return "gering";
+  if (punkte === null) return "unbekannt";
   if (punkte >= halteschwelle * 2) return "hoch";
   if (punkte >= halteschwelle) return "auffaellig";
   return "gering";
@@ -37,5 +41,8 @@ export function risikostufe(punkte: number | null, halteschwelle: number): Risik
 
 /** Für die Farbgebung: dieselben Klassen wie bei den Ampelstufen. */
 export function risikoklasse(stufe: Risikostufe): string {
-  return stufe === "hoch" ? "schlecht" : stufe === "auffaellig" ? "mittel" : "gut";
+  if (stufe === "hoch") return "schlecht";
+  if (stufe === "auffaellig") return "mittel";
+  // Ohne Messung keine Farbe: neutral, nicht grün.
+  return stufe === "unbekannt" ? "neutral" : "gut";
 }

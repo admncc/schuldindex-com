@@ -5,6 +5,9 @@ import { holeFassungZumAendern } from "@/db/konto";
 import { holeAngemeldetesKonto } from "../../konto/sitzung";
 import { erzeugeStempel, stempelText } from "@/domain/formularstempel";
 import { Bewertungsformular } from "./formular";
+import { einer } from "@/domain/suchparameter";
+import { erlaubteKontaktarten } from "@/domain/einstellungen";
+import { holeEinstellungen } from "@/db/einstellungen";
 
 export async function generateMetadata({
   params,
@@ -23,10 +26,10 @@ export default async function Bewertungsseite({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ aendern?: string }>;
+  searchParams: Promise<{ aendern?: string | string[] }>;
 }) {
   const { slug } = await params;
-  const { aendern } = await searchParams;
+  const aendern = einer((await searchParams).aendern);
   const schule = await holeSchule(slug);
   if (!schule) notFound();
 
@@ -66,7 +69,8 @@ export default async function Bewertungsseite({
           schulSlug={schule.slug}
           schulname={schule.name}
           aenderung={aenderung}
-          stempel={stempelText(erzeugeStempel())}
+          stempel={stempelText(erzeugeStempel(schule.slug))}
+          kontaktwege={erlaubteKontaktarten(await holeEinstellungen())}
         />
       </section>
     </>

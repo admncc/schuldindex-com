@@ -77,12 +77,14 @@ schreibe dazu, welcher es ist. Im Zweifel nennst du sie nicht. Antworte auf
 Deutsch.`;
 
 export function baueBlock(zeilen: readonly Analysezeile[]): string {
-  const kopf = "Nr | Abgegeben | Rolle | Wertung | Signalpunkte | Signale | Klick-Median | Streuung | Dauer | Freitext";
+  // **Ohne Rolle.** Die Datenschutzerklärung sagt zu, dass die Rolle nicht
+  // übermittelt wird; für die Prüfung auf Muster trägt sie ohnehin nichts, was
+  // Signalpunkte und Klickverhalten nicht schon sagen.
+  const kopf = "Nr | Abgegeben | Wertung | Signalpunkte | Signale | Klick-Median | Streuung | Dauer | Freitext";
   const koerper = zeilen.map((z) =>
     [
       z.nr,
       z.abgegeben,
-      z.rolle,
       z.gesamtscore === null ? "-" : z.gesamtscore.toFixed(2),
       z.signalpunkte ?? "-",
       z.signale.length === 0 ? "-" : z.signale.join("+"),
@@ -103,8 +105,16 @@ export interface Analysemodell {
   pruefe(systemanweisung: string, block: string): Promise<Analysebefund | null>;
 }
 
-export function claudeAnalyse(apiSchluessel: string, modell = MODELL): Analysemodell {
-  const client = new Anthropic({ apiKey: apiSchluessel });
+export function claudeAnalyse(
+  apiSchluessel: string,
+  modell = MODELL,
+  region?: string | undefined,
+): Analysemodell {
+  // Zeitlimit und höchstens ein zweiter Versuch. Die Vorgabe des SDK sind zehn
+  // Minuten **mit** Wiederholungen; eine Server-Aktion hinge damit im
+  // schlimmsten Fall eine halbe Stunde, und der Knopf bliebe die ganze Zeit auf
+  // „Claude sieht nach …“.
+  const client = new Anthropic({ apiKey: apiSchluessel, timeout: 60_000, maxRetries: 1 });
   return {
     async pruefe(systemanweisung, block) {
       const antwort = await client.messages.parse({
@@ -114,6 +124,9 @@ export function claudeAnalyse(apiSchluessel: string, modell = MODELL): Analysemo
         system: systemanweisung,
         messages: [{ role: "user", content: block }],
         output_config: { format: zodOutputFormat(Befund) },
+        // Dieselbe Verarbeitungsregion wie bei der Zusammenfassung - sie steht
+        // so in der Datenschutzerklärung.
+        ...(region === undefined ? {} : { inference_geo: region }),
       });
       // `parsed_output` ist null, wenn die Validierung fehlschlägt - dann gibt
       // es keinen Befund, und die Oberfläche sagt das, statt etwas zu erfinden.

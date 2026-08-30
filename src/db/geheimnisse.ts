@@ -82,7 +82,7 @@ export async function setzeSchluessel(
     // Schlüssel selbst, auch nicht verkürzt.
     await tx`
       insert into moderationsprotokoll (aktion, moderator_id, kennung_versuch, begruendung)
-      values ('schule_geaendert', ${moderatorId}, '', ${`Zugangsschlüssel gesetzt: ${name}`})
+      values ('geheimnis_geaendert', ${moderatorId}, '', ${`Zugangsschlüssel gesetzt: ${name}`})
     `;
   });
 }
@@ -92,7 +92,7 @@ export async function entferneSchluessel(name: string, moderatorId: string): Pro
     await tx`delete from geheimnisse where name = ${name}`;
     await tx`
       insert into moderationsprotokoll (aktion, moderator_id, kennung_versuch, begruendung)
-      values ('schule_geaendert', ${moderatorId}, '', ${`Zugangsschlüssel entfernt: ${name}`})
+      values ('geheimnis_geaendert', ${moderatorId}, '', ${`Zugangsschlüssel entfernt: ${name}`})
     `;
   });
 }

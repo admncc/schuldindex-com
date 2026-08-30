@@ -58,7 +58,13 @@ export async function rangliste(
       and s.ist_aktiv
       ${f.bundesland ? sql`and s.bundesland = ${f.bundesland}::bundesland` : sql``}
       ${f.schulart ? sql`and ${f.schulart}::schulart = any(s.schularten)` : sql``}
-    order by ${richtung === "beste" ? sql`a.gesamtscore desc` : sql`a.gesamtscore asc`}, a.anzahl desc
+    -- Bei Gleichstand entscheidet der ungedeckelte Wert, nicht die Zahl der
+    -- Bewertungen. Sobald mehrere Schulen die Obergrenze erreichen, stünden
+    -- sonst alle bei 8,50, und die schlechtere gewänne, weil sie mehr Stimmen
+    -- hat (Migration 0024_score_roh.sql).
+    order by ${richtung === "beste" ? sql`a.gesamtscore desc` : sql`a.gesamtscore asc`},
+             ${richtung === "beste" ? sql`a.gesamtscore_roh desc nulls last` : sql`a.gesamtscore_roh asc nulls last`},
+             a.anzahl desc
     limit ${grenze}
   `;
 }

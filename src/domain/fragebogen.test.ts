@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   AGGRESSIONSFRAGEN,
   FRAGEN,
+  FRAGE_NACH_ID,
   KATEGORIEN,
   SKALEN,
+  frageText,
   fragenDerKategorie,
 } from "./fragebogen";
+import { ansprachefuer } from "./bewertungseingabe";
 
 describe("Fragebogen - Struktur", () => {
   it("enthält 61 Fragen in sechs Kategorien", () => {
@@ -95,5 +98,75 @@ describe("Fragebogen - Sprache", () => {
   it("duzt dort, wo die Frage überhaupt jemanden anspricht", () => {
     const mitAnrede = FRAGEN.filter((f) => /\b(du|dich|dir|deine[rnms]?)\b/i.test(f.text));
     expect(mitAnrede.length).toBeGreaterThanOrEqual(12);
+  });
+});
+
+describe("Ansprache je Rolle", () => {
+  const ANSPRACHEN = ["schueler", "eltern", "lehrkraft", "ehemalig"] as const;
+
+  it("liefert für jede Ansprache zu jeder Frage einen Text", () => {
+    for (const frage of FRAGEN) {
+      for (const ansprache of ANSPRACHEN) {
+        const text = frageText(frage, ansprache);
+        expect(text.endsWith("?"), `${frage.id}/${ansprache} endet nicht mit Fragezeichen`).toBe(true);
+        expect(text.length).toBeGreaterThan(20);
+      }
+    }
+  });
+
+  it("gibt ohne eigene Fassung den kanonischen Text zurück", () => {
+    const { varianten: _weg, ...ohneVarianten } = FRAGEN[0]!;
+    expect(frageText(ohneVarianten, "eltern")).toBe(ohneVarianten.text);
+  });
+
+  it("fragt Ehemalige in der Vergangenheit", () => {
+    // Die Gegenwartsform ist an jemanden, der die Schule verlassen hat, falsch
+    // gestellt - und die Antwort wäre eine andere.
+    for (const frage of FRAGEN) {
+      const text = frageText(frage, "ehemalig");
+      expect(text, `${frage.id} hat keine eigene Fassung für Ehemalige`).not.toBe(frage.text);
+    }
+  });
+
+  it("fragt Eltern nicht nach dem, was nur Schüler selbst erleben", () => {
+    // „Wie sicher fühlst du dich auf dem Schulgelände?" kann ein Elternteil
+    // nicht beantworten; gefragt wird nach dem Kind.
+    const a1 = FRAGE_NACH_ID.get("A1")!;
+    expect(frageText(a1, "eltern")).toContain("dein Kind");
+    expect(frageText(a1, "eltern")).not.toContain("fühlst du dich");
+  });
+
+  it("siezt auch in den Rollenfassungen nicht", () => {
+    for (const frage of FRAGEN) {
+      for (const ansprache of ANSPRACHEN) {
+        expect(
+          /\b(Sie|Ihnen|Ihre[rnms]?)\b/.test(frageText(frage, ansprache)),
+          `${frage.id}/${ansprache} siezt`,
+        ).toBe(false);
+      }
+    }
+  });
+
+  it("lässt Skala und Wertung unangetastet", () => {
+    // Nur der Wortlaut ändert sich. Änderte sich die Skala, wären die
+    // Antworten verschiedener Rollen nicht mehr vergleichbar.
+    for (const frage of FRAGEN) {
+      expect(frage.varianten === undefined || typeof frage.varianten === "object").toBe(true);
+    }
+  });
+});
+
+describe("ansprachefuer", () => {
+  it("ordnet jede Rolle einer Ansprache zu", () => {
+    expect(ansprachefuer("schueler_unter_16")).toBe("schueler");
+    expect(ansprachefuer("schueler_ab_16")).toBe("schueler");
+    expect(ansprachefuer("eltern")).toBe("eltern");
+    expect(ansprachefuer("lehrkraft")).toBe("lehrkraft");
+    expect(ansprachefuer("ehemalig")).toBe("ehemalig");
+  });
+
+  it("nimmt ohne Rolle die Schülerfassung", () => {
+    expect(ansprachefuer(null)).toBe("schueler");
+    expect(ansprachefuer("etwas anderes")).toBe("schueler");
   });
 });

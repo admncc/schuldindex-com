@@ -17,7 +17,7 @@ import { pruefe as pruefeBetrug, type Pruefergebnis, type Pruefkontext } from ".
 import { erzeugeToken, type Token } from "../domain/verifizierung";
 import { kontaktHash, normalisiereKontakt, verschleiere, verschluessele } from "../domain/kontakt";
 import type { KategorieId } from "../domain/fragebogen";
-import type { Einstellungen } from "../domain/einstellungen";
+import { erlaubteKontaktarten, zahl, type Einstellungen } from "../domain/einstellungen";
 import { bereinige, type Klickauswertung } from "../domain/klickmuster";
 
 export interface Schulbezug {
@@ -105,6 +105,15 @@ export async function bewertungAbgeben(
   }
 
   const art = eingabe.kontaktart!;
+  // Ein im Panel abgeschalteter Weg wird auch dann nicht angenommen, wenn ihn
+  // jemand von Hand mitschickt - das Formular bietet ihn gar nicht erst an.
+  if (!erlaubteKontaktarten(await umgebung.holeEinstellungen()).includes(art)) {
+    return {
+      ok: false,
+      fehler: [{ feld: "kontaktart", meldung: "Dieser Weg der Bestätigung steht zurzeit nicht zur Verfügung." }],
+    };
+  }
+
   const normal = normalisiereKontakt(eingabe.kontakt, art);
   const hash = kontaktHash(eingabe.kontakt, art);
 
@@ -126,10 +135,19 @@ export async function bewertungAbgeben(
     };
   }
 
-  const geo = pruefeEinreichung({
-    absender: await umgebung.ortungDesAbsenders(),
-    schule: schule.punkt,
-  });
+  // Die Einstellungen stehen vor der Geoprüfung, weil sie deren Grenzwert
+  // liefern. Vorher lief die Prüfung immer gegen die Konstante: Die Leitung
+  // konnte im Panel 60 km einstellen, bekam „Gespeichert“ zu sehen, und geprüft
+  // wurden weiter 150.
+  const einstellungen = await umgebung.holeEinstellungen();
+
+  const geo = pruefeEinreichung(
+    {
+      absender: await umgebung.ortungDesAbsenders(),
+      schule: schule.punkt,
+    },
+    zahl(einstellungen, "entfernung_km"),
+  );
 
   const freitexte = Object.values(eingabe.freitexte).filter((t): t is string => !!t && t.trim() !== "");
   // Einmal gerechnet statt zweimal: die Abweichungsprüfung braucht den Score
@@ -137,7 +155,6 @@ export async function bewertungAbgeben(
   const scores = bewerte(eingabe.antworten);
 
   const zaehler = await umgebung.holeZaehler(konto.id, schule.id);
-  const einstellungen = await umgebung.holeEinstellungen();
   const schulstand = await umgebung.holeSchulmittel(schule.id);
 
   const betrug = pruefeBetrug(
@@ -150,8 +167,9 @@ export async function bewertungAbgeben(
       // `domain/formularstempel.ts`. Ohne gültigen Stempel bleibt es leer,
       // und das Tempo-Signal entfällt, statt zu raten.
       dauerSekunden: eingabe.dauerSekunden ?? null,
-      // Die Abstände selbst verlassen diese Funktion nicht: Was gespeichert
-      // wird, sind die drei Kennzahlen aus `betrug.klick`, nicht die Folge.
+      stempelFehlt: eingabe.stempelFehlt ?? false,
+      // Für die Prüfung zählen nur die Kennzahlen aus `betrug.klick`. Die Folge
+      // selbst wird weiter unten eigens gespeichert.
       klickabstaende: eingabe.klickabstaende ?? null,
       eigenerScore: scores.gesamtscore,
       schulmittel: schulstand.mittel,

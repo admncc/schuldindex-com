@@ -7,13 +7,16 @@ import {
   KEINE_ANGABE,
   LABEL_KEINE_ANGABE,
   SKALEN,
+  frageText,
   fragenDerKategorie,
+  type Ansprache,
   type Antwort,
   type KategorieId,
 } from "@/domain/fragebogen";
 import {
   ROLLEN,
   ROLLE_LABEL,
+  ansprachefuer,
   beantwortet,
   fortschritt,
   istSchueler,
@@ -57,12 +60,15 @@ export function Bewertungsformular({
   schulname,
   aenderung,
   stempel,
+  kontaktwege,
 }: {
   schulSlug: string;
   schulname: string;
   aenderung?: Aenderung | undefined;
   /** Signierter Zeitstempel des Servers; geht unverändert zurück. */
   stempel?: string | undefined;
+  /** Welche Wege der Bestätigung angeboten werden - aus den Einstellungen. */
+  kontaktwege: readonly Kontaktart[];
 }) {
   const [rolle, setRolle] = useState<Rolle | null>(aenderung?.rolle ?? null);
   const [klassenstufe, setKlassenstufe] = useState<number | null>(aenderung?.klassenstufe ?? null);
@@ -79,7 +85,7 @@ export function Bewertungsformular({
       ? []
       : FREIWILLIG.filter((id) => fragenDerKategorie(id).some((f) => aenderung.antworten[f.id] !== undefined)),
   );
-  const [kontaktart, setKontaktart] = useState<Kontaktart | null>("whatsapp");
+  const [kontaktart, setKontaktart] = useState<Kontaktart | null>(kontaktwege[0] ?? "email");
   const [kontakt, setKontakt] = useState("");
   const [datenschutz, setDatenschutz] = useState(false);
   const [eltern, setEltern] = useState(false);
@@ -139,7 +145,38 @@ export function Bewertungsformular({
   const fehler = pruefeEingabe(eingabe, new Date(), { kontaktNoetig: aenderung === undefined });
   const fehlerZu = (feld: string) => (gezeigt ? fehler.find((f) => f.feld === feld)?.meldung : undefined);
   const schritt = schritte[Math.min(nummer, schritte.length - 1)]!;
+  /** Freiwillige Bereiche mit mindestens einer Antwort - nicht bloß aufgeklappte. */
+  const beantworteteFreiwillige = FREIWILLIG.filter((id) => beantwortet(id, antworten) > 0).length;
   const anteil = Math.round(fortschritt(antworten) * 100);
+
+  /** Ist das gerade ein freiwilliger Bereich? Die werden anders verlassen. */
+  const imFreiwilligen = schritt.art === "kategorie" && FREIWILLIG.includes(schritt.id);
+  const abschlussnummer = schritte.length - 1;
+
+  /**
+   * Zurück aus einem freiwilligen Bereich.
+   *
+   * Ein freiwilliger Bereich wird vom Abschluss aus geöffnet - also führt der
+   * Weg zurück auch dorthin und nicht in den letzten Pflichtbereich. Wer ihn
+   * unbeantwortet verlässt, hat es sich anders überlegt: Dann verschwindet er
+   * wieder aus der Liste und steht auf dem Abschluss erneut zur Auswahl.
+   */
+  function zurueck() {
+    setGezeigt(false);
+    if (imFreiwilligen && schritt.art === "kategorie") {
+      const id = schritt.id;
+      if (beantwortet(id, antworten) === 0) {
+        setFreiwillige((bisher) => bisher.filter((k) => k !== id));
+        setFreitexte((t) => ({ ...t, [id]: "" }));
+      }
+      // Ohne die neue Länge zu kennen: Nach dem Entfernen ist der Abschluss
+      // einen Schritt weiter vorn. `schritte` wird erst im nächsten Durchlauf
+      // neu gebaut, deshalb hier von Hand.
+      setNummer(beantwortet(id, antworten) === 0 ? abschlussnummer - 1 : abschlussnummer);
+      return;
+    }
+    setNummer((n) => Math.max(0, n - 1));
+  }
 
   function weiter() {
     // Erst die Fehler des aktuellen Schritts zeigen, dann weitergehen. Alle
@@ -156,7 +193,10 @@ export function Bewertungsformular({
       return;
     }
     setGezeigt(false);
-    setNummer((n) => Math.min(n + 1, schritte.length - 1));
+    // Aus einem freiwilligen Bereich geht es zurück zum Abschluss, nicht in
+    // den nächsten Bereich: Von dort ist er geöffnet worden, und dort steht
+    // die Auswahl der übrigen.
+    setNummer((n) => (imFreiwilligen ? abschlussnummer : Math.min(n + 1, schritte.length - 1)));
   }
 
   async function absenden() {
@@ -316,6 +356,7 @@ export function Bewertungsformular({
       {schritt.art === "kategorie" && (
         <Kategorieschritt
           id={schritt.id}
+          ansprache={ansprachefuer(rolle)}
           antworten={antworten}
           setAntwort={(id, wert) => {
             merkeKlick();
@@ -350,10 +391,14 @@ export function Bewertungsformular({
                 jemand auch diese Bereiche beurteilt.
               </p>
               <p className="hinweis">
-                Zurzeit möglich: <strong>{ZAHL.format(hoechstwert(freiwillige.length))} von 10</strong>
-                {freiwillige.length < FREIWILLIG.length
+                {/* Gezählt wird, was **beantwortet** ist, nicht was aufgeklappt
+                    ist. Vorher zeigte das Formular „9,0 möglich“, sobald jemand
+                    Bereich D aufklappte - auch wenn er ihn leer ließ, und dann
+                    galten am Ende doch 8,5. */}
+                Zurzeit möglich: <strong>{ZAHL.format(hoechstwert(beantworteteFreiwillige))} von 10</strong>
+                {beantworteteFreiwillige < FREIWILLIG.length
                   ? ` · mit jedem weiteren Bereich ${ZAHL.format(
-                      hoechstwert(freiwillige.length + 1),
+                      hoechstwert(beantworteteFreiwillige + 1),
                     )}`
                   : ""}
               </p>
@@ -386,7 +431,10 @@ export function Bewertungsformular({
                 Menschen kommt. Deine Kontaktdaten werden nie veröffentlicht.
               </p>
               <div className="wahl">
-                {(["whatsapp", "sms", "email"] as const).map((art) => (
+                {/* Nur die Wege, die im Panel angeschaltet sind. Ein
+                    abgeschalteter Weg verschwindet hier und wird auch dann
+                    nicht angenommen, wenn ihn jemand von Hand mitschickt. */}
+                {kontaktwege.map((art) => (
                   <label key={art} className={kontaktart === art ? "wahlfeld gewaehlt" : "wahlfeld"}>
                     <input
                       type="radio"
@@ -466,7 +514,7 @@ export function Bewertungsformular({
 
       <div className="schrittleiste">
         {nummer > 0 && (
-          <button type="button" className="knopf zweitrangig" onClick={() => { setGezeigt(false); setNummer((n) => n - 1); }}>
+          <button type="button" className="knopf zweitrangig" onClick={zurueck}>
             Zurück
           </button>
         )}
@@ -479,7 +527,9 @@ export function Bewertungsformular({
                 : "Änderung speichern"}
           </button>
         ) : (
-          <button type="button" className="knopf" onClick={weiter}>Weiter</button>
+          <button type="button" className="knopf" onClick={weiter}>
+            {imFreiwilligen ? "Übernehmen" : "Weiter"}
+          </button>
         )}
       </div>
     </form>
@@ -488,6 +538,7 @@ export function Bewertungsformular({
 
 function Kategorieschritt({
   id,
+  ansprache,
   antworten,
   setAntwort,
   freitext,
@@ -495,6 +546,7 @@ function Kategorieschritt({
   fehler,
 }: {
   id: KategorieId;
+  ansprache: Ansprache;
   antworten: Record<string, Antwort>;
   setAntwort: (frageId: string, wert: Antwort) => void;
   freitext: string;
@@ -513,10 +565,18 @@ function Kategorieschritt({
         {kategorie.pflicht ? "" : " · freiwillig"}
       </p>
 
+      {/* Ein Satz zur Blickrichtung. Die Fragen selbst sind je Rolle anders
+          formuliert; dieser Hinweis sagt, worauf sie sich beziehen. */}
+      {ansprache === "ehemalig" ? (
+        <p className="hinweis">Beziehe dich auf die Zeit, in der du an dieser Schule warst.</p>
+      ) : ansprache === "eltern" ? (
+        <p className="hinweis">Beziehe dich auf das, was du an der Schule deines Kindes erlebst.</p>
+      ) : null}
+
       <ol className="fragen">
         {fragen.map((frage) => (
           <li key={frage.id}>
-            <p className="fragetext">{frage.text}</p>
+            <p className="fragetext">{frageText(frage, ansprache)}</p>
             <div className="antworten">
               {SKALEN[frage.skala].map((option) => (
                 <label
@@ -551,8 +611,11 @@ function Kategorieschritt({
         <p className="warnung">
           <strong>Dein Text wird nicht veröffentlicht.</strong> Er fließt zusammen mit anderen
           Bewertungen in eine kurze Zusammenfassung für diese Schule ein.{" "}
-          <strong>Bitte nenne keine Namen</strong> - weder von Lehrkräften noch von Mitschülerinnen
-          und Mitschülern. Bewertungen mit Namen werden abgelehnt.
+          <strong>Bitte nenne keine Namen</strong> - weder von Lehrkräften noch von{" "}
+          {ansprache === "eltern" || ansprache === "lehrkraft"
+            ? "Schülerinnen und Schülern"
+            : "Mitschülerinnen und Mitschülern"}
+          . Bewertungen mit Namen werden abgelehnt.
         </p>
         <textarea rows={4} value={freitext} onChange={(e) => setFreitext(e.target.value)} />
       </label>

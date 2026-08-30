@@ -41,13 +41,23 @@ function schluessel(): Buffer {
   return roh;
 }
 
-function signiere(ausgestellt: number): string {
-  return createHmac("sha256", schluessel()).update(`formular:${ausgestellt}`).digest("base64url");
+/**
+ * Der Schul-Slug geht in die Signatur ein.
+ *
+ * Ohne ihn war ein einmal geholter Stempel zwei Stunden lang für **jede**
+ * Schule gültig: einmal ein Formular öffnen, danach beliebig viele Abgaben mit
+ * demselben Stempel. Mit der Bindung braucht jede Schule ihren eigenen - und
+ * den bekommt man nur, indem man ihr Formular auch aufruft.
+ */
+function signiere(ausgestellt: number, schulSlug: string): string {
+  return createHmac("sha256", schluessel())
+    .update(`formular:${schulSlug}:${ausgestellt}`)
+    .digest("base64url");
 }
 
-export function erzeugeStempel(jetzt = new Date()): Stempel {
+export function erzeugeStempel(schulSlug: string, jetzt = new Date()): Stempel {
   const ausgestellt = Math.floor(jetzt.getTime() / 1000);
-  return { ausgestellt, signatur: signiere(ausgestellt) };
+  return { ausgestellt, signatur: signiere(ausgestellt, schulSlug) };
 }
 
 /** Für die Übergabe im Formular: ein Feld statt zwei. */
@@ -67,7 +77,7 @@ export type Stempelpruefung =
  * Stempel an, der jünger ist als die Gegenwart. Eine negative Dauer als „sehr
  * schnell“ zu werten hieße, alle Abgaben dieser Minute zu verdächtigen.
  */
-export function pruefeStempel(text: string, jetzt = new Date()): Stempelpruefung {
+export function pruefeStempel(text: string, schulSlug: string, jetzt = new Date()): Stempelpruefung {
   const trenner = text.lastIndexOf(".");
   if (trenner <= 0) return { ok: false, grund: "ungueltig" };
 
@@ -75,7 +85,7 @@ export function pruefeStempel(text: string, jetzt = new Date()): Stempelpruefung
   const signatur = text.slice(trenner + 1);
   if (!Number.isSafeInteger(ausgestellt) || signatur === "") return { ok: false, grund: "ungueltig" };
 
-  const erwartet = Buffer.from(signiere(ausgestellt));
+  const erwartet = Buffer.from(signiere(ausgestellt, schulSlug));
   const gegeben = Buffer.from(signatur);
   if (erwartet.length !== gegeben.length || !timingSafeEqual(erwartet, gegeben)) {
     return { ok: false, grund: "ungueltig" };

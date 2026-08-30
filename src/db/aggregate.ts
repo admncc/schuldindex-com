@@ -97,17 +97,18 @@ export async function aktualisiereAggregat(schuleId: string, tx: Ausfuehrer = sq
 
   await tx`
     insert into schul_aggregate (
-      schule_id, gesamtscore, score_a, score_b, score_c, score_d, score_e, score_f,
+      schule_id, gesamtscore, gesamtscore_roh, score_a, score_b, score_c, score_d, score_e, score_f,
       aggressionsindex, anzahl, anzahl_je_rolle, anzahl_mit_freitext,
       gesamtscore_vor_6m, anzahl_vor_6m, letzte_bewertung_am, aktualisiert_am
     ) values (
-      ${schuleId}, ${a.gesamtscore}, ${k("A")}, ${k("B")}, ${k("C")},
+      ${schuleId}, ${a.gesamtscore}, ${a.gesamtscoreRoh}, ${k("A")}, ${k("B")}, ${k("C")},
       ${k("D")}, ${k("E")}, ${k("F")}, ${a.aggressionsindex},
       ${a.anzahl}, ${tx.json(a.anzahlJeRolle as never)}, ${a.anzahlMitFreitext},
       ${davor.gesamtscoreIntern}, ${davor.anzahl}, ${a.letzteBewertungAm}, now()
     )
     on conflict (schule_id) do update set
       gesamtscore = excluded.gesamtscore,
+      gesamtscore_roh = excluded.gesamtscore_roh,
       score_a = excluded.score_a, score_b = excluded.score_b, score_c = excluded.score_c,
       score_d = excluded.score_d, score_e = excluded.score_e, score_f = excluded.score_f,
       aggressionsindex = excluded.aggressionsindex,
