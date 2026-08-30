@@ -87,6 +87,9 @@ body {
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  /* Deutsche Schulnamen sprengen jeden Telefonschirm. Bricht nur, was
+     sonst herausragen wuerde. */
+  overflow-wrap: break-word;
 }
 
 /* Serifen sind raus: Die Zielgruppe ist überwiegend minderjährig und liest auf
@@ -138,16 +141,6 @@ a { color: var(--akzent); }
 .kopf nav a { color: var(--schrift-2); text-decoration: none; white-space: nowrap; padding: 0.35rem 0; }
 .kopf nav a:hover { color: var(--akzent); }
 .kopf .knopf { padding: 0.5rem 1rem; font-size: 0.9rem; }
-/* Auf dem Telefon ist die Navigation ein Waagerecht-Scroller. Ohne den Verlauf
-   am rechten Rand sah sie aus wie eine vollständige Liste - „Karte“, „Über uns“
-   und „Deine Bewertungen“ waren unauffindbar. */
-.kopf-inhalt { position: relative; }
-@media (max-width: 44rem) {
-  .kopf nav {
-    -webkit-mask-image: linear-gradient(to right, #000 85%, transparent);
-    mask-image: linear-gradient(to right, #000 85%, transparent);
-  }
-}
 @media (max-width: 40rem) {
   .kopf nav { gap: 0.9rem; font-size: 0.88rem; }
   .kopf .knopf { display: none; }
@@ -359,7 +352,9 @@ main:focus { outline: none; }
   box-shadow: var(--schatten);
 }
 .karte .beschriftung {
-  font-size: 0.73rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--schrift-3);
+  /* 0,73rem waren 11,7 px - unter der Grenze, ab der Gesperrtes in
+     Grossbuchstaben auf einem Telefon noch zu lesen ist. */
+  font-size: 0.79rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--schrift-3);
 }
 .karte p { color: var(--schrift-2); font-size: 0.95rem; }
 
@@ -947,7 +942,7 @@ mark.fehlt {
   border-radius: var(--radius); padding: 1rem 1.2rem;
 }
 .streifen .marke-signal {
-  font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 0.79rem; letter-spacing: 0.1em; text-transform: uppercase;
   font-weight: 750; color: var(--signal-schrift);
 }
 .streifen p { color: var(--schrift-2); font-size: 0.95rem; flex: 1; min-width: 16rem; }
@@ -965,7 +960,11 @@ mark.fehlt {
   font-weight: 800; font-size: 1.05rem; color: var(--schrift-3); min-width: 1.5rem;
   font-variant-numeric: tabular-nums;
 }
-.vorschauliste .name { flex: 1; min-width: 0; font-weight: 600; }
+/* `overflow-wrap` gehoert dazu, nicht nur `min-width: 0`. Der Flexplatz
+   schrumpft damit zwar, das Wort aber nicht: „Sonderpaedagogisches" ist
+   laenger als ein 320-px-Schirm breit ist, und die Zeile lief seitlich aus dem
+   Bild - auf der Startseite, in der Rangliste, gleich dreimal untereinander. */
+.vorschauliste .name { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
 .vorschauliste .name span { display: block; font-weight: 400; font-size: 0.85rem; color: var(--schrift-3); }
 .vorschauliste .punkte { font-weight: 800; font-variant-numeric: tabular-nums; }
 .vorschauliste .punkte.gut { color: var(--gut); }
@@ -1268,8 +1267,25 @@ mark.fehlt {
 
 /* Die Gewinne als Karten mit einer sehr großen Zahl: Das ist die eine
    Information, wegen der jemand aus einer Story hierherkommt. */
-.lp-gewinne ul { list-style: none; margin: 1rem 0 0.8rem; padding: 0; display: grid; gap: 0.7rem; }
-@media (min-width: 40rem) { .lp-gewinne ul { grid-template-columns: repeat(3, 1fr); } }
+/* **Zwei Spalten schon auf dem Telefon.** Untereinander nahmen die drei
+   Karten rund 600 Pixel ein, und der Gutschein ueber 1000 Euro - der Grund,
+   aus dem jemand einer Story folgt - stand ganz unten. Nebeneinander sieht man
+   alle drei auf einen Blick; die Mega-Karte laeuft ueber beide Spalten und
+   bleibt damit die groesste, ohne die Leiter 50 - 100 - 1000 zu zerreissen. */
+.lp-gewinne ul {
+  list-style: none; margin: 1rem 0 0.8rem; padding: 0;
+  display: grid; gap: 0.7rem; grid-template-columns: 1fr 1fr;
+}
+.lp-gewinne .lp-gewinn.gross { grid-column: 1 / -1; }
+@media (min-width: 40rem) {
+  .lp-gewinne ul { grid-template-columns: repeat(3, 1fr); }
+  .lp-gewinne .lp-gewinn.gross { grid-column: auto; }
+}
+/* Unter 22rem reicht die Breite fuer zwei Spalten nicht mehr - dort steht die
+   Zahl sonst allein in einer Zeile und die Bedingung darunter in vier. */
+@media (max-width: 22rem) {
+  .lp-gewinne ul { grid-template-columns: 1fr; }
+}
 .lp-gewinn {
   display: flex; flex-direction: column; gap: 0.2rem; padding: 1.1rem 1.2rem;
   border: 1px solid var(--linie); border-radius: var(--radius); background: var(--flaeche);
@@ -1349,4 +1365,86 @@ mark.fehlt {
 .lp-noscript {
   background: var(--signal-sanft); border: 1px solid var(--signal); border-radius: var(--radius);
   padding: 0.8rem 1rem; font-size: 0.92rem; margin-top: 1rem;
+}
+
+/* ---------- Das Telefon ist der Regelfall ----------
+   Neun von zehn Bewertenden sind Schuelerinnen und Schueler mit dem Handy in
+   der Hand. Was hier steht, gilt deshalb nicht als Ausnahme fuer schmale
+   Schirme, sondern als der Normalfall, gegen den gebaut wird.
+
+   Zwei Dinge, die auf dem Schreibtisch nicht auffallen und auf dem Telefon
+   alles entscheiden.
+
+   **Dieser Block steht bewusst am Ende des Blattes.** Mehrere seiner Regeln
+   treffen dieselbe Stelle wie eine weiter oben - die Kartenknoepfe, die
+   Kaestchen der Filterleiste - und bei gleicher Spezifitaet gewinnt die
+   spaetere. Beim ersten Versuch stand er in der Mitte, und genau diese
+   Stellen blieben unveraendert.
+
+   Nicht nur schmal, sondern **beruehrt**: `pointer: coarse` fasst jedes Geraet,
+   das mit dem Finger bedient wird - auch das Tablet im Querformat, auf dem die
+   Breitenregel allein nicht mehr griff und alle Tippziele wieder auf 34 Pixel
+   fielen. Die Breitenregel bleibt daneben stehen, weil ein schmales Fenster am
+   Rechner dieselbe Enge hat. */
+@media (max-width: 64rem), (pointer: coarse) {
+  /* **Sechzehn Pixel, nicht weniger.** Safari auf dem iPhone zoomt beim
+     Antippen in jedes Feld hinein, dessen Schrift kleiner ist - und zoomt
+     nicht wieder heraus. Wer die Schulsuche filtert, steht danach auf 130 %
+     und scrollt den Rest der Sitzung seitwaerts. Betroffen waren die beiden
+     Auswahlfelder der Suche (13,6 px), das Anmeldefeld (14,9 px) und das
+     ganze Meldeformular (15,2 px). */
+  input[type="text"], input[type="tel"], input[type="email"],
+  input[type="search"], input[type="number"], select, textarea {
+    font-size: 1rem;
+  }
+
+  /* **Fingerkuppen, keine Mauszeiger.** 44 Pixel sind die Flaeche, mit der ein
+     Mensch trifft, ohne hinzusehen. Die Kopfnavigation stand auf 34, die
+     Fusszeile auf 16 bis 26, die Auswahlfelder auf 36. Ausgenommen bleiben
+     Verweise mitten im Fliesstext: Die auf 44 zu ziehen risse den Absatz
+     auseinander, und die Richtlinie nimmt sie aus gutem Grund aus. */
+  .kopf nav a, .marke, .fuss ul a, .lp-fuss a {
+    display: inline-flex; align-items: center; min-height: 2.75rem;
+  }
+  .knopf.klein { min-height: 2.75rem; padding: 0.5rem 1.1rem; }
+  select, .schalterfeld { min-height: 2.75rem; }
+  /* Die Fusszeile wird dadurch hoeher - auf dem Telefon ist das richtig
+     herum: Sie steht ganz unten, und dort ist Platz die billigste Ware. */
+  .fuss ul, .lp-fuss ul { gap: 0.4rem 1.25rem; }
+
+  /* Die Kartenknoepfe standen auf 38 Pixel und liegen dicht uebereinander -
+     die Kombination, bei der man zuverlaessig danebentippt und zoomt, statt
+     zurueckzusetzen. */
+  .kartenknoepfe button { width: 2.75rem; height: 2.75rem; font-size: 1.25rem; }
+  .kartenknoepfe { gap: 0.45rem; }
+
+  /* Der Aufklapper der Frage-Aufschluesselung: 30 Pixel hoch und ohne
+     seitliche Flaeche - auf dem Telefon der Unterschied zwischen „geht auf"
+     und „nichts passiert". */
+  .fragedetails > summary { min-height: 2.75rem; display: flex; align-items: center; }
+
+  /* Kaestchen und Punkte: Das Etikett drumherum ist das eigentliche Ziel, aber
+     wer das Kaestchen selbst trifft, soll es auch treffen koennen. */
+  /* `flex: 0 0 auto` gehoert dazu: Als Flexkind wurde das Kaestchen
+     zusammengedrueckt und stand bei 13 auf 22 Pixel - ein Ziel, das man nur
+     noch mit dem Fingernagel trifft. */
+  input[type="checkbox"], input[type="radio"],
+  .suchfilter .schalterfeld input, .filter .schalterfeld input,
+  .wahlfeld input, .antwort input {
+    /* `min-` und `max-width` statt `width` allein: Als Flexkind wurde das
+       Kaestchen je nach Umgebung gequetscht (13 auf 22 Pixel) oder in die
+       Breite gezogen (103 auf 22) - beides ein Ziel, das nicht mehr aussieht
+       wie eines. Eine feste Grundflaeche laesst beides nicht zu. */
+    width: 1.4rem; min-width: 1.4rem; max-width: 1.4rem;
+    height: 1.4rem; flex: 0 0 auto;
+  }
+  /* Das Etikett ist das eigentliche Ziel - es muss die volle Flaeche haben.
+     `.suchfilter .schalterfeld` setzt 2,35rem und gewinnt mit zwei Klassen
+     gegen eine; deshalb hier dieselbe Tiefe. */
+  .wahlfeld, .antwort,
+  .suchfilter .schalterfeld, .filter .schalterfeld { min-height: 2.75rem; }
+
+  /* Ein Verweis, der allein in einer Ueberschriftszeile steht, ist kein
+     Fliesstextverweis - „Alle Ranglisten" stand auf 24 Pixel. */
+  .abschnittskopf a { display: inline-flex; align-items: center; min-height: 2.75rem; }
 }
