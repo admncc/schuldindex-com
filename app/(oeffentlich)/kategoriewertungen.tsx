@@ -35,7 +35,6 @@ import {
  */
 
 const ZAHL = new Intl.NumberFormat("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-const GANZ = new Intl.NumberFormat("de-DE");
 
 export interface Kategoriewert {
   /** Mittelwert auf der internen Skala 1-5, wie er in der Datenbank steht. */
@@ -160,7 +159,6 @@ export function Kategoriewertungen({
                     />
                   </span>
                   <span className={`zahl ${scorestufe(f.anzeige)}`}>{ZAHL.format(f.anzeige)}</span>
-                  <span className="anzahl">{GANZ.format(f.anzahl)} Angaben</span>
                 </div>
               ))}
               <p className="fussnote">

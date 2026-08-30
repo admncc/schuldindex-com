@@ -818,7 +818,7 @@ mark.fehlt {
 
 .fragewertungen { display: grid; gap: 0.55rem; padding: 0.6rem 0 0.4rem; }
 .fragewertung {
-  display: grid; grid-template-columns: minmax(12rem, 30rem) 1fr auto auto;
+  display: grid; grid-template-columns: minmax(12rem, 30rem) 1fr auto;
   align-items: center; gap: 0.7rem;
 }
 .fragewertung .titel { font-size: 0.88rem; color: var(--schrift-2); line-height: 1.35; }
@@ -842,28 +842,21 @@ mark.fehlt {
 .fragewertung .zahl.gut { color: var(--gut); }
 .fragewertung .zahl.mittel { color: var(--mittel); }
 .fragewertung .zahl.schlecht { color: var(--schlecht); }
-/* Die Zahl der Angaben gehört dazu, aber leise: Sie sagt, wie belastbar die
-   Zeile ist, und nicht, wie die Schule abschneidet. */
-.fragewertung .anzahl {
-  font-size: 0.78rem; color: var(--schrift-3); white-space: nowrap;
-  min-width: 5.5rem; text-align: right; font-variant-numeric: tabular-nums;
-}
 .fragewertungen .fussnote { margin: 0.3rem 0 0; }
 
 @media (max-width: 640px) {
   .kategoriewertung { grid-template-columns: 1fr auto; }
   .kategoriewertung .kategoriebalken { grid-column: 1 / -1; order: 3; }
   .fragedetails { margin-left: 0.6rem; padding-left: 0.7rem; }
-  /* Auf schmalen Schirmen bricht jede Zeile in drei. Die Zahl der Angaben
-     steht dabei **vor** dem Balken und nicht dahinter: Hinter ihm sass sie
-     direkt ueber der naechsten Frage und las sich, als gehoere sie zu der. */
+  /* Auf schmalen Schirmen bricht jede Zeile in zwei: Frage und Wert oben, der
+     Balken darunter ueber die volle Breite. Die Trennlinie haelt die Zeilen
+     auseinander - ohne sie las sich der Balken wie der Anfang der naechsten. */
   .fragewertung {
     grid-template-columns: 1fr auto; gap: 0.35rem 0.7rem;
     padding-bottom: 0.7rem; border-bottom: 1px solid var(--linie);
   }
   .fragewertung:last-of-type { padding-bottom: 0; border-bottom: none; }
-  .fragewertung .anzahl { grid-column: 1 / -1; order: 3; text-align: left; min-width: 0; }
-  .fragewertung .kategoriebalken { grid-column: 1 / -1; order: 4; }
+  .fragewertung .kategoriebalken { grid-column: 1 / -1; order: 3; }
   .fragewertungen { gap: 0.8rem; }
 }
 

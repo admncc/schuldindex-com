@@ -111,6 +111,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `scripts/trefferseite.test.ts` | Prüft Filter, Facetten und Sortierung der Ergebnisseite an den echten Daten |
 | `scripts/durchstich.test.ts` | Durchstich: echte Schulen, Bewertungen, Aggregation |
 | `scripts/verlosung.test.ts` | Durchstich der Verlosung: echte Ziehung, Empfehlungen, Missbrauchsabwehr in SQL |
+| `scripts/abfragen.test.ts` | Jede Leseabfrage einmal gegen das echte Schema - fängt, was Unit-Tests nicht sehen können |
 | `scripts/moderator-anlegen.ts` | Legt ein Moderationskonto an, gibt Kennwort und App-URL einmalig aus |
 | `scripts/zusammenfassen.ts` | Erzeugt die Freitext-Zusammenfassungen der fälligen Schulen |
 | `scripts/verlosung-ziehen.ts` | Zieht eine der drei Verlosungen, `--pruefen` rechnet sie nach |
