@@ -1525,7 +1525,7 @@ Keine Produktentscheidungen mehr - aber drei Dinge, die den Zeitplan bestimmen:
 1. **Meta-Business-Verifizierung für WhatsApp beantragen.** Ein bis drei Wochen Vorlauf, und
    seit Entscheidung 11 gibt es keinen gleichwertigen Ausweichweg mehr. Muss in Sprint 1 los,
    noch bevor der zugehörige Code entsteht.
-2. **Kanzlei mandatieren.** Mit den vier Punkten, die ausdrücklich zur Abnahme anstehen:
+2. **Kanzlei mandatieren.** Mit den sechs Punkten, die ausdrücklich zur Abnahme anstehen:
    Elterneinwilligung per Checkbox (Entscheidung 3), Haftung für die selbst verfassten
    KI-Zusammenfassungen (Abschnitt 10.2), Verlosung für Minderjährige (Entscheidung 7) und die
    Aufbewahrung der vollständigen Klickfolgen (Abschnitt 7.2, entschieden am 27.08.). Der
@@ -1534,6 +1534,29 @@ Keine Produktentscheidungen mehr - aber drei Dinge, die den Zeitplan bestimmen:
    und die Betroffenen sind überwiegend minderjährig. Zu klären sind die Zulässigkeit der
    Aufbewahrung insgesamt, die Frist von zwölf Monaten, die Frage einer Folgenabschätzung nach
    Art. 35 DSGVO und ob die Ableitbarkeit auf einzelne Fragen an Art. 9 DSGVO rührt.
+
+   Zwei Punkte sind am 30.08. dazugekommen, beide aus dem Empfehlungssystem:
+
+   - **Einwilligungsfreiheit von Gerätekennung und Empfehlungscookie.** Beide liegen im
+     Browser der Nutzerin (Cookie und lokaler Speicher) und fallen damit unter § 25 TDDDG.
+     Wir stützen sie auf § 25 Abs. 2 Nr. 2 - unbedingt erforderlich für einen ausdrücklich
+     gewünschten Dienst -, und für den Empfehlungscode ist das gut vertretbar: Ohne ihn
+     lässt sich die Empfehlung nicht zuordnen, und die Person hat den Link selbst
+     angeklickt. Für die Gerätekennung ist es der schwächere Halt: Sie dient der
+     Missbrauchsabwehr, nicht dem gewünschten Dienst. Zu klären, ob dafür eine Einwilligung
+     nötig ist - und falls ja, wie sie aussieht, ohne die Abwehr wertlos zu machen.
+   - **Die Empfehlungsbeziehung selbst.** Gespeichert wird, welches Konto welches geworben
+     hat, mit Zeitpunkt und für zwölf Monate (Abschnitt 6 der Datenschutzerklärung). Das ist
+     eine Verbindung zwischen zwei überwiegend minderjährigen Menschen, aus der sich ein
+     sozialer Graph ergibt. Zu klären: Rechtsgrundlage (wir führen lit. b und lit. f),
+     Erforderlichkeit der Frist und ob die Anzeige im Moderationsbereich - beide
+     Kontokennungen im Klartext - so bleiben kann.
+
+   Die Altersgrenze der Verlosung stand bis zum 30.08. auf 18 Jahren mit dem Versprechen,
+   die Zustimmung der Sorgeberechtigten vor der Übergabe einzuholen. Eingeholt wurde nichts;
+   die Bedingung nennt jetzt dieselbe Grenze wie das Bewerten - unter 16 nur mit Zustimmung,
+   bestätigt von der teilnehmenden Person selbst. Das hängt an derselben Frage wie
+   Entscheidung 3 und ist mit ihr zu klären.
 3. **Zeitplan nachziehen.** Verlosung im MVP und die Kontoverwaltung aus dem Userflow waren in
    der ursprünglichen Schätzung von elf Sprints nicht enthalten. Realistisch sind jetzt
    **13 Sprints bis Launch**.

@@ -66,8 +66,21 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `src/dienste/kontozugang.ts` | Anmeldelink anfordern - mit immer gleicher Antwort |
 | `src/dienste/bewertungAendern.ts` | Änderung einer eigenen Bewertung, als neue Fassung |
 | `src/db/konto.ts` | Eigene Bewertungen, Sitzungen, Löschung samt Neuberechnung |
-| `src/domain/verlosung.ts` | Lose, Ziehung und ihre Nachrechenbarkeit |
-| `src/db/verlosung.ts` | Teilnahmen, Ziehung, Nachweis |
+| `src/domain/verlosung.ts` | Lose, Ziehung und ihre Nachrechenbarkeit - drei Ziehungen je Monat |
+| `src/domain/verlosungsgewinne.ts` | Gewinne und Schwellen der drei Ziehungen, ohne `node:crypto` |
+| `src/db/verlosung.ts` | Teilnahmen, Ziehung, Nachweis - und wer ausgeschlossen ist |
+| `src/domain/empfehlung.ts` | Empfehlungscode, Link und Teilentext - auch in der Middleware lauffähig |
+| `src/domain/empfehlungscode.ts` | Erzeugung des Codes: zehn Zeichen ohne Verwechslungspaare |
+| `src/db/empfehlungen.ts` | Empfehlungen speichern und zählen - **eine** Regel für Panel, Kontoseite und Ziehung |
+| `src/domain/geraetekennung.ts` | Die Browserkennung in Cookie und lokalem Speicher |
+| `src/domain/geraetehash.ts` | Ihr HMAC - gespeichert wird nie die Kennung selbst |
+| `app/(oeffentlich)/kennung.tsx` | Spiegelt beide Kennungen in den lokalen Speicher und stellt sie wieder her |
+| `middleware.ts` | Setzt die Gerätekennung und nimmt `?freund=<code>` entgegen |
+| `app/(oeffentlich)/bestaetigen/teilen.tsx` | Der Teilen-Bereich nach der Bestätigung |
+| `app/moderation/empfehlungen/` | Wer wen geworben hat, was zählt und was aus demselben Browser kam |
+| `app/(kampagne)/` | Landeplätze für die sozialen Netze - eigenes Layout, eigene Aufmachung |
+| `src/domain/fragewertung.ts` | Die Wertung der einzelnen Fragen: Wertungsrichtung, Untergrenze, Blockgröße |
+| `src/db/fragewerte.ts` | Fragemittel je Schule - und warum sie in Blöcken weiterrücken |
 | `src/domain/schulzugang.ts` | Nachweis für die Rolle „Schulsupport“ - und warum die Domäne allein nichts belegt |
 | `src/db/schulzugang.ts` | Anfrage, Einlösung, Sitzung, Handprüfung |
 | `src/domain/aufbewahrung.ts` | Die Fristen als Daten - Grundlage des Aufräumlaufs **und** der Datenschutzerklärung |
@@ -99,9 +112,9 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `scripts/durchstich.test.ts` | Durchstich: echte Schulen, Bewertungen, Aggregation |
 | `scripts/moderator-anlegen.ts` | Legt ein Moderationskonto an, gibt Kennwort und App-URL einmalig aus |
 | `scripts/zusammenfassen.ts` | Erzeugt die Freitext-Zusammenfassungen der fälligen Schulen |
-| `scripts/verlosung-ziehen.ts` | Zieht die monatliche Verlosung, `--pruefen` rechnet sie nach |
+| `scripts/verlosung-ziehen.ts` | Zieht eine der drei Verlosungen, `--pruefen` rechnet sie nach |
 | `src/db/demodaten.ts` | Demobestand zählen und entfernen - über die Kennzeichnung, nie über Verdachtsmerkmale |
-| `scripts/demodaten.ts` | Erzeugt Demobewertungen für den Testbetrieb, gekennzeichnet und wieder entfernbar |
+| `scripts/demodaten.ts` | Erzeugt Demobewertungen für den Testbetrieb; `--nachtragen` ergänzt Lose, Gerätekennungen und Empfehlungen in einem bestehenden Bestand |
 | `scripts/aggregate-neu.ts` | Rechnet alle Schulaggregate neu - nach jeder Änderung an der Formel |
 | `scripts/aufraeumen.ts` | Aufräumlauf nach den Fristen; zählt nur, `--loeschen` löscht wirklich |
 | `scripts/aufraeumen.test.ts` | Prüft an der Datenbank, dass keine Frist zu viel löscht |

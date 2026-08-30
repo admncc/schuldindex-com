@@ -247,6 +247,16 @@ export interface Empfehlungszeile {
    * hinsieht.
    */
   readonly gleichesGeraet: boolean;
+  /**
+   * Zählt diese Empfehlung für die Super- und die Mega-Ziehung?
+   *
+   * Steht an der Zeile, weil die Liste sonst von den Zahlen darüber abweicht,
+   * ohne zu sagen warum: Eine Bewertung ohne Gerätekennung zählt nicht, und
+   * ab der dritten aus demselben Browser zählt keine weitere - beides sieht
+   * man der Zeile nicht an. Eine Liste, in der man nachzählen kann und auf
+   * eine andere Zahl kommt, ist schlimmer als keine.
+   */
+  readonly zaehlt: boolean;
   /** Wie viele Empfehlungen dieses Werbers im Zeitraum bereits zählen. */
   readonly zaehlendeDesWerbers: number;
 }
@@ -278,6 +288,7 @@ export async function empfehlungsliste(
       schulslug: string | null;
       gleiches_geraet: boolean;
       zaehlende: number;
+      zaehlt: boolean;
     }[]
   >`
     select e.id, e.erstellt_am,
@@ -297,7 +308,10 @@ export async function empfehlungsliste(
            (
              select count(*)::int from (${zaehlendeEmpfehlungen(zeitraum)}) z
              where z.werber_konto_id = w.id
-           ) as zaehlende
+           ) as zaehlende,
+           exists (
+             select 1 from (${zaehlendeEmpfehlungen(zeitraum)}) z2 where z2.id = e.id
+           ) as zaehlt
     from empfehlungen e
     join konten w on w.id = e.werber_konto_id
     join konten g on g.id = e.geworbenes_konto_id
@@ -329,6 +343,7 @@ export async function empfehlungsliste(
     schulname: z.schulname,
     schulslug: z.schulslug,
     gleichesGeraet: z.gleiches_geraet,
+    zaehlt: z.zaehlt,
     zaehlendeDesWerbers: z.zaehlende,
   }));
 }

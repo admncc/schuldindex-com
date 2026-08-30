@@ -77,7 +77,10 @@ export default async function Verlosungsseite() {
         </div>
         <div className="kennzahl">
           <span className="zahl">{ZAHL.format(empfehlungen.zaehlend)}</span>
-          <span className="beschriftung">davon veröffentlicht</span>
+          {/* „Veröffentlicht" war zu wenig: Die Zahl ist die der Empfehlungen,
+                  die auch wirklich in die Ziehung eingehen - veröffentlicht, mit
+                  Gerätekennung und nicht die dritte aus demselben Browser. */}
+          <span className="beschriftung">davon zählend</span>
         </div>
       </div>
 

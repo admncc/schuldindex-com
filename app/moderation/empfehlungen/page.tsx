@@ -117,7 +117,10 @@ export default async function Empfehlungsseite({
         </div>
         <div className="kennzahl">
           <span className="zahl">{ZAHL.format(zahlen.zaehlend)}</span>
-          <span className="beschriftung">davon veröffentlicht</span>
+          {/* „Veröffentlicht" war zu wenig: Die Zahl ist die der Empfehlungen,
+                  die auch wirklich in die Ziehung eingehen - veröffentlicht, mit
+                  Gerätekennung und nicht die dritte aus demselben Browser. */}
+          <span className="beschriftung">davon zählend</span>
         </div>
         <div className="kennzahl">
           <span className="zahl">{ZAHL.format(zahlen.werber)}</span>
@@ -196,6 +199,14 @@ export default async function Empfehlungsseite({
                 {z.gleichesGeraet ? (
                   <span className="plakette schlecht">selbes Gerät wie der Werber</span>
                 ) : null}
+                {/* Ohne diese Zeile weicht die Liste von den Zahlen darüber ab,
+                    ohne zu sagen warum: Auch eine Bewertung ohne Gerätekennung
+                    zählt nicht, und ab der dritten aus demselben Browser zählt
+                    keine weitere. Eine Liste, in der man nachzählt und auf eine
+                    andere Zahl kommt, ist schlimmer als keine. */}
+                {!z.zaehlt && !z.gleichesGeraet && z.status === "freigegeben" ? (
+                  <span className="plakette neutral">zählt nicht</span>
+                ) : null}
               </div>
             </li>
           ))}
@@ -206,6 +217,12 @@ export default async function Empfehlungsseite({
         Die Gerätekennung ist ein Hinweis, kein Nachweis: Ein privates Fenster hat eine neue, und
         Geschwister an einem Rechner teilen sich dieselbe. Was hier rot steht, gehört angesehen -
         nicht automatisch abgelehnt.
+      </p>
+      <p className="fussnote">
+        „Zählt nicht“ steht an einer veröffentlichten Bewertung, die aus einem anderen Grund
+        nicht in die {VERLOSUNG_LABEL.super} eingeht: Sie trägt keine Gerätekennung, oder es ist
+        schon die dritte aus demselben Browser desselben Werbers. Für die {VERLOSUNG_LABEL.normal}
+        {" "}zählt sie weiterhin - dort geht es um die eigene Abgabe, nicht um eine Werbeprämie.
       </p>
     </section>
   );
