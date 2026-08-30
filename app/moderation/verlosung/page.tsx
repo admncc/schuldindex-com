@@ -82,6 +82,14 @@ export default async function Verlosungsseite() {
       </div>
 
       <h2>Zu ziehen: {monatsname(vormonat.jahr, vormonat.monat)}</h2>
+      {/* Der Monat wechselt hier nach UTC, nicht nach deutscher Zeit - dieselbe
+          Grenze wie bei der Zuordnung der Lose. In den ein bis zwei Stunden
+          nach Mitternacht deutscher Zeit steht hier deshalb noch der Vormonat,
+          und ohne diesen Satz sähe es aus, als fehle ein Monat. */}
+      <p className="fussnote">
+        Ein Monat wird ziehbar, sobald sein Zeitfenster geschlossen ist - gerechnet wird in UTC,
+        also ein bis zwei Stunden nach Mitternacht deutscher Zeit.
+      </p>
       {VERLOSUNGSARTEN.map((art) => {
         const schonGezogen = ziehungen.some(
           (z) => z.jahr === vormonat.jahr && z.monat === vormonat.monat && z.art === art,

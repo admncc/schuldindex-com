@@ -100,6 +100,9 @@ export function pruefeStempel(text: string, schulSlug: string, jetzt = new Date(
 
 export const STEMPEL_HINWEIS: Readonly<Record<"ungueltig" | "abgelaufen" | "aus_der_zukunft", string>> = {
   ungueltig: "Bitte lade die Seite neu und schick die Bewertung noch einmal ab.",
-  abgelaufen: `Das Formular stand länger als ${STEMPEL_STUNDEN} Stunden offen. Lade die Seite neu - deine Antworten bleiben erhalten.`,
+  // „Deine Antworten bleiben erhalten" stand hier und traf nicht zu: Das
+  // Formular hält seinen Stand allein im Arbeitsspeicher der Seite, und ein
+  // Neuladen verwirft ihn - alle 61 Fragen. Wer dem Satz folgte, verlor alles.
+  abgelaufen: `Das Formular stand länger als ${STEMPEL_STUNDEN} Stunden offen und lässt sich so nicht mehr absenden. Schreib dir bitte auf, was du geändert hast, lade die Seite neu und gib die Bewertung erneut ab.`,
   aus_der_zukunft: "Bitte lade die Seite neu und schick die Bewertung noch einmal ab.",
 };
