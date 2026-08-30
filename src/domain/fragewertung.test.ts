@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FRAGEN } from "./fragebogen";
 import {
+  BLOCKGROESSE,
   MINDESTZAHL_FRAGE,
   fragenzahl,
   fragewertungen,
@@ -79,5 +80,27 @@ describe("Aufschlüsselung je Kategorie", () => {
     expect(zeile?.anzeige).toBeCloseTo(5, 6);
     expect(zeile?.anzahl).toBe(12);
     expect(zeile?.text).toBe(FRAGEN.find((f) => f.id === "B1")!.text);
+  });
+});
+
+describe("Schutz vor der Differenz zweier Abrufe", () => {
+  it("rückt in Blöcken weiter, die so gross sind wie die Untergrenze", () => {
+    // Die Blockgrösse ist die eigentliche Absicherung: Eine Aufschlüsselung,
+    // die sich bei jeder neuen Bewertung ändert, verrät die neue Bewertung.
+    // Wer das Profil vorher und nachher abruft, rechnet aus Mittelwert mal
+    // Anzahl die Antwort der dazwischen veröffentlichten Person zurück - je
+    // Frage, exakt. Gemessen war das bei bis zu 24 vorhandenen Bewertungen in
+    // 100 % der Fälle eindeutig. Die Umsetzung steht in `db/fragewerte.ts`;
+    // hier steht die Zahl fest, damit sie nicht beiläufig kleiner wird.
+    expect(BLOCKGROESSE).toBeGreaterThanOrEqual(MINDESTZAHL_FRAGE);
+    expect(BLOCKGROESSE).toBeGreaterThan(1);
+  });
+
+  it("kennzeichnet umgekehrt gewertete Fragen", () => {
+    const [mobbing] = fragewertungen("A", [{ frage: "A2", mittel: 1, anzahl: 20 }]);
+    expect(mobbing?.invertiert).toBe(true);
+
+    const [sicherheit] = fragewertungen("A", [{ frage: "A1", mittel: 5, anzahl: 20 }]);
+    expect(sicherheit?.invertiert).toBe(false);
   });
 });

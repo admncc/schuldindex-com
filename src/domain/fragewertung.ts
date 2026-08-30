@@ -36,6 +36,18 @@ import { aufZehnerskala } from "./scoring";
  */
 export const MINDESTZAHL_FRAGE = 5;
 
+/**
+ * In welchen Schritten die Aufschlüsselung weiterrückt.
+ *
+ * Dieselbe Zahl wie die Untergrenze, und aus demselben Grund. Die Untergrenze
+ * schützt gegen eine Auskunft aus zu dünner Basis; die Blockgrösse schützt
+ * gegen den **Vergleich zweier Auskünfte**. Rückte die Aufschlüsselung bei
+ * jeder einzelnen Bewertung weiter, liesse sich aus zwei Abrufen die Antwort
+ * der dazwischen veröffentlichten Person zurückrechnen - je Frage, exakt.
+ * Näheres in `db/fragewerte.ts`.
+ */
+export const BLOCKGROESSE = 5;
+
 /** Was aus der Datenbank kommt: Rohmittel auf der Skala 1-5 je Frage-Kennung. */
 export interface Frageangabe {
   readonly frage: string;
@@ -49,6 +61,15 @@ export interface Fragewertung {
   readonly text: string;
   readonly anzeige: number;
   readonly anzahl: number;
+  /**
+   * Läuft die Frage andersherum?
+   *
+   * Die Anzeige braucht das. „Wie häufig erlebst du Mobbing … ▇▇▇▇▇ 10,0" ist
+   * gerechnet richtig und gelesen das Gegenteil: In einer Liste, in der jede
+   * andere Zeile „Wie gut" oder „Wie sicher" fragt, liest sich die 10 als
+   * höchste Häufigkeit. Ausgerechnet an den beiden folgenreichsten Zeilen.
+   */
+  readonly invertiert: boolean;
 }
 
 /** Der Rohwert in Wertungsrichtung - invertierte Fragen andersherum. */
@@ -77,6 +98,7 @@ export function fragewertungen(
         text: frage.text,
         anzeige: aufZehnerskala(gewertet(frage, angabe.mittel)),
         anzahl: angabe.anzahl,
+        invertiert: frage.wertung === "invertiert",
       },
     ];
   });

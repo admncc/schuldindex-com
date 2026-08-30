@@ -3,6 +3,7 @@
  */
 
 import { sql } from "./verbindung";
+import { istKennung } from "../domain/kennung";
 import { deuteAdresse, type Meldegrund } from "../domain/meldung";
 import { kontaktHash, verschluessele, entschluesseleWennMoeglich } from "../domain/kontakt";
 import type { Meldestatus } from "../domain/meldungsstatus";
@@ -110,13 +111,24 @@ export async function entscheideMeldung(
   status: Extract<Meldestatus, "erledigt" | "abgelehnt">,
   entscheidung: string,
 ): Promise<boolean> {
+  if (!istKennung(id) || !istKennung(moderatorId)) return false;
   const ergebnis = await sql`
     update meldungen
     set status = ${status}::meldestatus, entscheidung = ${entscheidung},
         moderator_id = ${moderatorId}, entschieden_am = now()
     where id = ${id} and status in ('eingegangen', 'in_bearbeitung')
   `;
-  return ergebnis.count > 0;
+  if (ergebnis.count === 0) return false;
+
+  // Auch ins Protokoll. Die Entscheidung stand bisher nur an der Meldung
+  // selbst; die zeitliche Gesamtsicht - „was ist an diesem Abend geschehen" -
+  // kannte ausgerechnet die Entscheidungen nach Art. 16 DSA nicht.
+  await sql`
+    insert into moderationsprotokoll (aktion, moderator_id, begruendung)
+    values ('meldung_entschieden', ${moderatorId},
+            ${`Meldung ${status} (${id}): ${entscheidung}`})
+  `;
+  return true;
 }
 
 /**

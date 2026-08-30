@@ -4,6 +4,7 @@
 
 import type postgres from "postgres";
 import { sql } from "./verbindung";
+import { istKennung } from "../domain/kennung";
 import {
   entscheideWeg,
   host,
@@ -210,6 +211,9 @@ export async function gibAnfrageFrei(
   id: string,
   moderatorId: string,
 ): Promise<{ link: string; kontakt: string | null } | null> {
+  // Die Kennung kommt aus einem Formularfeld. Ohne diese Zeile wirft Postgres
+  // 22P02 mitten in einer Server Action, statt dass eine Meldung entsteht.
+  if (!istKennung(id) || !istKennung(moderatorId)) return null;
   const klartext = randomBytes(32).toString("base64url");
   const [zeile] = await sql<{ kontakt_chiffre: Uint8Array | null }[]>`
     update schulzugaenge
@@ -225,10 +229,31 @@ export async function gibAnfrageFrei(
   const kontakt = zeile.kontakt_chiffre === null
     ? null
     : entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
+
+  // Die Freigabe entschlüsselt den Kontakt und zeigt ihn an - die Übersicht
+  // daneben zeigt bewusst nur die verkürzte Fassung. Damit ist es dieselbe
+  // Einsicht wie am Vorgang und gehört unter dieselbe Bezeichnung ins
+  // Protokoll (Entwicklungsplan 8.1, Festlegung 2). Und die Entscheidung
+  // selbst gehört hinein: Sie verschafft Dritten Zugriff auf die Auswertung
+  // einer Schule und stand bisher nur an ihrer eigenen Zeile.
+  await sql`
+    insert into moderationsprotokoll (aktion, moderator_id, begruendung)
+    values ('schulzugang_entschieden', ${moderatorId},
+            ${`Schulzugang freigegeben (Anfrage ${id})`})
+  `;
+  if (kontakt !== null) {
+    await sql`
+      insert into moderationsprotokoll (aktion, moderator_id, begruendung)
+      values ('einsicht_kontakt', ${moderatorId},
+              ${`Kontakt einer Schulzugangsanfrage eingesehen (Anfrage ${id})`})
+    `;
+  }
+
   return { link: klartext, kontakt };
 }
 
 export async function lehneAnfrageAb(id: string, moderatorId: string, grund: string): Promise<boolean> {
+  if (!istKennung(id) || !istKennung(moderatorId)) return false;
   const ergebnis = await sql`
     update schulzugaenge
     set status = 'abgelehnt', ablehnungsgrund = ${grund},
@@ -236,5 +261,12 @@ export async function lehneAnfrageAb(id: string, moderatorId: string, grund: str
         link_hash = null
     where id = ${id} and status = 'offen'
   `;
-  return ergebnis.count > 0;
+  if (ergebnis.count === 0) return false;
+
+  await sql`
+    insert into moderationsprotokoll (aktion, moderator_id, begruendung)
+    values ('schulzugang_entschieden', ${moderatorId},
+            ${`Schulzugang abgelehnt (Anfrage ${id}): ${grund}`})
+  `;
+  return true;
 }

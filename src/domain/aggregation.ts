@@ -36,6 +36,23 @@ import {
 
 /** Mindestzahlen, entschieden am 26.08.2026. */
 export const MINDESTZAHL_PROFIL = 10;
+
+/**
+ * Ab wie vielen Beurteilenden ein **freiwilliger** Bereich ausgewiesen wird.
+ *
+ * Die Pflichtbereiche brauchen die Zahl nicht: Sie sind vollständig zu
+ * beantworten, ihre Zahl ist die der Bewertungen, und die steht schon unter
+ * `MINDESTZAHL_PROFIL`.
+ *
+ * Bei den freiwilligen war sie es, die fehlte. Ein Balken „Umwelt &
+ * Nachhaltigkeit 8,3" konnte der Schnitt **einer einzigen** Person über zehn
+ * Fragen sein - veröffentlicht, mit einer Nachkommastelle, neben Balken aus
+ * dreissig Bewertungen. Die Deckelung nach Abdeckung nahm ihm zwar den Hebel
+ * auf die Gesamtwertung, nicht aber die Aussage über die eine Person.
+ *
+ * Dieselbe Fünf wie bei der einzelnen Frage, und aus demselben Grund.
+ */
+export const MINDESTZAHL_KATEGORIE = 5;
 export const MINDESTZAHL_RANGLISTE = 20;
 export const MINDESTZAHL_ZUSAMMENFASSUNG = 10;
 
@@ -108,6 +125,11 @@ export function aggregiere(bewertungen: readonly EinzelneBewertung[]): Schulaggr
       .filter((w): w is number => w != null);
     const durchschnitt = mittel(werte);
     if (durchschnitt === null) continue;
+    // Ein freiwilliger Bereich braucht seine eigene Untergrenze - sonst steht
+    // dort die Auskunft einer einzelnen Person. Fällt er heraus, fällt er
+    // ganz heraus: auch aus der Gewichtssumme, sonst hinge die Gesamtwertung
+    // an einem Wert, den die Seite nicht zeigt.
+    if (!kategorie.pflicht && werte.length < MINDESTZAHL_KATEGORIE) continue;
 
     kategorien[kategorie.id] = durchschnitt;
     summe += durchschnitt * kategorie.gewichtung;

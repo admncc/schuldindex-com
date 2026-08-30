@@ -128,10 +128,16 @@ export default async function Verlosungsseite() {
       </ol>
 
       <h2>Was mit deinen Daten geschieht</h2>
+      {/* Vorher stand hier „wir speichern nur, dass du teilnehmen möchtest" und
+          ein Verweis auf eine Datenschutzerklärung, in der die Verlosung gar
+          nicht vorkam. Beides traf nicht zu. Was tatsächlich gespeichert wird,
+          steht jetzt hier - und dort. */}
       <p>
-        Für die Verlosung speichern wir nur, dass du teilnehmen möchtest - an deiner Bewertung,
-        die ohnehin gespeichert ist. Ein Los enthält keine weiteren Angaben, und die
-        veröffentlichte Liste der Ziehungen nennt keine Namen, keine Nummern und keine Schulen.
+        An deiner Bewertung steht, dass du teilnehmen möchtest. Beim Ziehen kommt die Kennung
+        deines Kontos in die Losliste des Monats, und die bleibt erhalten: Ohne sie liesse sich
+        die Ziehung nicht nachrechnen, und genau das sagen wir oben zu. Gewinnst du, halten wir
+        Platz und Zeitpunkt der Benachrichtigung fest. Ein Los trägt keinen Namen, keine Nummer
+        und keine Schule, und die veröffentlichte Liste der Ziehungen nennt nichts davon.
         Näheres steht in der <a href="/datenschutz">Datenschutzerklärung</a>.
       </p>
 

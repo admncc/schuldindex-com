@@ -160,6 +160,36 @@ export default function Datenschutzseite() {
             <td data-spalte="Wozu">Nachweispflicht</td>
             <td data-spalte="Rechtsgrundlage">Art. 7 Abs. 1 DSGVO</td>
           </tr>
+          {/* Empfehlung und Verlosung standen hier nicht, obwohl beide dauerhaft
+              speichern: die eine eine Verbindung zwischen zwei Konten, die
+              andere die Kennungen aller Teilnehmenden eines Monats. Eine
+              Erklärung, die zwei Verarbeitungen auslässt, ist keine. */}
+          <tr>
+            <td data-spalte="Daten">
+              Die Verbindung zwischen deinem Konto und dem Konto der Person, über deren
+              Empfehlungslink du gekommen bist, mit Zeitpunkt
+            </td>
+            <td data-spalte="Wozu">
+              Damit die Empfehlung zählt, sobald deine Bewertung veröffentlicht ist - und damit
+              auffällt, wenn jemand sich selbst wirbt
+            </td>
+            <td data-spalte="Rechtsgrundlage">Art. 6 Abs. 1 lit. b und lit. f DSGVO</td>
+          </tr>
+          <tr>
+            <td data-spalte="Daten">
+              Dein Empfehlungscode und - wenn du an der Verlosung teilnimmst - die Kennung deines
+              Kontos in der Losliste des Monats sowie, im Gewinnfall, Platz und Zeitpunkt der
+              Benachrichtigung
+            </td>
+            <td data-spalte="Wozu">
+              Durchführung der Verlosung. Die Losliste bleibt erhalten, weil sich jede Ziehung aus
+              ihr und dem Zufallswert nachrechnen lassen muss - das ist die Zusage aus den
+              Teilnahmebedingungen. Ein Name steht nirgends darin.
+            </td>
+            <td data-spalte="Rechtsgrundlage">
+              Art. 6 Abs. 1 lit. b DSGVO (Teilnahme ist freiwillig und wird gesondert angekreuzt)
+            </td>
+          </tr>
         </tbody>
       </table>
 
@@ -209,7 +239,9 @@ export default function Datenschutzseite() {
         </li>
         <li>
           <strong>Deinen Namen.</strong> Wir fragen ihn nicht ab. Bewertungen erscheinen ohne
-          Personenangabe; auch die Moderation sieht nur Rolle und Klassenstufe.
+          Personenangabe; auch die Moderation sieht an deiner Bewertung nur Rolle und
+          Klassenstufe. Den hinterlegten Kontakt kann sie für Rückfragen einsehen - dafür muss
+          sie ihn eigens anfordern, und <strong>jede einzelne Einsicht wird protokolliert</strong>.
         </li>
         <li>
           <strong>Den Bestätigungslink.</strong> Gespeichert wird nur ein Prüfwert davon. Wer die

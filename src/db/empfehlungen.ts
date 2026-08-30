@@ -193,7 +193,15 @@ export async function empfehlungszahlen(zeitraum: Zeitraum): Promise<{
 export interface Empfehlungszeile {
   readonly id: string;
   readonly erstelltAm: Date;
-  /** Kennung des werbenden Kontos - die UUID hinter dem Empfehlungslink. */
+  /**
+   * Kennung des werbenden Kontos.
+   *
+   * **Nicht** die Kennung aus dem Empfehlungslink - dort steht der zehnstellige
+   * Code (`werbercode`). Die Kontokennung verlässt den Server sonst nirgends;
+   * hier steht sie, weil sich „wer hat wen geworben" ohne eine stabile Kennung
+   * nicht prüfen lässt, und weil sie kein Anmeldemittel ist: Angemeldet wird
+   * ausschliesslich über Tokenabdrücke.
+   */
   readonly werberId: string;
   readonly werbercode: string | null;
   /** Kennung des geworbenen Kontos. */

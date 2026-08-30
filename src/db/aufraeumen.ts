@@ -161,6 +161,25 @@ async function loescheKlickfolgen(tx: Ausfuehrer, jetzt: Date, trocken: boolean)
   return ergebnis.count;
 }
 
+/**
+ * Löscht die Empfehlungen, die keine Ziehung mehr betreffen.
+ *
+ * Nur die Verbindung zwischen zwei Konten. Die Loslisten und die Gewinne der
+ * Ziehungen bleiben stehen: Ohne sie liesse sich keine Ziehung mehr
+ * nachrechnen, und genau das sagen die Teilnahmebedingungen zu.
+ */
+async function loescheEmpfehlungen(tx: Ausfuehrer, jetzt: Date, trocken: boolean): Promise<number> {
+  const grenze = stichtag("empfehlungen_loeschen", jetzt);
+  if (trocken) {
+    const [z] = await tx<{ n: number }[]>`
+      select count(*)::int as n from empfehlungen where erstellt_am < ${grenze}
+    `;
+    return z?.n ?? 0;
+  }
+  const ergebnis = await tx`delete from empfehlungen where erstellt_am < ${grenze}`;
+  return ergebnis.count;
+}
+
 const LAEUFE: Readonly<
   Record<Aufbewahrungsart, (tx: Ausfuehrer, jetzt: Date, trocken: boolean) => Promise<number>>
 > = {
@@ -170,6 +189,7 @@ const LAEUFE: Readonly<
   abgelehnte_loeschen: loescheAbgelehnte,
   meldungen_loeschen: loescheMeldungen,
   zugaenge_loeschen: loescheZugaenge,
+  empfehlungen_loeschen: loescheEmpfehlungen,
   klickfolgen_loeschen: loescheKlickfolgen,
 };
 

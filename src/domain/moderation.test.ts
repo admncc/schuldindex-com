@@ -164,7 +164,10 @@ describe("warteschlangenalarm", () => {
 });
 
 describe("pruefeSammelaktion", () => {
-  const ids = ["a", "b", "c"];
+  /** Kennungen im echten Format - die Prüfung schaut seit Kurzem darauf. */
+  const kennung = (n: number): string =>
+    `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+  const ids = [kennung(1), kennung(2), kennung(3)];
 
   it("nimmt eine Auswahl mit Grund an", () => {
     const e = pruefeSammelaktion({ ids, grundId: "spam" });
@@ -178,9 +181,16 @@ describe("pruefeSammelaktion", () => {
     expect(pruefeSammelaktion({ ids: ["", ""], grundId: "spam" }).ok).toBe(false);
   });
 
+  it("wirft Kennungen weg, die keine sind", () => {
+    // Eine abgeschnittene Kennung aus einem Formularfeld warf in Postgres
+    // 22P02 - mitten in einer Server Action und ohne Meldung.
+    const e = pruefeSammelaktion({ ids: [kennung(1), "abc", "'; drop"], grundId: "spam" });
+    expect(e.ok && e.ids).toEqual([kennung(1)]);
+  });
+
   it("entfernt Doppelte", () => {
-    const e = pruefeSammelaktion({ ids: ["a", "a", "b"], grundId: "spam" });
-    expect(e.ok && e.ids).toEqual(["a", "b"]);
+    const e = pruefeSammelaktion({ ids: [kennung(1), kennung(1), kennung(2)], grundId: "spam" });
+    expect(e.ok && e.ids).toEqual([kennung(1), kennung(2)]);
   });
 
   it("verlangt einen Grund", () => {
@@ -190,14 +200,14 @@ describe("pruefeSammelaktion", () => {
 
   it("begrenzt die Zahl", () => {
     // Die einzige Stelle im Portal, an der ein Klick hunderte Menschen trifft.
-    const viele = Array.from({ length: MAX_SAMMELAKTION + 1 }, (_, i) => `id-${i}`);
+    const viele = Array.from({ length: MAX_SAMMELAKTION + 1 }, (_, i) => kennung(i));
     const e = pruefeSammelaktion({ ids: viele, grundId: "spam" });
     expect(e.ok).toBe(false);
     expect(e.ok === false && e.meldung).toContain(String(MAX_SAMMELAKTION));
   });
 
   it("lässt genau die Höchstzahl zu", () => {
-    const genau = Array.from({ length: MAX_SAMMELAKTION }, (_, i) => `id-${i}`);
+    const genau = Array.from({ length: MAX_SAMMELAKTION }, (_, i) => kennung(i));
     expect(pruefeSammelaktion({ ids: genau, grundId: "spam" }).ok).toBe(true);
   });
 

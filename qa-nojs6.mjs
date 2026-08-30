@@ -1,0 +1,16 @@
+import { chromium } from "playwright";
+const OUT="/tmp/claude-0/-home-user-schuldindex-com/a60c1028-a867-5cf3-9d84-5f27393681ce/scratchpad/shots";
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });
+const ctx = await b.newContext({ viewport:{width:600,height:760}, javaScriptEnabled: false });
+const p = await ctx.newPage();
+await p.goto("http://localhost:3105/konto/anmelden");
+await p.click("label:has-text('E-Mail') input[type=radio]");
+await p.waitForTimeout(400);
+await p.screenshot({ path: `${OUT}/anmelden-nojs-email.png`, fullPage: true });
+await p.fill("input[name=kontakt]", "qa@beispiel.de");
+await Promise.all([p.waitForNavigation({timeout:15000}).catch(()=>console.log("  keine Navigation")), p.click("form button")]);
+await p.waitForTimeout(1200);
+console.log("Nach Absenden ohne JS:", p.url());
+console.log("Seitentext:", (await p.evaluate(()=>document.body.innerText.replace(/\s+/g," ").slice(0,320))));
+await p.screenshot({ path: `${OUT}/anmelden-nojs-nach.png`, fullPage:true });
+await ctx.close(); await b.close();

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { FRAGEN, type Antwort, type Skalenwert } from "./fragebogen";
 import { bewerte, type Antworten } from "./scoring";
 import {
+  MINDESTZAHL_KATEGORIE,
   MINDESTZAHL_PROFIL,
   MINDESTZAHL_RANGLISTE,
   aggregiere,
@@ -66,21 +67,23 @@ describe("Aggregation", () => {
 
   it("gewichtet die Kategoriemittel, statt Gesamtscores zu mitteln", () => {
     // Der Unterschied wird sichtbar, sobald nicht alle dieselben optionalen
-    // Kategorien beantworten. Bewertung 1 nur A–C, Bewertung 2 zusätzlich D.
-    const eine = bewertung({ A: 4, B: 4, C: 4 });
-    const andere = bewertung({ A: 4, B: 4, C: 4, D: 1 });
+    // Kategorien beantworten. Fünf beurteilen nur A–C, fünf zusätzlich D -
+    // fünf, weil ein freiwilliger Bereich unter MINDESTZAHL_KATEGORIE gar
+    // nicht erst ausgewiesen wird.
+    const ohneD = VIELE(5, { A: 4, B: 4, C: 4 });
+    const mitD = VIELE(5, { A: 4, B: 4, C: 4, D: 1 });
 
-    const a = aggregiere([eine, andere]);
+    const a = aggregiere([...ohneD, ...mitD]);
     // Kategoriemittel: A = 0,7×4 + 0,3×2 = 3,4 (die beiden Häufigkeitsfragen
     // kehren sich um: Rohwert 4 wird zu 2), B = 4, C = 4, D = 1 - Letzteres
-    // beurteilte nur eine der beiden Personen.
+    // beurteilte nur die Hälfte.
     // (3,4×4 + 4×2 + 4×2 + 1×1) ÷ 9 = 30,6 ÷ 9 = 3,4 → 6,00 auf der Zehnerskala
     expect(a.gesamtscoreIntern).toBeCloseTo(6.0, 2);
 
     // Der Mittelwert der Einzelscores läge daneben - das ist genau der
     // Unterschied, um den es geht.
     const mittelDerEinzelnen =
-      (eine.ergebnis.gesamtscore + andere.ergebnis.gesamtscore) / 2;
+      (ohneD[0]!.ergebnis.gesamtscore + mitD[0]!.ergebnis.gesamtscore) / 2;
     expect(a.gesamtscoreIntern).not.toBeCloseTo(mittelDerEinzelnen, 2);
   });
 
@@ -189,9 +192,31 @@ describe("Obergrenze auf Schulebene", () => {
     const mitEiner = aggregiere([...nurPflicht, beste(["A", "B", "C", "D", "E", "F"])]);
 
     expect(ohne.gesamtscoreIntern).toBeCloseTo(8.5, 6);
-    expect(mitEiner.gesamtscoreIntern!).toBeGreaterThan(8.5);
-    // Ein Zwanzigstel Abdeckung je Bereich: sichtbar, aber ohne Hebel.
-    expect(mitEiner.gesamtscoreIntern!).toBeLessThan(8.75);
+    // Eine einzelne Stimme bewegt gar nichts mehr: Unterhalb von
+    // MINDESTZAHL_KATEGORIE wird der Bereich nicht ausgewiesen - sonst stünde
+    // dort die Auskunft genau dieser einen Person.
+    expect(mitEiner.gesamtscoreIntern).toBeCloseTo(8.5, 6);
+    expect(mitEiner.kategorien.D).toBeUndefined();
+  });
+
+  it("weist einen freiwilligen Bereich ab der Untergrenze aus - mit dem Hebel der Abdeckung", () => {
+    const nurPflicht = Array.from({ length: 20 }, () => beste(["A", "B", "C"]));
+    const mitVieren = aggregiere([
+      ...nurPflicht,
+      ...Array.from({ length: MINDESTZAHL_KATEGORIE - 1 }, () => beste(["A", "B", "C", "D"])),
+    ]);
+    const mitFuenfen = aggregiere([
+      ...nurPflicht,
+      ...Array.from({ length: MINDESTZAHL_KATEGORIE }, () => beste(["A", "B", "C", "D"])),
+    ]);
+
+    expect(mitVieren.kategorien.D).toBeUndefined();
+    expect(mitVieren.gesamtscoreIntern).toBeCloseTo(8.5, 6);
+
+    expect(mitFuenfen.kategorien.D).not.toBeUndefined();
+    expect(mitFuenfen.gesamtscoreIntern!).toBeGreaterThan(8.5);
+    // Ein Fünftel Abdeckung: sichtbar, aber ohne Hebel.
+    expect(mitFuenfen.gesamtscoreIntern!).toBeLessThan(8.75);
   });
 
   it("erreicht die vollen 10, wenn wirklich alle alle Bereiche beurteilt haben", () => {

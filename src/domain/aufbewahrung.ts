@@ -23,6 +23,7 @@ export type Aufbewahrungsart =
   | "abgelehnte_loeschen"
   | "meldungen_loeschen"
   | "zugaenge_loeschen"
+  | "empfehlungen_loeschen"
   | "klickfolgen_loeschen";
 
 export interface Aufbewahrungsregel {
@@ -81,6 +82,14 @@ export const REGELN: readonly Aufbewahrungsregel[] = [
     tage: 6 * MONAT,
     ab: "der Entscheidung oder dem Ablauf",
     begruendung: "Aktive Zugänge bleiben unberührt, solange sie gelten.",
+  },
+  {
+    art: "empfehlungen_loeschen",
+    gegenstand: "Empfehlungen",
+    tage: 12 * MONAT,
+    ab: "der Empfehlung",
+    begruendung:
+      "Die Verbindung zwischen zwei Konten wird für die Ziehung des betreffenden Monats gebraucht und danach nur noch für den Fall, dass jemand die Zuteilung beanstandet - ein Jahr reicht dafür. Die Loslisten und Gewinne der Ziehungen bleiben unberührt: Sie tragen keine Verbindung zwischen zwei Menschen, sondern Kontokennungen, und ohne sie liesse sich keine Ziehung mehr nachrechnen.",
   },
   {
     art: "klickfolgen_loeschen",

@@ -9,6 +9,7 @@
  */
 
 import { wechsle, type Ausloeser, type Zustand } from "./bewertungsstatus";
+import { istKennung } from "./kennung";
 
 export const AKTIONEN = ["freigeben", "ablehnen", "rueckfrage", "spam"] as const;
 export type Aktion = (typeof AKTIONEN)[number];
@@ -191,7 +192,10 @@ export type Sammelpruefung =
  * Entscheidung, die niemand zurücknimmt, weil sie niemandem auffällt.
  */
 export function pruefeSammelaktion(a: Sammelaktion): Sammelpruefung {
-  const ids = [...new Set(a.ids.filter((id) => id !== ""))];
+  // Auf das Format prüfen, nicht bloss auf „nicht leer": Die Kennungen kommen
+  // aus Formularfeldern, und eine abgeschnittene wirft in Postgres 22P02 -
+  // mitten in einer Server Action und ohne Meldung für die Moderation.
+  const ids = [...new Set(a.ids.filter(istKennung))];
 
   if (ids.length === 0) return { ok: false, meldung: "Es ist nichts ausgewählt." };
   if (ids.length > MAX_SAMMELAKTION) {

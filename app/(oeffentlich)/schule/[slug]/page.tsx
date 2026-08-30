@@ -127,6 +127,7 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
               { kategorie: "F", score: schule.score_f },
             ]}
             angaben={angaben}
+            anzahl={schule.anzahl}
           />
 
           {aggression !== null && (
