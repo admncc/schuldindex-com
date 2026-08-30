@@ -216,14 +216,17 @@ a { color: var(--akzent); }
 .suchfilter input[type="text"] { min-width: 11rem; }
 /* Der Schalter steht in der Reihe der Auswahlfelder und braucht deshalb
    dieselbe Höhe wie sie - deshalb der Rahmen statt einer nackten Zeile. */
-.suchfilter .schalterfeld {
+.suchfilter .schalterfeld,
+.filter .schalterfeld {
   flex-direction: row; align-items: center; gap: 0.45rem;
   border: 1px solid var(--linie-stark); border-radius: 999px;
   padding: 0.5rem 0.9rem; background: var(--flaeche); cursor: pointer;
   min-height: 2.35rem; align-self: flex-end;
 }
-.suchfilter .schalterfeld input { width: 1rem; height: 1rem; accent-color: var(--akzent); margin: 0; }
-.suchfilter .schalterfeld > span { color: var(--schrift-2); font-weight: 500; }
+.suchfilter .schalterfeld input,
+.filter .schalterfeld input { width: 1rem; height: 1rem; accent-color: var(--akzent); margin: 0; }
+.suchfilter .schalterfeld > span,
+.filter .schalterfeld > span { color: var(--schrift-2); font-weight: 500; }
 .suchfilter .knopf { align-self: flex-end; }
 .suchfilter .zuruecksetzen { align-self: flex-end; padding-bottom: 0.6rem; }
 
@@ -765,9 +768,68 @@ mark.fehlt {
 .kategoriewertung .zahl.mittel { color: var(--mittel); }
 .kategoriewertung .zahl.schlecht { color: var(--schlecht); }
 
+/* Die Aufschlüsselung je Bereich - eingerückt und zugeklappt.
+   Der Einzug ist die ganze Aussage der Darstellung: Was hier steht, gehört
+   unter die Zeile darüber und ist nicht die nächste Kategorie. */
+.fragedetails { margin: 0.35rem 0 0 1.4rem; border-left: 2px solid var(--linie); padding-left: 1rem; }
+.fragedetails > summary {
+  cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--akzent);
+  list-style: none; padding: 0.25rem 0; width: fit-content;
+}
+.fragedetails > summary::-webkit-details-marker { display: none; }
+/* Ein eigenes Dreieck statt des Standardmarkers: Der steht je nach Browser
+   woanders und lässt sich nicht mit der Schrift ausrichten. */
+.fragedetails > summary::before {
+  content: "▸"; display: inline-block; margin-right: 0.45rem;
+  transition: transform 0.15s ease; font-size: 0.85em;
+}
+.fragedetails[open] > summary::before { transform: rotate(90deg); }
+.fragedetails > summary:hover { color: var(--schrift); }
+.fragedetails > summary .gedaempft { font-weight: 400; }
+
+.fragewertungen { display: grid; gap: 0.55rem; padding: 0.6rem 0 0.4rem; }
+.fragewertung {
+  display: grid; grid-template-columns: minmax(12rem, 30rem) 1fr auto auto;
+  align-items: center; gap: 0.7rem;
+}
+.fragewertung .titel { font-size: 0.88rem; color: var(--schrift-2); line-height: 1.35; }
+.fragewertung .kategoriebalken {
+  height: 0.4rem; border-radius: 999px; background: var(--flaeche-2);
+  overflow: hidden; min-width: 3rem;
+}
+.fragewertung .fuellung { display: block; height: 100%; border-radius: 999px; background: var(--mittel); }
+.fragewertung .fuellung.gut { background: var(--gut); }
+.fragewertung .fuellung.schlecht { background: var(--schlecht); }
+.fragewertung .zahl {
+  font-variant-numeric: tabular-nums; font-weight: 600; font-size: 0.9rem;
+  min-width: 2.3rem; text-align: right;
+}
+.fragewertung .zahl.gut { color: var(--gut); }
+.fragewertung .zahl.mittel { color: var(--mittel); }
+.fragewertung .zahl.schlecht { color: var(--schlecht); }
+/* Die Zahl der Angaben gehört dazu, aber leise: Sie sagt, wie belastbar die
+   Zeile ist, und nicht, wie die Schule abschneidet. */
+.fragewertung .anzahl {
+  font-size: 0.78rem; color: var(--schrift-3); white-space: nowrap;
+  min-width: 5.5rem; text-align: right; font-variant-numeric: tabular-nums;
+}
+.fragewertungen .fussnote { margin: 0.3rem 0 0; }
+
 @media (max-width: 640px) {
   .kategoriewertung { grid-template-columns: 1fr auto; }
   .kategoriewertung .kategoriebalken { grid-column: 1 / -1; order: 3; }
+  .fragedetails { margin-left: 0.6rem; padding-left: 0.7rem; }
+  /* Auf schmalen Schirmen bricht jede Zeile in drei. Die Zahl der Angaben
+     steht dabei **vor** dem Balken und nicht dahinter: Hinter ihm sass sie
+     direkt ueber der naechsten Frage und las sich, als gehoere sie zu der. */
+  .fragewertung {
+    grid-template-columns: 1fr auto; gap: 0.35rem 0.7rem;
+    padding-bottom: 0.7rem; border-bottom: 1px solid var(--linie);
+  }
+  .fragewertung:last-of-type { padding-bottom: 0; border-bottom: none; }
+  .fragewertung .anzahl { grid-column: 1 / -1; order: 3; text-align: left; min-width: 0; }
+  .fragewertung .kategoriebalken { grid-column: 1 / -1; order: 4; }
+  .fragewertungen { gap: 0.8rem; }
 }
 
 /* ---------- Startseite: Aufmacher ---------- */
@@ -894,11 +956,14 @@ mark.fehlt {
 @keyframes wachsen { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 .kategoriewertung .fuellung { transform-origin: left; animation: wachsen 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.kategoriewertung:nth-child(2) .fuellung { animation-delay: 0.05s; }
-.kategoriewertung:nth-child(3) .fuellung { animation-delay: 0.1s; }
-.kategoriewertung:nth-child(4) .fuellung { animation-delay: 0.15s; }
-.kategoriewertung:nth-child(5) .fuellung { animation-delay: 0.2s; }
-.kategoriewertung:nth-child(6) .fuellung { animation-delay: 0.25s; }
+/* Gezaehlt werden die Gruppen, nicht die Zeilen: Seit die Aufschluesselung
+   unter jeder Kategorie haengt, ist die Wertungszeile das erste Kind ihrer
+   Gruppe - und jede Verzoegerung waere sonst dieselbe. */
+.kategoriegruppe:nth-child(2) .kategoriewertung .fuellung { animation-delay: 0.05s; }
+.kategoriegruppe:nth-child(3) .kategoriewertung .fuellung { animation-delay: 0.1s; }
+.kategoriegruppe:nth-child(4) .kategoriewertung .fuellung { animation-delay: 0.15s; }
+.kategoriegruppe:nth-child(5) .kategoriewertung .fuellung { animation-delay: 0.2s; }
+.kategoriegruppe:nth-child(6) .kategoriewertung .fuellung { animation-delay: 0.25s; }
 
 .karte, .treffer li a, .vorschauliste li a, .schritte li {
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;

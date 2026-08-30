@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { holeSchule } from "@/db/schulen";
 import { holeZusammenfassung } from "@/db/zusammenfassungen";
+import { frageMittelwerte } from "@/db/fragewerte";
 import { kennzeichnung } from "@/ki/zusammenfassung";
 import { BUNDESLAND_LABEL } from "@/domain/bundesland";
 import { MINDESTZAHL_PROFIL } from "@/domain/aggregation";
@@ -34,6 +35,10 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
 
   const t = await getTranslations();
   const zusammenfassung = await holeZusammenfassung(schule.id);
+  // Die Einzelfragen nur dort holen, wo sie auch gezeigt werden - unterhalb der
+  // Profilschwelle steht ohnehin nur der Leerzustand.
+  const angaben =
+    schule.anzahl >= MINDESTZAHL_PROFIL ? await frageMittelwerte(schule.id) : [];
   const score = schule.gesamtscore === null ? null : Number(schule.gesamtscore);
   const aggression = schule.aggressionsindex === null ? null : Number(schule.aggressionsindex);
   const sichtbar = schule.anzahl >= MINDESTZAHL_PROFIL && score !== null;
@@ -121,6 +126,7 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
               { kategorie: "E", score: schule.score_e },
               { kategorie: "F", score: schule.score_f },
             ]}
+            angaben={angaben}
           />
 
           {aggression !== null && (
