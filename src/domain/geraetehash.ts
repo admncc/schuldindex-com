@@ -7,6 +7,7 @@
  */
 
 import { createHmac } from "node:crypto";
+import { schluessel } from "./kontakt";
 
 /**
  * Der Abdruck, der gespeichert wird.
@@ -18,9 +19,11 @@ import { createHmac } from "node:crypto";
  * verschiedene Abdrücke.
  */
 export function geraetehash(kennung: string): string {
-  const roh = process.env["KONTAKT_HMAC_SCHLUESSEL"];
-  if (!roh) throw new Error("KONTAKT_HMAC_SCHLUESSEL ist nicht gesetzt.");
-  return createHmac("sha256", Buffer.from(roh, "base64"))
+  // Über dieselbe Prüfung wie alle anderen Abdrücke: `Buffer.from(…,
+  // "base64")` verschluckt ungültige Zeichen stillschweigend, ein vertippter
+  // Schlüssel ergäbe hier einen kurzen oder leeren - während der Rest des
+  // Systems gar nicht erst startet.
+  return createHmac("sha256", schluessel("KONTAKT_HMAC_SCHLUESSEL", 32))
     .update(`geraet:${kennung}`)
     .digest("base64url");
 }

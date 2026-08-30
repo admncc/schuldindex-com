@@ -32,6 +32,16 @@ export function Landeplatz({
 }) {
   return (
     <>
+      {/* Ohne JavaScript geht die Suche, das Profil und der Weg dorthin - nur
+          das Formular selbst braucht es. Das gehört gesagt, bevor jemand am
+          Ende feststeckt. */}
+      <noscript>
+        <p className="lp-noscript">
+          Für das Bewertungsformular brauchst du JavaScript. Suche und Schulprofile funktionieren
+          auch ohne.
+        </p>
+      </noscript>
+
       <section className="lp-buehne">
         <p className="lp-marke">Anonym. Geprüft. In drei Minuten.</p>
         <h1>{schlagzeile}</h1>
@@ -56,13 +66,13 @@ export function Landeplatz({
         <ul>
           {VERLOSUNGSARTEN.map((art) => (
             <li key={art} className={art === "mega" ? "lp-gewinn gross" : "lp-gewinn"}>
-              <span className="lp-wert">{GEWINNE[art].wertEuro} €</span>
+              <span className="lp-wert">{ZAHL.format(GEWINNE[art].wertEuro)} €</span>
               <span className="lp-anzahl">
                 {GEWINNE[art].anzahl}× {VERLOSUNG_LABEL[art]}
               </span>
               <span className="lp-bedingung">
                 {GEWINNE[art].mindestEmpfehlungen === 0
-                  ? "Für alle, die bewerten"
+                  ? "Für Schülerinnen und Schüler, die bewerten"
                   : GEWINNE[art].mindestEmpfehlungen === 1
                     ? "Sobald eine Person über deinen Link bewertet"
                     : `Ab ${GEWINNE[art].mindestEmpfehlungen} Personen über deinen Link`}
@@ -90,11 +100,11 @@ export function Landeplatz({
           </li>
           <li>
             <strong>Ehrlich bewerten</strong>
-            <span>Sechs Bereiche, drei Minuten. Kein Name, keine Anmeldung.</span>
+            <span>Drei Pflichtbereiche, 31 Fragen, rund drei Minuten. Kein Name.</span>
           </li>
           <li>
             <strong>Kurz bestätigen</strong>
-            <span>Eine Nachricht, ein Klick - und dein Los ist drin.</span>
+            <span>Eine Nachricht, ein Klick - und wenn du magst, ist dein Los drin.</span>
           </li>
         </ol>
       </section>
@@ -104,7 +114,8 @@ export function Landeplatz({
         <ul>
           <li>
             <strong>Deine Bewertung ist anonym.</strong> Nicht einmal deine Schule erfährt, wer
-            was geschrieben hat. Einzelne Bewertungen sind für niemanden einsehbar.
+            was geschrieben hat. Einzelne Bewertungen sind öffentlich nicht einsehbar - auch
+            nicht für die Schule.
           </li>
           <li>
             <strong>Dein Freitext wird nie veröffentlicht.</strong> Er fließt in eine kurze

@@ -12,6 +12,7 @@ import { FRAGEN, type Antwort, type Skalenwert } from "../src/domain/fragebogen"
 import { bewerte } from "../src/domain/scoring";
 import { aggregiere, type EinzelneBewertung } from "../src/domain/aggregation";
 import { pruefeEinreichung } from "../src/domain/geopruefung";
+import { aktualisiereAggregat } from "../src/db/aggregate";
 
 const URL = process.env.DATABASE_URL ?? "";
 const vorhanden = URL !== "";
@@ -39,6 +40,9 @@ describe.skipIf(!vorhanden)("Durchstich", () => {
 
   afterAll(async () => {
     await sql`delete from konten where kontakt_hash like ${KENNUNG + "%"}`;
+    // Und das Aggregat mit: Ohne diese Zeile bleibt eine Schule mit einer
+    // Wertung aus Bewertungen zurück, die es nicht mehr gibt.
+    await aktualisiereAggregat(schuleId, sql);
     await sql.end();
   });
 
@@ -66,11 +70,20 @@ describe.skipIf(!vorhanden)("Durchstich", () => {
                 now(), 'v1', 12.5)
         returning id
       `;
+      // Die Kategoriewerte gehören dazu: Das Aggregat rechnet aus ihnen, und
+      // ohne sie fehlten die Pflichtbereiche - die Schule bekäme gar keine
+      // Wertung. Genau das prüft dieser Durchstich.
+      const kategorie = (id: string) =>
+        ergebnis.kategorien.find((k) => k.kategorie === id)?.score ?? null;
+
       await sql`
         insert into bewertung_versionen
-          (bewertung_id, version, antworten, freitexte, gesamtscore, aggressionsindex)
+          (bewertung_id, version, antworten, freitexte, gesamtscore, aggressionsindex,
+           score_a, score_b, score_c, score_d, score_e, score_f)
         values (${bewertung!.id}, 1, ${sql.json(antworten)}, ${sql.json({})},
-                ${ergebnis.gesamtscore}, ${ergebnis.aggression?.index ?? null})
+                ${ergebnis.gesamtscore}, ${ergebnis.aggression?.index ?? null},
+                ${kategorie("A")}, ${kategorie("B")}, ${kategorie("C")},
+                ${kategorie("D")}, ${kategorie("E")}, ${kategorie("F")})
       `;
 
       bewertungen.push({
@@ -95,14 +108,12 @@ describe.skipIf(!vorhanden)("Durchstich", () => {
     expect(aggregat.gesamtscore).toBeGreaterThan(0);
     expect(aggregat.gesamtscore).toBeLessThanOrEqual(10);
 
-    await sql`
-      insert into schul_aggregate
-        (schule_id, gesamtscore, aggressionsindex, anzahl, anzahl_je_rolle, anzahl_mit_freitext)
-      values (${schuleId}, ${aggregat.gesamtscore}, ${aggregat.aggressionsindex},
-              ${aggregat.anzahl}, ${sql.json(aggregat.anzahlJeRolle)}, ${aggregat.anzahlMitFreitext})
-      on conflict (schule_id) do update set
-        gesamtscore = excluded.gesamtscore, anzahl = excluded.anzahl
-    `;
+    // **Über die Anwendungsfunktion, nicht mit einem eigenen Insert.** Der
+    // frühere Direktschreibvorgang füllte nur einen Teil der Spalten und ließ
+    // die Zeile nach dem Lauf stehen: Auf `/schule/wilckensschule-grundschule`
+    // stand danach dauerhaft „6,6 von 10 · 12 Bewertungen“, obwohl es keine
+    // einzige freigegebene Bewertung mehr gab.
+    await aktualisiereAggregat(schuleId, sql);
     const [gespeichert] = await sql<{ gesamtscore: string; anzahl: number }[]>`
       select gesamtscore, anzahl from schul_aggregate where schule_id = ${schuleId}
     `;

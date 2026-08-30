@@ -98,7 +98,18 @@ export async function empfehlungsstand(
 
   const [zeile] = await sql<{ geworben: number; zaehlend: number }[]>`
     select count(*)::int as geworben,
-           count(*) filter (where b.status = 'freigegeben')::int as zaehlend
+           -- Nur was auch in der Ziehung zählt: veröffentlicht und **nicht**
+           -- aus demselben Browser wie eine Bewertung des Werbers. Sonst
+           -- stünde hier eine Zahl, die die Ziehung später nicht anerkennt.
+           count(*) filter (
+             where b.status = 'freigegeben'
+               and not exists (
+                 select 1 from bewertungen sb
+                 where sb.konto_id = e.werber_konto_id
+                   and sb.geraet_hash is not null
+                   and sb.geraet_hash = b.geraet_hash
+               )
+           )::int as zaehlend
     from empfehlungen e
     left join bewertungen b on b.id = e.bewertung_id
     where e.werber_konto_id = ${kontoId}
@@ -122,4 +133,169 @@ export async function empfehlungszahlen(zeitraum: Zeitraum): Promise<{
     where e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}
   `;
   return zeile ?? { gesamt: 0, zaehlend: 0, werber: 0 };
+}
+
+export interface Empfehlungszeile {
+  readonly id: string;
+  readonly erstelltAm: Date;
+  /** Kennung des werbenden Kontos - die UUID hinter dem Empfehlungslink. */
+  readonly werberId: string;
+  readonly werbercode: string | null;
+  /** Kennung des geworbenen Kontos. */
+  readonly geworbenId: string;
+  readonly bewertungId: string | null;
+  readonly status: string | null;
+  readonly schulname: string | null;
+  readonly schulslug: string | null;
+  /**
+   * Kam die geworbene Bewertung aus demselben Browser wie eine des Werbers?
+   *
+   * Das ist der Fall, auf den es in dieser Liste ankommt: Wer sich selbst
+   * wirbt, tut das in aller Regel im selben Fenster oder im privaten Tab
+   * desselben Geräts. **Kein Beweis** - in einer Familie oder im Computerraum
+   * ist derselbe Browser der Normalfall -, aber der erste Ort, an dem man
+   * hinsieht.
+   */
+  readonly gleichesGeraet: boolean;
+  /** Wie viele Empfehlungen dieses Werbers im Zeitraum bereits zählen. */
+  readonly zaehlendeDesWerbers: number;
+}
+
+/**
+ * Die Empfehlungen eines Zeitraums, neueste zuerst.
+ *
+ * Zeigt beide Kennungen: die des werbenden Kontos (das ist die UUID, die im
+ * Link steht) und die des geworbenen. Dazu, ob die Bewertung schon
+ * veröffentlicht ist - denn erst dann zählt die Empfehlung - und ob beide aus
+ * demselben Browser kamen.
+ */
+export async function empfehlungsliste(
+  zeitraum: Zeitraum,
+  optionen: { nurAuffaellig?: boolean; grenze?: number } = {},
+): Promise<Empfehlungszeile[]> {
+  const grenze = Math.min(500, Math.max(1, optionen.grenze ?? 200));
+
+  const zeilen = await sql<
+    {
+      id: string;
+      erstellt_am: Date;
+      werber_id: string;
+      werbercode: string | null;
+      geworben_id: string;
+      bewertung_id: string | null;
+      status: string | null;
+      schulname: string | null;
+      schulslug: string | null;
+      gleiches_geraet: boolean;
+      zaehlende: number;
+    }[]
+  >`
+    select e.id, e.erstellt_am,
+           w.id as werber_id, w.empfehlungscode as werbercode,
+           g.id as geworben_id,
+           b.id as bewertung_id, b.status::text as status,
+           s.name as schulname, s.slug as schulslug,
+           coalesce(
+             exists (
+               select 1 from bewertungen wb
+               where wb.konto_id = w.id
+                 and wb.geraet_hash is not null
+                 and wb.geraet_hash = b.geraet_hash
+             ),
+             false
+           ) as gleiches_geraet,
+           (
+             select count(*)::int from empfehlungen e2
+             join bewertungen b2 on b2.id = e2.bewertung_id
+             where e2.werber_konto_id = w.id
+               and b2.status = 'freigegeben'
+               and e2.erstellt_am >= ${zeitraum.von} and e2.erstellt_am < ${zeitraum.bis}
+           ) as zaehlende
+    from empfehlungen e
+    join konten w on w.id = e.werber_konto_id
+    join konten g on g.id = e.geworbenes_konto_id
+    left join bewertungen b on b.id = e.bewertung_id
+    left join schulen s on s.id = b.schule_id
+    where e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}
+      ${
+        optionen.nurAuffaellig === true
+          ? sql`and exists (
+                  select 1 from bewertungen wb
+                  where wb.konto_id = w.id
+                    and wb.geraet_hash is not null
+                    and wb.geraet_hash = b.geraet_hash
+                )`
+          : sql``
+      }
+    order by e.erstellt_am desc
+    limit ${grenze}
+  `;
+
+  return zeilen.map((z) => ({
+    id: z.id,
+    erstelltAm: z.erstellt_am,
+    werberId: z.werber_id,
+    werbercode: z.werbercode,
+    geworbenId: z.geworben_id,
+    bewertungId: z.bewertung_id,
+    status: z.status,
+    schulname: z.schulname,
+    schulslug: z.schulslug,
+    gleichesGeraet: z.gleiches_geraet,
+    zaehlendeDesWerbers: z.zaehlende,
+  }));
+}
+
+export interface Werberzeile {
+  readonly kontoId: string;
+  readonly code: string | null;
+  readonly geworben: number;
+  readonly zaehlend: number;
+  readonly vomSelbenGeraet: number;
+}
+
+/**
+ * Die aktivsten Werber eines Zeitraums.
+ *
+ * `vomSelbenGeraet` steht bewusst daneben: Eine hohe Zahl geworbener Personen
+ * ist erst dann eine gute Nachricht, wenn sie nicht alle aus demselben Browser
+ * kommen.
+ */
+export async function topWerber(zeitraum: Zeitraum, grenze = 25): Promise<Werberzeile[]> {
+  const zeilen = await sql<
+    {
+      konto_id: string;
+      code: string | null;
+      geworben: number;
+      zaehlend: number;
+      vom_selben_geraet: number;
+    }[]
+  >`
+    select w.id as konto_id, w.empfehlungscode as code,
+           count(*)::int as geworben,
+           count(*) filter (where b.status = 'freigegeben')::int as zaehlend,
+           count(*) filter (
+             where exists (
+               select 1 from bewertungen wb
+               where wb.konto_id = w.id
+                 and wb.geraet_hash is not null
+                 and wb.geraet_hash = b.geraet_hash
+             )
+           )::int as vom_selben_geraet
+    from empfehlungen e
+    join konten w on w.id = e.werber_konto_id
+    left join bewertungen b on b.id = e.bewertung_id
+    where e.erstellt_am >= ${zeitraum.von} and e.erstellt_am < ${zeitraum.bis}
+    group by w.id, w.empfehlungscode
+    order by zaehlend desc, geworben desc
+    limit ${grenze}
+  `;
+
+  return zeilen.map((z) => ({
+    kontoId: z.konto_id,
+    code: z.code,
+    geworben: z.geworben,
+    zaehlend: z.zaehlend,
+    vomSelbenGeraet: z.vom_selben_geraet,
+  }));
 }

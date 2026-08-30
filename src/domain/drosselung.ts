@@ -69,9 +69,13 @@ export function zaehle(
   fensterMs: number,
   jetzt = Date.now(),
 ): Drosselergebnis {
+  // Ohne Kennung keine Drosselung. Alles andere wäre ein gemeinsamer Eimer für
+  // alle Besucher, und der ist in wenigen Minuten leer.
+  if (kennung === null || kennung === "") return { erlaubt: true, verbleibend: grenze };
+
   raeumeAuf(jetzt);
 
-  const schluessel = `${bereich}:${kennung ?? "ohne-adresse"}`;
+  const schluessel = `${bereich}:${kennung}`;
   const vorhanden = ZAEHLER.get(schluessel);
 
   if (vorhanden === undefined || jetzt - vorhanden.start >= fensterMs) {

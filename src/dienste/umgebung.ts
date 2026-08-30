@@ -18,6 +18,7 @@ import { holeEinstellungen } from "../db/einstellungen";
 import type { Kontaktart } from "../domain/kontakt";
 import type { Punkt } from "../domain/geopruefung";
 import { kontoZuCode, merkeEmpfehlung as merkeEmpfehlungInDb } from "../db/empfehlungen";
+import { istKennung } from "../domain/kennung";
 
 /** Wörter, deren Auftauchen im Freitext eine Prüfung durch Menschen auslöst. */
 const VERBOTEN =
@@ -198,6 +199,10 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
 export function aenderungsumgebungMitDatenbank(): Aenderungsumgebung {
   return {
     async holeBewertung(bewertungId, kontoId) {
+      // Die Kennung kommt aus der Adresse: `PATCH /api/bewertungen/<krumm>`
+      // lief sonst als Datenbankfehler in einen 500er.
+      if (!istKennung(bewertungId)) return null;
+
       const [zeile] = await sql<
         {
           id: string;
@@ -255,7 +260,8 @@ export function aenderungsumgebungMitDatenbank(): Aenderungsumgebung {
         const [alt] = await tx<{ signale: { art: string; gewicht: number }[] }[]>`
           select coalesce(signale, '[]'::jsonb) as signale from bewertungen where id = ${daten.bewertungId}
         `;
-        const MUSTERARTEN = ["nur_extremwerte", "alles_gleich"];
+        // Der Freitextbefund gehört dazu: Er hängt am Text, und der ist neu.
+        const MUSTERARTEN = ["nur_extremwerte", "alles_gleich", "verdaechtiger_freitext"];
         const ohneMuster = (alt?.signale ?? []).filter((sig) => !MUSTERARTEN.includes(sig.art));
         const neueSignale = [...ohneMuster, ...daten.musterSignale];
         const punkte = neueSignale.reduce((summe, sig) => summe + sig.gewicht, 0);

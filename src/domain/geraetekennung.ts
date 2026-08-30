@@ -41,10 +41,16 @@ export function istGeraetekennung(wert: unknown): wert is string {
 /**
  * Welche der beiden Kennungen gilt.
  *
- * Der Cookie hat Vorrang: Er kommt vom Server und ist für Skripte auf der
- * Seite nicht zu setzen. Der Wert aus dem Local Storage springt nur ein, wenn
- * der Cookie fehlt - und wird dann vom Server als Cookie neu gesetzt, damit
- * beide wieder gleich sind.
+ * Der Cookie hat Vorrang, der Wert aus dem Local Storage springt nur ein, wenn
+ * er fehlt.
+ *
+ * **Beides ist ungeprüft.** Der Cookie ist bewusst nicht `httpOnly`, damit die
+ * Seite ihn spiegeln kann, und wer ihn selbst setzt, setzt ihn eben selbst. Es
+ * wäre falsch, hier mehr hineinzulesen: Die Kennung ist eine Bequemlichkeit
+ * für die Missbrauchsabwehr, kein Nachweis. Sie fängt den, der nichts tut -
+ * nicht den, der etwas tut. Wer sie fälschungssicher will, müsste sie
+ * signieren; solange sie nur ein Signal mit Gewicht 1 auslöst, wäre das
+ * Aufwand ohne Ertrag.
  */
 export function gueltigeKennung(
   ausCookie: string | null | undefined,

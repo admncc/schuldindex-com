@@ -83,6 +83,23 @@ describe.skipIf(!vorhanden)("Trefferseite", () => {
     expect([...zahlen].sort((a, b) => b - a)).toEqual(zahlen);
   });
 
+  // Der teuer erkaufte Fehler: `escape '\'` wird im Template-Literal zu
+  // `escape ''`, und Postgres schaltet damit das Fluchtzeichen ab. Die
+  // Maskierung lief ins Leere, die Unterstriche blieben Platzhalter - und
+  // eine Suche nach „__“ fand alle 31.770 Schulen.
+  it("behandelt Unterstrich und Prozent als Zeichen, nicht als Platzhalter", async () => {
+    const alle = await sucheSchulen("__", {}, 5);
+    expect(alle).toHaveLength(0);
+    const prozent = await sucheSchulen("%", { bundesland: "HB" }, 5);
+    expect(prozent).toHaveLength(0);
+  });
+
+  it("maskiert auch im Ortsfeld", async () => {
+    // `8_` traf vorher jede Postleitzahl, die mit 8 beginnt.
+    const treffer = await sucheSchulen("", { ort: "8_" }, 5);
+    expect(treffer).toHaveLength(0);
+  });
+
   it("kennt den Bestand je Bundesland", async () => {
     const bestand = await schulzahlJeBundesland();
     expect(bestand.length).toBeGreaterThan(0);

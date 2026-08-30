@@ -259,12 +259,21 @@ export function hoechstwert(freiwilligeBeantwortet: number): number {
  * Übergeben werden die Kategoriewerte der beantworteten freiwilligen Bereiche
  * auf der Antwortskala 1-5. Jeder bringt anteilig bis zu
  * `ZUSCHLAG_JE_FREIWILLIGER_BEREICH`.
+ *
+ * Auf Schulebene kommt ein zweiter Anteil dazu: **wie viele** der Bewertenden
+ * den Bereich überhaupt beurteilt haben. Ohne ihn hob eine einzige zusätzliche
+ * Bewertung, die je eine Frage in D, E und F ankreuzt, die Obergrenze der
+ * ganzen Schule von 8,5 auf 10,0. Für die einzelne Bewertung ist der Anteil
+ * immer 1 - dort gibt es nur eine Person.
  */
-export function erreichteObergrenze(freiwilligeWerte: readonly number[]): number {
-  const zuschlag = freiwilligeWerte.reduce(
-    (summe, wert) => summe + (ZUSCHLAG_JE_FREIWILLIGER_BEREICH * aufZehnerskala(wert)) / 10,
-    0,
-  );
+export function erreichteObergrenze(
+  freiwillige: readonly (number | { readonly wert: number; readonly anteil: number })[],
+): number {
+  const zuschlag = freiwillige.reduce<number>((summe, eintrag) => {
+    const wert = typeof eintrag === "number" ? eintrag : eintrag.wert;
+    const anteil = typeof eintrag === "number" ? 1 : Math.min(1, Math.max(0, eintrag.anteil));
+    return summe + (ZUSCHLAG_JE_FREIWILLIGER_BEREICH * aufZehnerskala(wert) * anteil) / 10;
+  }, 0);
   return Math.min(10, HOECHSTWERT_PFLICHT + zuschlag);
 }
 

@@ -69,7 +69,11 @@ export function middleware(anfrage: NextRequest): NextResponse {
 }
 
 export const config = {
-  // Nur die Seiten, nicht die statischen Dateien: Für ein Bild oder eine
-  // Schriftdatei braucht niemand eine Kennung.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|robots.txt|sitemap.xml).*)"],
+  // Nur die öffentlichen Seiten. Nicht die statischen Dateien (für ein Bild
+  // braucht niemand eine Kennung), nicht die Schnittstellen (dort wird der
+  // Cookie gelesen, nicht gesetzt) und nicht die Moderation - eine
+  // Gerätekennung für die eigene Redaktion wäre sinnlos und stünde nur im Weg.
+  matcher: [
+    "/((?!api|moderation|_next/static|_next/image|favicon.ico|icon.svg|robots.txt|sitemap.xml).*)",
+  ],
 };

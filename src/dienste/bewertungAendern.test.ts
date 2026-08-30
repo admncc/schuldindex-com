@@ -34,7 +34,12 @@ function bestand(abweichung: Partial<Bestand> = {}): Bestand {
 }
 
 interface Aufzeichnung {
-  gespeichert: { version: number; status: Zustand; schuleId: string }[];
+  gespeichert: {
+    version: number;
+    status: Zustand;
+    schuleId: string;
+    signale: readonly { art: string; gewicht: number }[];
+  }[];
   gefragt: { id: string; konto: string }[];
 }
 
@@ -54,7 +59,12 @@ function umgebungMit(
         return freitextAuffaellig;
       },
       async speichereFassung(daten) {
-        auf.gespeichert.push({ version: daten.version, status: daten.status, schuleId: daten.schuleId });
+        auf.gespeichert.push({
+          version: daten.version,
+          status: daten.status,
+          schuleId: daten.schuleId,
+          signale: daten.musterSignale,
+        });
       },
     },
   };
@@ -66,7 +76,9 @@ describe("bewertungAendern", () => {
     const e = await bewertungAendern("b1", "k1", EINGABE, u);
 
     expect(e).toEqual({ ok: true, status: "in_pruefung_betrug", version: 2 });
-    expect(auf.gespeichert).toEqual([{ version: 2, status: "in_pruefung_betrug", schuleId: "s1" }]);
+    expect(auf.gespeichert.map(({ version, status, schuleId }) => ({ version, status, schuleId }))).toEqual([
+      { version: 2, status: "in_pruefung_betrug", schuleId: "s1" },
+    ]);
   });
 
   it("verlangt weder Kontakt noch Einwilligung - die liegen längst vor", async () => {
@@ -153,5 +165,26 @@ describe("bewertungAendern", () => {
     };
     await bewertungAendern("b1", "k1", { ...EINGABE, freitexte: {} }, u);
     expect(gefragt).toBe(false);
+  });
+});
+
+
+describe("Neubewertung der geänderten Fassung", () => {
+  it("hält eine Bewertung zurück, die vor der Bestätigung auffällig gemacht wird", async () => {
+    // Der Weg, der offen war: unauffällig abgeben, vor der Bestätigung den
+    // Freitext gegen einen mit Namen tauschen - der Zustand „wartet auf
+    // Bestätigung“ bleibt dabei stehen -, dann bestätigen. Die Bestätigung
+    // rechnete mit den Signalen von vorher und gab frei.
+    const { u, auf } = umgebungMit(bestand({ status: "wartet_auf_verifizierung" }), true);
+    const e = await bewertungAendern("b1", "k1", EINGABE, u);
+
+    expect(e.ok).toBe(true);
+    expect(auf.gespeichert[0]?.signale.map((s) => s.art)).toContain("verdaechtiger_freitext");
+  });
+
+  it("hängt ohne auffälligen Text kein Freitextsignal an", async () => {
+    const { u, auf } = umgebungMit(bestand({ status: "wartet_auf_verifizierung" }), false);
+    await bewertungAendern("b1", "k1", EINGABE, u);
+    expect(auf.gespeichert[0]?.signale.map((s) => s.art)).not.toContain("verdaechtiger_freitext");
   });
 });

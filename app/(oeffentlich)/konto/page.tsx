@@ -7,6 +7,15 @@ import { abmelden, ueberallAbmelden } from "./aktionen";
 import { verlangeKonto } from "./sitzung";
 import Bewertungszeile from "./zeile";
 import Kontoloeschung from "./loeschung";
+import { empfehlungslink, teilentext } from "@/domain/empfehlung";
+import { empfehlungscodeFuer, empfehlungsstand } from "@/db/empfehlungen";
+import {
+  GEWINNE,
+  TEILNAHMEBERECHTIGT,
+  VERLOSUNG_LABEL,
+  monatszeitraum,
+} from "@/domain/verlosung";
+import { Teilen } from "../bestaetigen/teilen";
 
 export const metadata: Metadata = {
   title: "Deine Bewertungen",
@@ -18,7 +27,23 @@ const DATUM = new Intl.DateTimeFormat("de-DE", { dateStyle: "long" });
 
 export default async function Kontoseite() {
   const konto = await verlangeKonto();
-  const bewertungen = await eigeneBewertungen(konto.id);
+  const jetzt = new Date();
+  const zeitraum = monatszeitraum(jetzt.getUTCFullYear(), jetzt.getUTCMonth() + 1);
+
+  const [bewertungen, code, stand] = await Promise.all([
+    eigeneBewertungen(konto.id),
+    empfehlungscodeFuer(konto.id),
+    empfehlungsstand(konto.id, zeitraum),
+  ]);
+
+  // Nur wer selbst an der Verlosung teilnimmt, bekommt das Versprechen zu
+  // sehen: Schülerrolle und angekreuzte Teilnahme sind Bedingung.
+  const nimmtTeil = bewertungen.some(
+    (b) => b.verlosung_teilnahme && TEILNAHMEBERECHTIGT.includes(b.rolle),
+  );
+
+  const basis = process.env["BASIS_URL"] ?? "";
+  const link = code === null ? null : empfehlungslink(basis, code);
 
   return (
     <>
@@ -35,6 +60,45 @@ export default async function Kontoseite() {
           </form>
         </div>
       </section>
+
+      {/* Der eigene Link und was er gebracht hat. Gezählt wird nur, was
+          veröffentlicht ist - das ist dieselbe Zahl, die auch die Ziehung
+          verwendet, und deshalb steht hier keine zweite Wahrheit. */}
+      {link !== null && nimmtTeil ? (
+        <section className="abschnitt">
+          <div className="teilen">
+            <h2>Dein Link</h2>
+            <p>
+              Wenn jemand darüber bewertet und die Bewertung veröffentlicht wird, bist du diesen
+              Monat zusätzlich in der {VERLOSUNG_LABEL.super} - {GEWINNE.super.anzahl} Gutscheine
+              über je {GEWINNE.super.wertEuro} Euro.
+            </p>
+
+            <div className="empfehlungsstand">
+              <div className="kennzahl">
+                <span className="zahl">{stand.zaehlend}</span>
+                <span className="beschriftung">
+                  {stand.zaehlend === 1 ? "Freund/in hat bewertet" : "Freunde haben bewertet"}
+                </span>
+              </div>
+              <div className="kennzahl">
+                <span className="zahl">{stand.geworben - stand.zaehlend}</span>
+                <span className="beschriftung">noch in Prüfung</span>
+              </div>
+            </div>
+
+            <p className="hinweis">
+              {stand.zaehlend >= GEWINNE.mega.mindestEmpfehlungen
+                ? `Du bist diesen Monat in allen drei Ziehungen dabei - auch in der ${VERLOSUNG_LABEL.mega}.`
+                : stand.zaehlend >= GEWINNE.super.mindestEmpfehlungen
+                  ? `Du bist diesen Monat in der ${VERLOSUNG_LABEL.super} dabei. Ab ${GEWINNE.mega.mindestEmpfehlungen} Freundinnen und Freunden kommt die ${VERLOSUNG_LABEL.mega} dazu.`
+                  : "Sobald eine einzige Person über deinen Link bewertet, bist du dabei."}
+            </p>
+
+            <Teilen link={link} text={teilentext("meine Schule", link)} kompakt />
+          </div>
+        </section>
+      ) : null}
 
       <section className="abschnitt">
         {bewertungen.length === 0 ? (

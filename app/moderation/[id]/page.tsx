@@ -15,6 +15,7 @@ import Entscheidungsfeld from "./entscheidung";
 import Kontaktfeld from "./kontakt";
 import { zahl } from "@/domain/einstellungen";
 import { holeEinstellungen } from "@/db/einstellungen";
+import { istKennung } from "@/domain/kennung";
 
 export const metadata: Metadata = { title: "Bewertung prüfen", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -47,8 +48,9 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
   const { id } = await params;
 
   // Ohne diese Prüfung liefe eine erfundene Kennung als Datenbankfehler auf,
-  // statt als „nicht gefunden“.
-  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  // statt als „nicht gefunden“. `istKennung` statt eines eigenen Musters: Das
+  // frühere `^[0-9a-f-]{36}$` ließ auch 36 Bindestriche durch.
+  if (!istKennung(id)) notFound();
 
   const vorgang = await holeVorgang(id);
   if (vorgang === null) notFound();

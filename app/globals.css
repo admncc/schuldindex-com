@@ -52,6 +52,9 @@
     --akzent-sanft: #1d2740;
     /* Auf dem hellen Akzent des dunklen Schemas ist Weiß unlesbar. */
     --knopf-schrift: #101319;
+    /* Sonst wird der Knopf beim Überfahren dunkler als seine Schrift: gemessen
+       1,64:1. Im dunklen Schema geht „gedrückt“ nach hell, nicht nach dunkel. */
+    --akzent-dunkel: #a7bdf6;
     --signal: #ff9273;
     --signal-sanft: #33180f;
     --linie: #2a303c;
@@ -127,15 +130,18 @@ a { color: var(--akzent); }
 .kopf nav a { color: var(--schrift-2); text-decoration: none; white-space: nowrap; padding: 0.35rem 0; }
 .kopf nav a:hover { color: var(--akzent); }
 .kopf .knopf { padding: 0.5rem 1rem; font-size: 0.9rem; }
-@media (max-width: 40rem) {
-  /* Auf dem Telefon ist die Navigation ein Waagerecht-Scroller. Ohne den
-   Verlauf am rechten Rand sah sie aus wie eine vollständige Liste - „Karte“,
-   „Über uns“ und „Deine Bewertungen“ waren unauffindbar. */
+/* Auf dem Telefon ist die Navigation ein Waagerecht-Scroller. Ohne den Verlauf
+   am rechten Rand sah sie aus wie eine vollständige Liste - „Karte“, „Über uns“
+   und „Deine Bewertungen“ waren unauffindbar. */
 .kopf-inhalt { position: relative; }
 @media (max-width: 44rem) {
-  .kopf nav { -webkit-mask-image: linear-gradient(to right, #000 85%, transparent); mask-image: linear-gradient(to right, #000 85%, transparent); }
+  .kopf nav {
+    -webkit-mask-image: linear-gradient(to right, #000 85%, transparent);
+    mask-image: linear-gradient(to right, #000 85%, transparent);
+  }
 }
-.kopf nav { gap: 0.9rem; font-size: 0.88rem; }
+@media (max-width: 40rem) {
+  .kopf nav { gap: 0.9rem; font-size: 0.88rem; }
   .kopf .knopf { display: none; }
 }
 
@@ -616,11 +622,27 @@ a { color: var(--akzent); }
 .rechtstext dl { display: grid; grid-template-columns: auto 1fr; gap: 0.4rem 1.2rem; margin: 0; }
 .rechtstext dt { color: var(--schrift-3); }
 .rechtstext dd { margin: 0; color: var(--schrift-2); }
-/* Die Tabelle rollt für sich, nicht die Seite: Auf dem Telefon fehlte sonst
-   die dritte Spalte, und man musste die ganze Seite schieben, um sie zu sehen. */
+/* Die Tabelle rollt für sich, nicht die Seite. */
 .rechtstext table {
   border-collapse: collapse; width: 100%; font-size: 0.92rem;
   display: block; overflow-x: auto; max-width: 100%;
+}
+/* Auf dem Telefon wird gestapelt statt gerollt: Bei drei Spalten blieben sonst
+   84 Pixel je Spalte übrig, und die dritte lag außerhalb des Bildes, ohne dass
+   irgendetwas darauf hinwies. Der Spaltenkopf wandert vor die Zelle. */
+@media (max-width: 40rem) {
+  .rechtstext table, .rechtstext tbody, .rechtstext tr, .rechtstext td { display: block; }
+  .rechtstext thead { display: none; }
+  .rechtstext tr {
+    border: 1px solid var(--linie); border-radius: var(--radius);
+    padding: 0.6rem 0.8rem; margin-bottom: 0.6rem; background: var(--flaeche);
+  }
+  .rechtstext td { border: none; padding: 0.2rem 0; }
+  .rechtstext td::before {
+    content: attr(data-spalte); display: block;
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--schrift-3);
+  }
 }
 .rechtstext th, .rechtstext td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--linie); vertical-align: top; }
 .rechtstext th { color: var(--schrift-3); font-weight: 500; }
@@ -1110,6 +1132,11 @@ mark.fehlt {
   background: var(--flaeche-2); color: var(--schrift);
 }
 .teilenwege { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+/* Im Konto steht die Erklärung schon darüber - dort trägt der Block nur Feld
+   und Knöpfe und braucht keinen eigenen Rahmen. */
+.teilen .teilen.kompakt { border: none; box-shadow: none; padding: 0; background: none; }
+.empfehlungsstand { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.empfehlungsstand .kennzahl { border: none; background: none; padding: 0; }
 
 /* Die Gewinner einer Ziehung. Bei 50 Gutscheinen ist die Benachrichtigung
    Handarbeit und muss sich Zeile für Zeile abhaken lassen. */
@@ -1194,3 +1221,39 @@ mark.fehlt {
 .lp-fuss ul { display: flex; flex-wrap: wrap; gap: 1.1rem; list-style: none; margin: 0; padding: 0; }
 .lp-fuss a { color: var(--schrift-3); text-decoration: none; }
 .lp-fuss a:hover { color: var(--akzent); }
+
+/* ---------- Empfehlungen im Panel ---------- */
+/* Die Liste zeigt Kontokennungen. Sie sind lang und sollen sich vergleichen
+   lassen, ohne die Zeile zu sprengen - deshalb Schreibmaschinenschrift und
+   umbruchfest. */
+.kennung {
+  font-size: 0.78rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--schrift-2); background: var(--flaeche-2); border-radius: 6px;
+  padding: 0.1rem 0.4rem; overflow-wrap: anywhere;
+}
+.werberliste, .empfehlungsliste { list-style: none; margin: 0.8rem 0 0; padding: 0; display: grid; gap: 0.5rem; }
+.werberliste li {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
+  padding: 0.6rem 0.8rem; border: 1px solid var(--linie); border-radius: 10px;
+  background: var(--flaeche); font-size: 0.9rem;
+}
+.werberliste .code { font-weight: 650; }
+.werberliste .zaehler { color: var(--schrift-3); margin-left: auto; }
+
+.empfehlungsliste li {
+  padding: 0.7rem 0.9rem; border: 1px solid var(--linie); border-radius: 10px;
+  background: var(--flaeche); display: grid; gap: 0.3rem; font-size: 0.9rem;
+}
+/* Rot ist hier eine Aufforderung hinzusehen, kein Urteil: Geschwister an einem
+   Rechner teilen sich denselben Browser. */
+.empfehlungsliste li.auffaellig { border-color: var(--schlecht); border-left-width: 4px; }
+.empfehlungsliste .zeile { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.empfehlungsliste .beschriftung {
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--schrift-3); min-width: 7rem;
+}
+
+.lp-noscript {
+  background: var(--signal-sanft); border: 1px solid var(--signal); border-radius: var(--radius);
+  padding: 0.8rem 1rem; font-size: 0.92rem; margin-top: 1rem;
+}

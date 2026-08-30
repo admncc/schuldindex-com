@@ -2,7 +2,9 @@
 
 import { useEffect } from "react";
 import {
+  GERAETECOOKIE,
   GERAETESCHLUESSEL,
+  GERAET_TAGE,
   REFSCHLUESSEL,
   istGeraetekennung,
 } from "@/domain/geraetekennung";
@@ -43,7 +45,13 @@ export function Kennungsspiegel({
       } else {
         const gespeichert = window.localStorage.getItem(GERAETESCHLUESSEL);
         if (istGeraetekennung(gespeichert)) {
-          document.cookie = `schulindex_geraet=${gespeichert}; path=/; max-age=${365 * 24 * 3600}; samesite=lax`;
+          // Dieselben Merkmale wie beim Server: Ohne `secure` ersetzte diese
+          // Zeile einen abgesicherten Cookie durch einen, der auch über eine
+          // unverschlüsselte Verbindung mitgeht.
+          const sicher = window.location.protocol === "https:" ? "; secure" : "";
+          document.cookie =
+            `${GERAETECOOKIE}=${gespeichert}; path=/; max-age=${GERAET_TAGE * 24 * 3600}` +
+            `; samesite=lax${sicher}`;
         }
       }
 

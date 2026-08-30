@@ -16,6 +16,7 @@ import { entschluesseleWennMoeglich, verschleiere, type Kontaktart } from "../do
 import { hasheSitzung } from "../domain/anmeldung";
 import type { Aktion } from "../domain/moderation";
 import { aktualisiereAggregat } from "./aggregate";
+import { istKennung } from "../domain/kennung";
 
 /* ---------------------------------------------------------------- Anmeldung */
 
@@ -232,6 +233,8 @@ export interface Vorgang {
 }
 
 export async function holeVorgang(id: string): Promise<Vorgang | null> {
+  if (!istKennung(id)) return null;
+
   const [zeile] = await sql<Vorgang[]>`
     select b.id, b.status::text as status, b.rolle::text as rolle, b.klassenstufe, b.abgangsjahr,
            b.erstellt_am, b.zuletzt_bearbeitet_am, b.eltern_einwilligung_am,
@@ -289,6 +292,8 @@ export interface Protokolleintrag {
 }
 
 export async function protokollZurBewertung(bewertungId: string): Promise<Protokolleintrag[]> {
+  if (!istKennung(bewertungId)) return [];
+
   return sql<Protokolleintrag[]>`
     select p.id, p.aktion::text as aktion, p.erstellt_am, p.begruendung, p.grund_id,
            p.von_status::text as von_status, p.nach_status::text as nach_status,
@@ -311,6 +316,8 @@ export async function kontaktEinsehen(
   bewertungId: string,
   moderatorId: string,
 ): Promise<{ klartext: string; verschleiert: string } | null> {
+  if (!istKennung(bewertungId)) return null;
+
   const [zeile] = await sql<{ kontakt_chiffre: Uint8Array | null; kontaktart: Kontaktart; schule_id: string }[]>`
     select k.kontakt_chiffre, k.kontaktart, b.schule_id
     from bewertungen b join konten k on k.id = b.konto_id

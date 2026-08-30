@@ -51,46 +51,58 @@ export default function Datenschutzseite() {
 
       <h3>2.1 Was auf deinem Gerät gespeichert wird</h3>
       <p>
-        Drei Dinge legen wir auf deinem Gerät ab - als Cookie und, damit sie nicht verlorengehen,
-        zusätzlich im lokalen Speicher deines Browsers. Alle drei sind für den Betrieb dieses
-        Portals erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG); eine Einwilligung brauchen wir dafür
-        nicht, weil das Portal ohne sie seine eigene Zusage nicht halten kann.
+        Wir legen drei Dinge auf deinem Gerät ab. Zwei davon stehen zusätzlich im lokalen
+        Speicher deines Browsers, damit sie nicht verlorengehen, wenn ein Cookie gelöscht wird
+        oder abläuft; sie werden von dort auch wiederhergestellt. Gestützt ist das auf § 25
+        Abs. 2 Nr. 2 TDDDG (erforderlich für den von dir gewünschten Dienst), die anschließende
+        Verarbeitung auf Art. 6 Abs. 1 lit. f DSGVO - unser berechtigtes Interesse ist ein
+        Portal, dessen Wertungen nicht gefälscht sind. Du kannst dem nach Art. 21 DSGVO
+        widersprechen.
       </p>
       <table>
         <thead>
           <tr>
             <th scope="col">Was</th>
             <th scope="col">Wozu</th>
+            <th scope="col">Wo</th>
             <th scope="col">Wie lange</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Gerätekennung (Zufallszahl)</td>
-            <td>
+            <td data-spalte="Was">Gerätekennung (Zufallszahl)</td>
+            <td data-spalte="Wozu">
               Erkennen, ob viele Bewertungen aus demselben Browser kommen. Sie sagt nichts über
               dich aus und wird nur als Abdruck gespeichert; ein privates Fenster hat eine neue.
             </td>
-            <td>1 Jahr</td>
+            <td data-spalte="Wo">Cookie und lokaler Speicher</td>
+            <td data-spalte="Wie lange">
+              Cookie 1 Jahr, lokaler Speicher ohne Ablauf. Aus deiner Bewertung wird ein
+              nicht rückrechenbarer Abdruck gebildet; er bleibt, solange die Bewertung besteht.
+            </td>
           </tr>
           <tr>
-            <td>Empfehlungskennung</td>
-            <td>
+            <td data-spalte="Was">Empfehlungskennung</td>
+            <td data-spalte="Wozu">
               Nur wenn du über den Link einer anderen Person kommst: damit ihre Empfehlung zählt,
               sobald deine Bewertung veröffentlicht wird.
             </td>
-            <td>30 Tage</td>
+            <td data-spalte="Wo">Cookie und lokaler Speicher</td>
+            <td data-spalte="Wie lange">Cookie 30 Tage, lokaler Speicher ohne Ablauf</td>
           </tr>
           <tr>
-            <td>Sitzungscookie</td>
-            <td>Anmeldung bei „Deine Bewertungen“, im Schulzugang und in der Moderation.</td>
-            <td>bis zur Abmeldung</td>
+            <td data-spalte="Was">Sitzungscookie</td>
+            <td data-spalte="Wozu">Anmeldung bei „Deine Bewertungen“, im Schulzugang und in der Moderation.</td>
+            <td data-spalte="Wo">nur Cookie</td>
+            <td data-spalte="Wie lange">bis zur Abmeldung</td>
           </tr>
         </tbody>
       </table>
       <p>
-        Löschen kannst du beides jederzeit über die Einstellungen deines Browsers („Website-Daten
-        löschen“). Die Bewertung selbst bleibt davon unberührt.
+        Löschen kannst du alles jederzeit über die Einstellungen deines Browsers. Wichtig:
+        <strong> Cookies allein zu löschen genügt nicht</strong> - die Kennung wird aus dem
+        lokalen Speicher wiederhergestellt. Wähle „Website-Daten löschen“ (oder „Cookies und
+        Websitedaten“), dann ist beides weg. Die Bewertung selbst bleibt davon unberührt.
       </p>
       <p>
         Beim Ausliefern entstehen Zugriffsprotokolle des Servers (IP-Adresse, Zeitpunkt,
@@ -113,40 +125,40 @@ export default function Datenschutzseite() {
         </thead>
         <tbody>
           <tr>
-            <td>Deine Antworten, deine Rolle, deine Klassenstufe oder dein Abgangsjahr</td>
-            <td>Berechnung der Schulwertung, Veröffentlichung in zusammengefasster Form</td>
-            <td>Art. 6 Abs. 1 lit. b DSGVO (Durchführung des Nutzungsverhältnisses)</td>
+            <td data-spalte="Daten">Deine Antworten, deine Rolle, deine Klassenstufe oder dein Abgangsjahr</td>
+            <td data-spalte="Wozu">Berechnung der Schulwertung, Veröffentlichung in zusammengefasster Form</td>
+            <td data-spalte="Rechtsgrundlage">Art. 6 Abs. 1 lit. b DSGVO (Durchführung des Nutzungsverhältnisses)</td>
           </tr>
           <tr>
-            <td>
+            <td data-spalte="Daten">
               Deine Telefonnummer oder E-Mail-Adresse - <strong>verschlüsselt</strong> (AES-256-GCM)
               und zusätzlich als nicht umkehrbarer Prüfwert
             </td>
-            <td>
+            <td data-spalte="Wozu">
               Bestätigung deiner Bewertung, Schutz vor Mehrfachabgaben, Rückfragen der Moderation
             </td>
-            <td>Art. 6 Abs. 1 lit. b und lit. f DSGVO</td>
+            <td data-spalte="Rechtsgrundlage">Art. 6 Abs. 1 lit. b und lit. f DSGVO</td>
           </tr>
           <tr>
-            <td>
+            <td data-spalte="Daten">
               Die <strong>Entfernung in Kilometern</strong> zwischen deinem ungefähren Standort
               und der Schule sowie das Bundesland
             </td>
-            <td>Erkennung von Bewertungen, die offensichtlich nicht aus der Region stammen</td>
-            <td>Art. 6 Abs. 1 lit. f DSGVO</td>
+            <td data-spalte="Wozu">Erkennung von Bewertungen, die offensichtlich nicht aus der Region stammen</td>
+            <td data-spalte="Rechtsgrundlage">Art. 6 Abs. 1 lit. f DSGVO</td>
           </tr>
           <tr>
-            <td>
+            <td data-spalte="Daten">
               Die <strong>Zeitabstände zwischen deinen Antwortklicks</strong>, in Millisekunden
               und in der Reihenfolge deiner Klicks (Abschnitt 3.2)
             </td>
-            <td>Erkennung automatisierter Abgaben, Kalibrierung dieser Erkennung</td>
-            <td>Art. 6 Abs. 1 lit. f DSGVO</td>
+            <td data-spalte="Wozu">Erkennung automatisierter Abgaben, Kalibrierung dieser Erkennung</td>
+            <td data-spalte="Rechtsgrundlage">Art. 6 Abs. 1 lit. f DSGVO</td>
           </tr>
           <tr>
-            <td>Zeitpunkt und Fassung deiner Einwilligungen</td>
-            <td>Nachweispflicht</td>
-            <td>Art. 7 Abs. 1 DSGVO</td>
+            <td data-spalte="Daten">Zeitpunkt und Fassung deiner Einwilligungen</td>
+            <td data-spalte="Wozu">Nachweispflicht</td>
+            <td data-spalte="Rechtsgrundlage">Art. 7 Abs. 1 DSGVO</td>
           </tr>
         </tbody>
       </table>
@@ -189,7 +201,9 @@ export default function Datenschutzseite() {
         <li>
           <strong>Deine IP-Adresse bei der Abgabe.</strong> Aus ihr wird einmalig die ungefähre
           Entfernung zur Schule berechnet; danach wird sie verworfen. Liegt die Abgabe weit von
-          der Schule entfernt, sieht ein Mensch sie sich an. In der Datenbank steht die Zahl der Kilometer,
+          der Schule entfernt, sieht ein Mensch sie sich an. Um die Zahl der Anfragen je Absender
+          zu begrenzen, halten wir sie außerdem höchstens eine Stunde im Arbeitsspeicher des
+          Servers - in die Datenbank wird sie nicht geschrieben, und ein Neustart löscht sie. In der Datenbank steht die Zahl der Kilometer,
           nicht die Adresse. Nachgeschlagen wird sie <strong>auf unserem eigenen Server</strong>,
           in einer dort gespeicherten Datenbank - kein Dienstleister erfährt, wer bewertet.
         </li>

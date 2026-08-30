@@ -179,24 +179,33 @@ describe("pruefeZiehung", () => {
 
 describe("ziehungsmeldung", () => {
   it("nennt keine Angabe zur gewinnenden Person", () => {
-    const text = ziehungsmeldung("August 2026", 1234, true, true);
+    const text = ziehungsmeldung("August 2026", 1234, 50, 50);
     expect(text).toContain("1.234 Konten");
     expect(text).toContain("benachrichtigt");
     expect(text).not.toMatch(/\d{3,}\s*\*|@/); // keine verkürzte Nummer, keine Adresse
   });
 
-  it("unterscheidet zwischen „wurde“ und „wird“ benachrichtigt", () => {
+  it("unterscheidet zwischen „wurden“ und „werden“ benachrichtigt", () => {
     // Für die wartende Person ist das der ganze Inhalt der Zeile.
-    expect(ziehungsmeldung("August 2026", 5, true, true)).toContain("wurde benachrichtigt");
-    expect(ziehungsmeldung("August 2026", 5, true, false)).toContain("wird benachrichtigt");
+    expect(ziehungsmeldung("August 2026", 5, 5, 5)).toContain("wurden benachrichtigt");
+    expect(ziehungsmeldung("August 2026", 5, 5, 0)).toContain("werden benachrichtigt");
+  });
+
+  it("nennt den Zwischenstand bei vielen Gewinnen", () => {
+    // Bei fünfzig Gutscheinen ist „teils benachrichtigt“ ein eigener Fall.
+    expect(ziehungsmeldung("August 2026", 900, 50, 12)).toContain("12 von 50");
+  });
+
+  it("nennt die Zahl der Gewinne", () => {
+    expect(ziehungsmeldung("August 2026", 900, 50, 0)).toContain("50 Gewinne wurden gezogen");
   });
 
   it("sagt es, wenn nicht gezogen wurde", () => {
-    expect(ziehungsmeldung("August 2026", 0, false)).toMatch(/keine Teilnahmen/);
+    expect(ziehungsmeldung("August 2026", 0, 0, 0)).toMatch(/keine Teilnahmen/);
   });
 
   it("beugt „1 Konten“ vor", () => {
-    const text = ziehungsmeldung("August 2026", 1, true);
+    const text = ziehungsmeldung("August 2026", 1, 1, 0);
     expect(text).toContain("hat 1 Konto teilgenommen");
     expect(text).not.toContain("Konten");
   });

@@ -108,6 +108,13 @@ export default async function Bestaetigungsseite({
   // Der eigene Link entsteht erst hier - nicht schon bei der Abgabe: Wer
   // bewertet und nie bestätigt, braucht keinen.
   const code = await empfehlungscodeFuer(gespeichert!.konto_id);
+  const [teilnahme] = await sql<{ n: number }[]>`
+    select count(*)::int as n from bewertungen
+    where konto_id = ${gespeichert!.konto_id}
+      and verlosung_teilnahme
+      and rolle in ('schueler_unter_16', 'schueler_ab_16')
+  `;
+  const nimmtTeil = (teilnahme?.n ?? 0) > 0;
   const basis = process.env["BASIS_URL"] ?? new URL("/", "http://localhost:3000").origin;
 
   // **Ein Text für beide Ausgänge.** Ob eine Bewertung sofort erscheint oder
@@ -124,11 +131,15 @@ export default async function Bestaetigungsseite({
         }
         gut
       />
-      {code !== null ? (
+      {/* Nur wer selbst an der Verlosung teilnimmt, bekommt das Versprechen zu
+          sehen. Eine Lehrkraft, die teilt, hätte drei Freunde geworben und
+          stünde trotzdem in keinem Topf - Schülerrolle und angekreuzte
+          Teilnahme sind Bedingung (`domain/verlosung.ts`). */}
+      {code !== null && nimmtTeil ? (
         <section className="abschnitt">
           <Teilen
             link={empfehlungslink(basis, code)}
-            text={teilentext("deine Schule", empfehlungslink(basis, code))}
+            text={teilentext("meine Schule", empfehlungslink(basis, code))}
           />
         </section>
       ) : null}

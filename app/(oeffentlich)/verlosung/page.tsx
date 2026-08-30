@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { letzteZiehungen } from "@/db/verlosung";
+import { gewinner, letzteZiehungen } from "@/db/verlosung";
 import {
   GEWINNE,
   PARTNER,
@@ -20,7 +20,13 @@ export const dynamic = "force-dynamic";
 const DATUM = new Intl.DateTimeFormat("de-DE", { dateStyle: "long" });
 
 export default async function Verlosungsseite() {
-  const ziehungen = await letzteZiehungen();
+  const ziehungen = await letzteZiehungen(30);
+  // „Wurde gezogen“ kommt aus den Gewinnen, nicht aus `gewinner_konto_id`:
+  // Diese Spalte wird beim Löschen eines Kontos geleert, und die Seite
+  // behauptete danach rückwirkend, es habe keine Ziehung gegeben.
+  const gewinne = new Map(
+    await Promise.all(ziehungen.map(async (z) => [z.id, await gewinner(z.id)] as const)),
+  );
   const a = betreiber();
 
   return (
@@ -45,11 +51,11 @@ export default async function Verlosungsseite() {
         <tbody>
           {VERLOSUNGSARTEN.map((art) => (
             <tr key={art}>
-              <td>{VERLOSUNG_LABEL[art]}</td>
-              <td>
+              <td data-spalte="Ziehung">{VERLOSUNG_LABEL[art]}</td>
+              <td data-spalte="Gewinne">
                 {GEWINNE[art].anzahl} × {GEWINNE[art].wertEuro} Euro
               </td>
-              <td>
+              <td data-spalte="Wer dabei ist">
                 {art === "normal"
                   ? "Alle, die bewertet und teilgenommen haben. Wer hier einmal gewonnen hat, ist bei den weiteren Ziehungen dieser Art nicht mehr dabei."
                   : GEWINNE[art].mindestEmpfehlungen === 1
@@ -94,8 +100,8 @@ export default async function Verlosungsseite() {
         </li>
         <li>
           <strong>Benachrichtigung</strong> erfolgt über den Kontakt, mit dem die Bewertung
-          bestätigt wurde. Meldet sich die gewinnende Person nicht innerhalb von vier Wochen,
-          verfällt der Gewinn und wandert in die nächste Ziehung.
+          bestätigt wurde. Melde dich bitte innerhalb von vier Wochen zurück - danach können wir
+          den Gutschein nicht mehr zusichern.
         </li>
         <li>
           <strong>Unter 18 Jahren</strong> brauchen wir vor der Übergabe die Zustimmung der
@@ -141,16 +147,16 @@ export default async function Verlosungsseite() {
           <tbody>
             {ziehungen.map((z) => (
               <tr key={z.id}>
-                <td>{VERLOSUNG_LABEL[z.art]}</td>
-                <td>{monatsname(z.jahr, z.monat)}</td>
-                <td>{z.lose_gesamt.toLocaleString("de-DE")}</td>
-                <td>{DATUM.format(z.gezogen_am)}</td>
-                <td>
+                <td data-spalte="Ziehung">{VERLOSUNG_LABEL[z.art]}</td>
+                <td data-spalte="Monat">{monatsname(z.jahr, z.monat)}</td>
+                <td data-spalte="Teilnehmende Konten">{z.lose_gesamt.toLocaleString("de-DE")}</td>
+                <td data-spalte="Gezogen am">{DATUM.format(z.gezogen_am)}</td>
+                <td data-spalte="Ergebnis">
                   {ziehungsmeldung(
                     monatsname(z.jahr, z.monat),
                     z.lose_gesamt,
-                    z.gewinner_konto_id !== null,
-                    z.benachrichtigt_am !== null,
+                    (gewinne.get(z.id) ?? []).length,
+                    (gewinne.get(z.id) ?? []).filter((g) => g.benachrichtigtAm !== null).length,
                   )}
                 </td>
               </tr>

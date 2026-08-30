@@ -55,7 +55,14 @@ export function normalisiereKontakt(wert: string, art: Kontaktart): string {
   return "+" + ziffern;
 }
 
-function schluessel(name: string, laenge: number): Buffer {
+/**
+ * Ein Schlüssel aus der Umgebung, mit Längenprüfung.
+ *
+ * Exportiert, damit jeder Abdruck im Projekt dieselbe Prüfung durchläuft: Ein
+ * vertippter Wert soll den Start verhindern und nicht stillschweigend einen
+ * kurzen Schlüssel ergeben.
+ */
+export function schluessel(name: string, laenge: number): Buffer {
   const wert = process.env[name];
   if (!wert) throw new Error(`${name} ist nicht gesetzt.`);
   const roh = Buffer.from(wert, "base64");

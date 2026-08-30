@@ -124,15 +124,37 @@ export function aggregiere(bewertungen: readonly EinzelneBewertung[]): Schulaggr
   );
 
   const roh = gewichtssumme === 0 || !pflichtVollstaendig ? null : summe / gewichtssumme;
-  // Derselbe Maßstab wie bei der einzelnen Bewertung, hier auf Schulebene:
-  // Gezählt werden die freiwilligen Bereiche, zu denen überhaupt jemand etwas
-  // gesagt hat. Ohne das stünde auf dem Profil eine 9,4, während jede einzelne
-  // Bewertung, aus der sie entstand, an 8,5 gemessen wurde.
+
+  /**
+   * Derselbe Maßstab wie bei der einzelnen Bewertung, hier auf Schulebene -
+   * **gewichtet mit der Abdeckung.**
+   *
+   * Das ist der Unterschied zur einzelnen Bewertung, und er ist teuer erkauft:
+   * Ein freiwilliger Bereich galt schon als vorhanden, wenn ein einziger
+   * Mensch eine einzige Frage daraus beantwortet hatte. Zwanzig Bewertungen
+   * nur zu A, B und C standen bei 8,5; eine einundzwanzigste, die zusätzlich
+   * je eine Frage in D, E und F ankreuzte, hob die ganze Schule auf 10,0. Mit
+   * drei Klicks.
+   *
+   * Jetzt zählt der Anteil derer, die den Bereich beurteilt haben: Sagt die
+   * Hälfte etwas zu D, bringt D die Hälfte seines möglichen Zuschlags. Bei
+   * einer von zwanzig ist es ein Zwanzigstel - sichtbar, aber ohne Hebel.
+   */
   const freiwilligeWerte = KATEGORIEN.filter((k) => !k.pflicht)
-    .map((k) => kategorien[k.id])
-    .filter((w): w is number => w !== undefined);
+    .map((k) => {
+      const wert = kategorien[k.id];
+      if (wert === undefined) return null;
+      const beurteilt = bewertungen.filter((b) =>
+        b.ergebnis.kategorien.some((e) => e.kategorie === k.id && e.score !== null),
+      ).length;
+      return { wert, anteil: anzahl === 0 ? 0 : beurteilt / anzahl };
+    })
+    .filter((e): e is { wert: number; anteil: number } => e !== null);
+
   const gesamtscore =
-    roh === null ? null : Math.min(aufZehnerskala(roh), erreichteObergrenze(freiwilligeWerte));
+    roh === null
+      ? null
+      : Math.min(aufZehnerskala(roh), erreichteObergrenze(freiwilligeWerte));
 
   const aggressionswerte = bewertungen
     .map((b) => b.ergebnis.aggression?.index)

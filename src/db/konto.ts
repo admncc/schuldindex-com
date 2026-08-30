@@ -169,11 +169,14 @@ export interface EigeneBewertung {
   gesamtscore: string | null;
   version: number;
   hat_freitext: boolean;
+  /** Nimmt diese Bewertung an der Verlosung teil? Für den Hinweis im Konto. */
+  verlosung_teilnahme: boolean;
 }
 
 export async function eigeneBewertungen(kontoId: string): Promise<EigeneBewertung[]> {
   return sql<EigeneBewertung[]>`
     select b.id, b.status::text as status, b.rolle::text as rolle, b.klassenstufe,
+           b.verlosung_teilnahme,
            b.erstellt_am, b.zuletzt_bearbeitet_am, b.ablehnungsgrund,
            s.name as schule_name, s.slug as schule_slug, s.ort as schule_ort,
            v.gesamtscore, v.version,

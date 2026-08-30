@@ -160,3 +160,52 @@ describe("Trend", () => {
     expect(t.richtung).toBe("stabil");
   });
 });
+
+describe("Obergrenze auf Schulebene", () => {
+  /** Bestnoten - invertierte Fragen andersherum, sonst wäre „5“ das Gegenteil. */
+  function bestens(kategorien: readonly string[]): Antworten {
+    const a: Record<string, Antwort> = {};
+    for (const frage of FRAGEN) {
+      if (!kategorien.includes(frage.kategorie)) continue;
+      a[frage.id] = (frage.wertung === "invertiert" ? 1 : 5) as Skalenwert;
+    }
+    return a;
+  }
+
+  const beste = (kategorien: readonly string[]): EinzelneBewertung => ({
+    ergebnis: bewerte(bestens(kategorien)),
+    rolle: "schueler_ab_16",
+    hatFreitext: false,
+    erstelltAm: new Date("2026-08-01"),
+  });
+
+  it("lässt eine einzelne Bewertung die Deckelung nicht aushebeln", () => {
+    // Der teuer erkaufte Fehler: Ein freiwilliger Bereich galt als vorhanden,
+    // sobald ein einziger Mensch eine einzige Frage daraus beantwortet hatte.
+    // Zwanzig Bewertungen nur zu A, B und C standen bei 8,5; eine
+    // einundzwanzigste mit Kreuzen in D, E und F hob die ganze Schule auf 10,0.
+    const nurPflicht = Array.from({ length: 20 }, () => beste(["A", "B", "C"]));
+    const ohne = aggregiere(nurPflicht);
+    const mitEiner = aggregiere([...nurPflicht, beste(["A", "B", "C", "D", "E", "F"])]);
+
+    expect(ohne.gesamtscoreIntern).toBeCloseTo(8.5, 6);
+    expect(mitEiner.gesamtscoreIntern!).toBeGreaterThan(8.5);
+    // Ein Zwanzigstel Abdeckung je Bereich: sichtbar, aber ohne Hebel.
+    expect(mitEiner.gesamtscoreIntern!).toBeLessThan(8.75);
+  });
+
+  it("erreicht die vollen 10, wenn wirklich alle alle Bereiche beurteilt haben", () => {
+    const alle = aggregiere(Array.from({ length: 20 }, () => beste(["A", "B", "C", "D", "E", "F"])));
+    expect(alle.gesamtscoreIntern).toBeCloseTo(10, 6);
+  });
+
+  it("wächst mit der Abdeckung", () => {
+    const haelfte = aggregiere([
+      ...Array.from({ length: 10 }, () => beste(["A", "B", "C", "D"])),
+      ...Array.from({ length: 10 }, () => beste(["A", "B", "C"])),
+    ]);
+    const alle = aggregiere(Array.from({ length: 20 }, () => beste(["A", "B", "C", "D"])));
+    expect(haelfte.gesamtscoreIntern!).toBeLessThan(alle.gesamtscoreIntern!);
+    expect(alle.gesamtscoreIntern).toBeCloseTo(9, 6);
+  });
+});

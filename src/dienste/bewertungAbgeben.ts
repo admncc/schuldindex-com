@@ -186,7 +186,10 @@ export async function bewertungAbgeben(
       // `domain/formularstempel.ts`. Ohne gültigen Stempel bleibt es leer,
       // und das Tempo-Signal entfällt, statt zu raten.
       dauerSekunden: eingabe.dauerSekunden ?? null,
-      stempelFehlt: eingabe.stempelFehlt ?? false,
+      // Unverändert durchgereicht: Wo die Schnittstelle nichts gesagt hat,
+      // soll auch nichts angenommen werden - weder „Stempel fehlt“ noch
+      // „Stempel war da“. Beides zöge ein Signal nach sich.
+      stempelFehlt: eingabe.stempelFehlt,
       // Für die Prüfung zählen nur die Kennzahlen aus `betrug.klick`. Die Folge
       // selbst wird weiter unten eigens gespeichert.
       klickabstaende: eingabe.klickabstaende ?? null,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GEWINNE, PARTNER } from "@/domain/verlosungsgewinne";
 
 /**
@@ -15,9 +15,31 @@ import { GEWINNE, PARTNER } from "@/domain/verlosungsgewinne";
  * nicht überall, und ein Knopf, der auf dem Rechner nichts tut, wirkt kaputt.
  * Wo es ihn gibt, steht er daneben.
  */
-export function Teilen({ link, text }: { link: string; text: string }) {
+export function Teilen({
+  link,
+  text,
+  kompakt = false,
+}: {
+  link: string;
+  text: string;
+  /**
+   * Ohne Überschrift und Erklärung - für Stellen, an denen beides schon
+   * darüber steht (die Kontoseite). Zweimal dasselbe zu erklären macht die
+   * Erklärung nicht besser.
+   */
+  kompakt?: boolean;
+}) {
   const [kopiert, setKopiert] = useState(false);
-  const [teilbar] = useState(() => typeof navigator !== "undefined" && "share" in navigator);
+  const [vonHand, setVonHand] = useState(false);
+  // Erst nach dem Angleichen: Auf dem Server gibt es kein `navigator`, und ein
+  // Knopf, der im ausgelieferten HTML fehlt und danach erscheint, lässt React
+  // den Baum verwerfen.
+  const [teilbar, setTeilbar] = useState(false);
+  const feld = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setTeilbar(typeof navigator !== "undefined" && "share" in navigator);
+  }, []);
 
   async function kopieren() {
     try {
@@ -25,25 +47,38 @@ export function Teilen({ link, text }: { link: string; text: string }) {
       setKopiert(true);
       window.setTimeout(() => setKopiert(false), 2500);
     } catch {
-      // Ohne Zwischenablage bleibt der Link im Feld stehen und lässt sich von
-      // Hand markieren. Eine Fehlermeldung hilft hier niemandem.
+      // Ohne Zwischenablage - unsicherer Ursprung, App-Browser, verweigerte
+      // Erlaubnis - passierte hier sichtbar nichts, und ein Knopf, der nichts
+      // tut, wirkt kaputt. Also den Link markieren und es sagen.
+      feld.current?.select();
+      setVonHand(true);
     }
   }
 
   return (
-    <div className="teilen">
-      <h2>Hol deine Leute dazu</h2>
-      <p>
-        Je mehr aus deiner Schule bewerten, desto mehr sagt die Wertung aus. Und: Sobald{" "}
-        <strong>eine einzige Person</strong> über deinen Link bewertet, bist du diesen Monat
-        zusätzlich in der <strong>Superverlosung</strong> - {GEWINNE.super.anzahl} Gutscheine über
-        je {GEWINNE.super.wertEuro} Euro von {PARTNER}.
-      </p>
+    <div className={kompakt ? "teilen kompakt" : "teilen"}>
+      {kompakt ? null : (
+        <>
+          <h2>Hol deine Leute dazu</h2>
+          <p>
+            Je mehr aus deiner Schule bewerten, desto mehr sagt die Wertung aus. Und: Sobald{" "}
+            <strong>eine einzige Person</strong> über deinen Link bewertet, bist du diesen Monat
+            zusätzlich in der <strong>Superverlosung</strong> - {GEWINNE.super.anzahl} Gutscheine
+            über je {GEWINNE.super.wertEuro} Euro von {PARTNER}.
+          </p>
+        </>
+      )}
 
       <div className="linkzeile">
-        <input readOnly value={link} aria-label="Dein Empfehlungslink" onFocus={(e) => e.currentTarget.select()} />
+        <input
+          ref={feld}
+          readOnly
+          value={link}
+          aria-label="Dein Empfehlungslink"
+          onFocus={(e) => e.currentTarget.select()}
+        />
         <button type="button" className="knopf" onClick={kopieren}>
-          {kopiert ? "Kopiert" : "Link kopieren"}
+          {kopiert ? "Kopiert" : vonHand ? "Bitte von Hand kopieren" : "Link kopieren"}
         </button>
       </div>
 
@@ -67,10 +102,13 @@ export function Teilen({ link, text }: { link: string; text: string }) {
         ) : null}
       </div>
 
-      <p className="fussnote">
-        Der Link zählt, sobald jemand darüber eine Bewertung abgibt und diese veröffentlicht wird.
-        Wer ihn nur anklickt, zählt nicht - sonst wäre die Superverlosung eine Klickzählung.
-      </p>
+      {kompakt ? null : (
+        <p className="fussnote">
+          Der Link zählt, sobald jemand darüber eine Bewertung abgibt und diese veröffentlicht
+          wird. Wer ihn nur anklickt, zählt nicht - sonst wäre die Superverlosung eine
+          Klickzählung.
+        </p>
+      )}
     </div>
   );
 }

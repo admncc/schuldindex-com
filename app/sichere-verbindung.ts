@@ -38,8 +38,19 @@ function hinterProxy(): boolean {
 }
 
 export async function verbindungIstSicher(): Promise<boolean> {
-  if (!hinterProxy()) return false;
   const kopf = await headers();
+
+  if (!hinterProxy()) {
+    // Ohne eigenen Proxy ist der Kopf eine Behauptung des Absenders und taugt
+    // nicht. Eine Server Action sieht die Verbindung selbst nicht - was bleibt,
+    // ist die Adresse, unter der das Portal betrieben wird. Sie steht in
+    // `BASIS_URL` und ist eine Angabe des Betreibers, keine des Besuchers.
+    //
+    // `return false` stand hier einmal und war zu streng: Bei direktem TLS -
+    // oder wenn jemand `VERTRAUTE_PROXYS` vergisst - bekam das Sitzungscookie
+    // der Moderation weder `Secure` noch das `__Host-`-Präfix.
+    return (process.env["BASIS_URL"] ?? "").startsWith("https://");
+  }
 
   const weitergereicht = kopf.get("x-forwarded-proto");
   if (weitergereicht) {

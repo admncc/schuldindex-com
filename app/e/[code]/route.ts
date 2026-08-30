@@ -19,10 +19,27 @@ export async function GET(
   { params }: { params: Promise<{ code: string }> },
 ): Promise<NextResponse> {
   const { code } = await params;
-  const ziel = new URL("/", anfrage.url);
-  const antwort = NextResponse.redirect(ziel, 302);
 
-  if (istEmpfehlungscode(code)) {
+  // **Relativ, nicht absolut.** `new URL("/", anfrage.url)` nimmt den Namen,
+  // unter dem der Node-Prozess gebunden ist - hinter einem Vorschaltserver
+  // also `localhost:3000`. Wer den vorgelesenen Link eintippt, landete damit
+  // auf einer Adresse, die es draußen nicht gibt.
+  const antwort = new NextResponse(null, { status: 302, headers: { location: "/" } });
+
+  // Eine bestehende Empfehlung bleibt stehen - dieselbe Regel wie in der
+  // Middleware. Ohne sie überschriebe der zuletzt geöffnete Kurzlink den
+  // ersten: Wer in der Klassengruppe seinen Link hinterherpostet, bekäme alle,
+  // die längst über den Link einer anderen gekommen sind.
+  const schonGeworben = istEmpfehlungscode(
+    anfrage.headers
+      .get("cookie")
+      ?.split(";")
+      .map((t) => t.trim())
+      .find((t) => t.startsWith(`${EMPFEHLUNGSCOOKIE}=`))
+      ?.slice(EMPFEHLUNGSCOOKIE.length + 1),
+  );
+
+  if (istEmpfehlungscode(code) && !schonGeworben) {
     const sicher = anfrageIstSicher(anfrage);
     antwort.cookies.set(EMPFEHLUNGSCOOKIE, code, {
       httpOnly: true,

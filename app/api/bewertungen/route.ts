@@ -48,8 +48,14 @@ const ABGABEN_JE_STUNDE = 20;
 
 export async function POST(anfrage: Request): Promise<NextResponse> {
   // Die Adresse wird gezählt und nicht gespeichert (`domain/drosselung.ts`).
+  // Fehlt sie - ohne eigenen Proxy gibt es keine belastbare -, zählt die
+  // Browserkennung. Die ist in zehn Sekunden zurückgesetzt und taugt nicht als
+  // Sperre; für eine Lastgrenze reicht sie, und ohne sie gäbe es gar keine.
   const absender = absenderadresse(anfrage.headers);
-  if (!zaehle("bewertung", absender, ABGABEN_JE_STUNDE, 3_600_000).erlaubt) {
+  const kekseFuerZaehler = await cookies();
+  const zaehlkennung =
+    absender ?? kekseFuerZaehler.get(GERAETECOOKIE)?.value ?? null;
+  if (!zaehle("bewertung", zaehlkennung, ABGABEN_JE_STUNDE, 3_600_000).erlaubt) {
     return NextResponse.json(
       {
         ok: false,
@@ -108,10 +114,16 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
    * zu werben; als Rückfall rettet er die Empfehlung, wenn Safari den Cookie
    * nach sieben Tagen kappt oder der Link in einer App geöffnet wurde.
    */
-  const kekse = await cookies();
+  const kekse = kekseFuerZaehler;
   const gesichert = eingabe.gesichert ?? {};
   const codeAusCookie = kekse.get(EMPFEHLUNGSCOOKIE)?.value ?? null;
-  const codeAusSpeicher = typeof gesichert.refcode === "string" ? gesichert.refcode : null;
+  // Der Rückfall gilt nur für Anfragen, die überhaupt Cookies mitbringen -
+  // also für Browser mit Sitzung. Ein Skript, das schlicht keine Cookies
+  // schickt, machte den Local-Storage-Wert sonst zur alleinigen Quelle und
+  // konnte sich damit selbst werben, so oft es wollte.
+  const hatKekse = (anfrage.headers.get("cookie") ?? "") !== "";
+  const codeAusSpeicher =
+    hatKekse && typeof gesichert.refcode === "string" ? gesichert.refcode : null;
   const empfehlungscode = istEmpfehlungscode(codeAusCookie)
     ? codeAusCookie
     : istEmpfehlungscode(codeAusSpeicher)
@@ -120,7 +132,7 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
 
   const geraet = gueltigeKennung(
     kekse.get(GERAETECOOKIE)?.value,
-    typeof gesichert.geraet === "string" ? gesichert.geraet : null,
+    hatKekse && typeof gesichert.geraet === "string" ? gesichert.geraet : null,
   );
 
   const slug = typeof eingabe.schulSlug === "string" ? eingabe.schulSlug : "";

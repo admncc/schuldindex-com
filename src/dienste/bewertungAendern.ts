@@ -91,7 +91,19 @@ export async function bewertungAendern(
   // der alten Fassung. Geo- und Klicksignale bleiben, wie sie waren; sie
   // gehören zur Abgabe, nicht zum Text. Neu bewertet wird das Antwortmuster.
   const muster = pruefeAntwortmuster(eingabe.antworten as Antworten);
-  const signale = muster.map((sig) => ({ art: sig.art, gewicht: sig.gewicht }));
+  const signale: { art: string; gewicht: number }[] = muster.map((sig) => ({
+    art: sig.art,
+    gewicht: sig.gewicht,
+  }));
+
+  // Auch der Freitext wird neu beurteilt. Sonst blieb dieser Weg offen: eine
+  // unauffällige Bewertung abgeben, vor der Bestätigung den Text gegen einen
+  // mit Namen oder Adresse tauschen (der Zustand „wartet auf Bestätigung“
+  // bleibt dabei stehen), dann bestätigen - und die Bestätigung rechnete mit
+  // den Signalen von vorher.
+  if (auffaellig) {
+    signale.push({ art: "verdaechtiger_freitext", gewicht: 3 });
+  }
 
   // Ein auffälliger Freitext hält die geänderte Fassung zurück, auch wenn die
   // vorherige veröffentlicht war. Genau dafür ist die Rückkehr in die Prüfung da.

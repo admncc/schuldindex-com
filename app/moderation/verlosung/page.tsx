@@ -81,7 +81,7 @@ export default async function Verlosungsseite() {
         </div>
       </div>
 
-      <h2>Nächste Ziehung: {monatsname(vormonat.jahr, vormonat.monat)}</h2>
+      <h2>Zu ziehen: {monatsname(vormonat.jahr, vormonat.monat)}</h2>
       {VERLOSUNGSARTEN.map((art) => {
         const schonGezogen = ziehungen.some(
           (z) => z.jahr === vormonat.jahr && z.monat === vormonat.monat && z.art === art,
@@ -135,14 +135,16 @@ export default async function Verlosungsseite() {
                 {ZAHL.format(z.lose_gesamt)} Lose · gezogen am {ZEIT.format(z.gezogen_am)}
               </span>
 
-              {gezogene.length === 0 && z.gewinner_konto_id === null ? (
+              {/* „Gezogen“ kommt aus den Gewinnen, nicht aus der Altspalte:
+                  Die wird beim Löschen eines Kontos geleert. */}
+              {gezogene.length === 0 && z.lose_gesamt === 0 ? (
                 <p className="gedaempft">Keine Teilnahmen - es wurde nicht gezogen.</p>
               ) : (
                 <>
                   <dl className="angaben">
                     <dt>Gewinne</dt>
                     <dd>
-                      {ZAHL.format(Math.max(gezogene.length, 1))} × {GEWINNE[z.art].wertEuro} Euro
+                      {ZAHL.format(gezogene.length)} × {GEWINNE[z.art].wertEuro} Euro
                     </dd>
                     <dt>Zufallswert</dt>
                     <dd>

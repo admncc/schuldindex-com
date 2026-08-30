@@ -15,7 +15,7 @@
  * Losliste ergeben sich dieselben Gewinner. Bei einer Verlosung, an der
  * Minderjährige teilnehmen, ist „vertrau uns“ keine ausreichende Auskunft.
  *
- * **Zwei Ziehungen je Monat.**
+ * **Drei Ziehungen je Monat.**
  *
  *  - Die **normale Verlosung** unter allen, die bewertet und teilgenommen
  *    haben. Wer einmal gewonnen hat, ist danach heraus - sonst gewinnt auf
@@ -231,18 +231,25 @@ export function pruefeMehrfachziehung(
 export function ziehungsmeldung(
   monat: string,
   loseGesamt: number,
-  gezogen: boolean,
-  benachrichtigt = false,
+  gewinne: number,
+  benachrichtigt: number,
 ): string {
-  if (!gezogen) {
+  if (gewinne === 0) {
     return `Für ${monat} lagen keine Teilnahmen vor. Es wurde nicht gezogen.`;
   }
+
   const teilnahme = `Für ${monat} ${loseGesamt === 1 ? "hat" : "haben"} ${loseGesamt.toLocaleString("de-DE")} ${
     loseGesamt === 1 ? "Konto" : "Konten"
-  } teilgenommen.`;
+  } teilgenommen, ${gewinne.toLocaleString("de-DE")} ${gewinne === 1 ? "Gewinn wurde" : "Gewinne wurden"} gezogen.`;
+
   // Der Unterschied zwischen „ist benachrichtigt“ und „wird benachrichtigt“ ist
-  // für die wartende Person der ganze Inhalt dieser Zeile.
-  return benachrichtigt
-    ? `${teilnahme} Die gewinnende Person wurde benachrichtigt.`
-    : `${teilnahme} Die gewinnende Person wird benachrichtigt.`;
+  // für die wartende Person der ganze Inhalt dieser Zeile. Bei bis zu fünfzig
+  // Gewinnen ist auch das Dazwischen ein eigener Fall.
+  if (benachrichtigt >= gewinne) {
+    return `${teilnahme} Alle Gewinnenden wurden benachrichtigt.`;
+  }
+  if (benachrichtigt === 0) {
+    return `${teilnahme} Die Gewinnenden werden benachrichtigt.`;
+  }
+  return `${teilnahme} ${benachrichtigt.toLocaleString("de-DE")} von ${gewinne.toLocaleString("de-DE")} Gewinnenden wurden benachrichtigt.`;
 }

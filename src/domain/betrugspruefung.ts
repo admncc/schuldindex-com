@@ -22,6 +22,7 @@ export type Signalart =
   | "zu_schnell_geklickt"
   | "gleichmaessige_klicks"
   | "klickfolge_unplausibel"
+  | "klickfolge_fehlt"
   | "ohne_formularstempel"
   | "geraet_mehrfach"
   | "abweichung_vom_mittel"
@@ -313,6 +314,20 @@ export function pruefe(k: Pruefkontext, e: Einstellungen = VORGABEN): Pruefergeb
       art: "ohne_formularstempel",
       gewicht: 2,
       erlaeuterung: "Abgabe ohne gültigen Formularstempel",
+    });
+  } else if (k.stempelFehlt === false && (k.klickabstaende?.length ?? 0) < 2) {
+    // Ein gültiger Stempel heißt: Das Formular war offen. Dann hat der Browser
+    // auch geklickt, und die Abstände müssten da sein. Fehlen sie trotzdem,
+    // ist das dieselbe Auslassung, die beim Stempel schon ein Signal ist -
+    // „kein Signal statt auffällig“ war hier der einfachste Weg, die
+    // Klickprüfung abzuschalten.
+    //
+    // Nur bei ausdrücklich gültigem Stempel: Wo das Feld gar nicht gesetzt ist
+    // (ältere Aufrufer), wird nichts erfunden.
+    signale.push({
+      art: "klickfolge_fehlt",
+      gewicht: 1,
+      erlaeuterung: "Formular war offen, aber es wurden keine Klickabstände gemeldet",
     });
   }
 

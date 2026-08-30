@@ -9,7 +9,7 @@ import {
   baueLose,
   erzeugeZufallswert,
   monatszeitraum,
-  pruefeZiehung,
+  pruefeMehrfachziehung,
   ziehe,
   zieheMehrere,
   type Los,
@@ -47,24 +47,63 @@ export async function teilnahmen(
         art === "normal"
           ? // Wer in der normalen Ziehung schon einmal gewonnen hat, ist dort
             // heraus. Sonst gewinnt auf Dauer, wer am längsten dabei ist.
+            // Geprüft wird beides: die Gewinntabelle und die alte Spalte an
+            // der Ziehung, denn die Tabelle gibt es erst seit Migration 0025.
             sql`and not exists (
                   select 1 from verlosungsgewinne g
                   join verlosungen v on v.id = g.verlosung_id
                   where g.konto_id = b.konto_id and v.art = 'normal'
+                )
+                and not exists (
+                  select 1 from verlosungen v2
+                  where v2.art = 'normal' and v2.gewinner_konto_id = b.konto_id
                 )`
-          : // Super- und Mega-Verlosung: Es zählt, wie viele im selben Monat
-            // geworbene Personen eine **veröffentlichte** Bewertung haben.
-            sql`and (
-                  select count(*) from empfehlungen e
-                  join bewertungen gb on gb.id = e.bewertung_id
-                  where e.werber_konto_id = b.konto_id
-                    and gb.status = 'freigegeben'
-                    and e.erstellt_am >= ${von} and e.erstellt_am < ${bis}
-                ) >= ${mindestens}`
+          : sql``
       }
     order by b.konto_id, b.id
   `;
-  return zeilen.map((z) => ({ kontoId: z.konto_id, bewertungId: z.id, rolle: z.rolle }));
+
+  const lose = zeilen.map((z) => ({ kontoId: z.konto_id, bewertungId: z.id, rolle: z.rolle }));
+  if (art === "normal") return lose;
+
+  /**
+   * Super- und Mega-Verlosung: Der Topf kommt aus den **Empfehlungen** des
+   * Monats, nicht aus den Bewertungen des Monats.
+   *
+   * Das war zuerst anders und war falsch: Wer im Juli bewertet und geteilt hat
+   * und dessen Freundin im August darüber bewertet, stand in keiner der beiden
+   * Superziehungen - im Juli, weil die Empfehlung auf August datiert; im
+   * August, weil er selbst nicht bewertet hatte. Genau der Regelfall, sobald
+   * ein Monatswechsel dazwischenliegt.
+   *
+   * Verlangt wird vom Werber nur, dass er überhaupt eine veröffentlichte,
+   * teilnehmende Bewertung hat - irgendwann, nicht in diesem Monat.
+   */
+  const werber = await sql<{ konto_id: string; bewertung_id: string; rolle: string }[]>`
+    select e.werber_konto_id as konto_id,
+           min(wb.id::text)::uuid as bewertung_id,
+           min(wb.rolle::text) as rolle
+    from empfehlungen e
+    join bewertungen gb on gb.id = e.bewertung_id and gb.status = 'freigegeben'
+    join bewertungen wb on wb.konto_id = e.werber_konto_id
+      and wb.verlosung_teilnahme and wb.status = 'freigegeben'
+    join konten wk on wk.id = e.werber_konto_id and wk.verifiziert_am is not null
+    where e.erstellt_am >= ${von} and e.erstellt_am < ${bis}
+      -- Eine Empfehlung aus demselben Browser zählt nicht. Wer sich selbst
+      -- wirbt, tut das fast immer im selben Fenster; ohne diese Zeile genügten
+      -- eine zweite Adresse und zehn Minuten für ein Los in der Superziehung.
+      and not exists (
+        select 1 from bewertungen sb
+        where sb.konto_id = e.werber_konto_id
+          and sb.geraet_hash is not null
+          and sb.geraet_hash = gb.geraet_hash
+      )
+    group by e.werber_konto_id
+    having count(*) >= ${mindestens}
+    order by e.werber_konto_id
+  `;
+
+  return werber.map((z) => ({ kontoId: z.konto_id, bewertungId: z.bewertung_id, rolle: z.rolle }));
 }
 
 export interface Ziehung {
@@ -229,11 +268,28 @@ export async function merkeBenachrichtigung(gewinnId: string): Promise<void> {
  * Gebraucht, wenn jemand die Ziehung anzweifelt - und als Prüfung, dass die
  * gespeicherte Losliste zum eingetragenen Gewinner passt.
  */
-export async function pruefeGespeicherteZiehung(jahr: number, monat: number): Promise<boolean | null> {
-  const ziehung = await holeZiehung(jahr, monat);
+export async function pruefeGespeicherteZiehung(
+  jahr: number,
+  monat: number,
+  art: Verlosungsart = "normal",
+): Promise<boolean | null> {
+  const ziehung = await holeZiehung(jahr, monat, art);
   if (ziehung === null) return null;
-  if (ziehung.gewinner_konto_id === null) return ziehung.lose_gesamt === 0;
 
+  const gezogene = await gewinner(ziehung.id);
+  if (gezogene.length === 0) return ziehung.lose_gesamt === 0;
+
+  // **Dasselbe Verfahren wie beim Ziehen.** Hier stand einmal `pruefeZiehung`,
+  // also die Einzelziehung - gezogen wurde aber schon mit `zieheMehrere`. Die
+  // Nachprüfung widersprach damit jeder echten Ziehung und meldete
+  // ausnahmslos „rechnet sich nicht nach“. Genau das Gegenteil dessen, wofür
+  // sie da ist: Teilnahmebedingung 5 sagt zu, dass sich jede Ziehung
+  // nachrechnen lässt.
   const lose: Los[] = ziehung.losliste.map((kontoId) => ({ kontoId, bewertungIds: [] }));
-  return pruefeZiehung(lose, ziehung.zufallswert, ziehung.gewinner_konto_id);
+  return pruefeMehrfachziehung(
+    lose,
+    ziehung.zufallswert,
+    GEWINNE[art].anzahl,
+    gezogene.map((g) => g.kontoId),
+  );
 }
