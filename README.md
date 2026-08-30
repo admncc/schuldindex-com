@@ -110,6 +110,7 @@ abhängt und bei dem Korrektheit am meisten zählt:
 | `scripts/suche.test.ts` | Prüft die Suche an den echten Daten |
 | `scripts/trefferseite.test.ts` | Prüft Filter, Facetten und Sortierung der Ergebnisseite an den echten Daten |
 | `scripts/durchstich.test.ts` | Durchstich: echte Schulen, Bewertungen, Aggregation |
+| `scripts/verlosung.test.ts` | Durchstich der Verlosung: echte Ziehung, Empfehlungen, Missbrauchsabwehr in SQL |
 | `scripts/moderator-anlegen.ts` | Legt ein Moderationskonto an, gibt Kennwort und App-URL einmalig aus |
 | `scripts/zusammenfassen.ts` | Erzeugt die Freitext-Zusammenfassungen der fälligen Schulen |
 | `scripts/verlosung-ziehen.ts` | Zieht eine der drei Verlosungen, `--pruefen` rechnet sie nach |
