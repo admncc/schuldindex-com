@@ -19,6 +19,9 @@ export default async function OeffentlichesLayout({ children }: { children: Reac
   return (
     <>
       <Kennungsspiegel geraet={geraet} refcode={refcode} />
+      {/* Sprungmarke (WCAG 2.4.1). Sichtbar erst beim Anspringen mit der
+          Tabulatortaste - wer mit der Maus liest, soll sie nie sehen. */}
+      <a className="sprungmarke" href="#inhalt">Zum Inhalt</a>
       <header className="kopf">
         <div className="huelle kopf-inhalt">
           <a className="marke" href="/">
@@ -35,7 +38,9 @@ export default async function OeffentlichesLayout({ children }: { children: Reac
         </div>
       </header>
 
-      <main className="huelle">{children}</main>
+      <main className="huelle" id="inhalt" tabIndex={-1}>
+        {children}
+      </main>
 
       <footer className="fuss">
         <div className="huelle">

@@ -62,6 +62,17 @@ export default async function Bewertungsseite({
       </section>
 
       <section className="abschnitt">
+        {/* Der Landeplatz sagt es, diese Seite sagte es nicht - dabei landet
+            man hier vom Schulprofil aus. Ohne JavaScript tat der Knopf
+            „Weiter" gar nichts: kein Schritt, keine Meldung, keine geänderte
+            Adresse. Eine stumme Sackgasse. */}
+        <noscript>
+          <p className="fehlerkasten">
+            Für das Bewertungsformular brauchst du JavaScript - ohne bewegt sich hier nichts.
+            Schulsuche und Schulprofile funktionieren auch ohne.
+          </p>
+        </noscript>
+
         {/* Der Stempel wird hier ausgestellt und beim Absenden zurückgeschickt.
             Aus ihm rechnet der Server die Dauer - eine Angabe des Browsers wäre
             wertlos (siehe domain/formularstempel.ts). */}

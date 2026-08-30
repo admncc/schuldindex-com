@@ -31,7 +31,7 @@ import {
   ZUSCHLAG_JE_FREIWILLIGER_BEREICH,
   hoechstwert,
 } from "@/domain/scoring";
-import { GEWINNE } from "@/domain/verlosungsgewinne";
+import { GEWINNE, VERLOSUNG_LABEL } from "@/domain/verlosungsgewinne";
 import { gesicherteKennungen } from "../../kennung";
 
 const ZAHL = new Intl.NumberFormat("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -555,7 +555,7 @@ export function Bewertungsformular({
                 <label className="ankreuzfeld">
                   <input type="checkbox" checked={verlosung} onChange={(e) => setVerlosung(e.target.checked)} />
                   <span>
-                    Ich möchte an der monatlichen Verlosung teilnehmen ({GEWINNE.normal.anzahl}{" "}
+                    Ich möchte an der {VERLOSUNG_LABEL.normal} teilnehmen ({GEWINNE.normal.anzahl}{" "}
                     Gutscheine über je {GEWINNE.normal.wertEuro} Euro) und habe die{" "}
                     <a href="/verlosung" target="_blank" rel="noopener">Teilnahmebedingungen</a>{" "}
                     gelesen. Ein Los je Konto und Monat.

@@ -13,7 +13,7 @@ import { Fehlt } from "../rechtsteile";
 
 export const metadata: Metadata = {
   title: "Verlosung",
-  description: "Teilnahmebedingungen der monatlichen Verlosung und die bisherigen Ziehungen.",
+  description: "Teilnahmebedingungen der Verlosungen und die bisherigen Ziehungen.",
 };
 export const dynamic = "force-dynamic";
 
@@ -33,8 +33,8 @@ export default async function Verlosungsseite() {
     <section className="abschnitt rechtstext">
       <h1>Verlosung</h1>
       <p>
-        Wer eine Schule bewertet und Schülerin oder Schüler ist, kann an der monatlichen
-        Verlosung teilnehmen. Die Teilnahme ist freiwillig und kostenlos; die Bewertung zählt
+        Wer eine Schule bewertet und Schülerin oder Schüler ist, kann an der Verlosung
+        teilnehmen. Gezogen wird jeden Monat. Die Teilnahme ist freiwillig und kostenlos; die Bewertung zählt
         genauso, wenn du das Kästchen nicht ankreuzt. Ausgespielt werden Gutscheine von{" "}
         {PARTNER}, einlösbar in über 500 Geschäften.
       </p>
@@ -80,7 +80,7 @@ export default async function Verlosungsseite() {
           ausgeschlossen.
         </li>
         <li>
-          <strong>Wer schon gewonnen hat</strong>, nimmt an der monatlichen Verlosung nicht
+          <strong>Wer schon gewonnen hat</strong>, nimmt an der Verlosung nicht
           erneut teil - an Super- und Mega-Verlosung dagegen weiterhin. Die belohnen nicht das
           Bewerten, sondern das Weitersagen.
         </li>

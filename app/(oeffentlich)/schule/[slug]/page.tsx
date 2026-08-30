@@ -86,7 +86,7 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
       {schule.anzahl === 0 ? (
         <section className="abschnitt">
           <div className="leerzustand">
-            <h3>{t("schule.keineBewertungen")}</h3>
+            <h2>{t("schule.keineBewertungen")}</h2>
             <p>{t("schule.keineBewertungenHinweis")}</p>
             <a className="knopf" href={`/bewerten/${schule.slug}`}>{t("schule.bewertenKnopf")}</a>
           </div>
@@ -94,7 +94,7 @@ export default async function Schulseite({ params }: { params: Promise<{ slug: s
       ) : !sichtbar ? (
         <section className="abschnitt">
           <div className="leerzustand">
-            <h3>{t("schule.zuWenigeBewertungen")}</h3>
+            <h2>{t("schule.zuWenigeBewertungen")}</h2>
             <p>
               {t("schule.zuWenigeBewertungenHinweis", {
                 mindestzahl: MINDESTZAHL_PROFIL,

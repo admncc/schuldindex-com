@@ -233,7 +233,7 @@ export default async function Suchseite({
           </>
         ) : treffer.length === 0 ? (
           <div className="leerzustand">
-            <h3>{t("suche.keineTreffer")}</h3>
+            <h2>{t("suche.keineTreffer")}</h2>
             <p>{t("suche.keineTrefferHinweis")}</p>
           </div>
         ) : (

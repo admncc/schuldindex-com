@@ -146,8 +146,8 @@ export default function Ueberseite() {
 
       <h2>Etwas stimmt nicht?</h2>
       <p>
-        Falsche Stammdaten melden wir gern korrigiert - schreib uns über die Adresse im{" "}
-        <a href="/impressum">Impressum</a>. Für Inhalte, die du für rechtswidrig hältst, gibt es
+        Ist eine Angabe zu einer Schule falsch, schreib uns über die Adresse im{" "}
+        <a href="/impressum">Impressum</a> - wir korrigieren sie. Für Inhalte, die du für rechtswidrig hältst, gibt es
         das <a href="/inhalt-melden">Meldeformular</a>.
       </p>
     </section>

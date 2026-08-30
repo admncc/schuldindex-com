@@ -44,6 +44,18 @@ export default async function Kartenseite({
           antippen zeigt sie an. Ziehen verschiebt, Scrollen zoomt.
         </p>
 
+        {/* Karte und Liste kommen vom Server und stehen auch ohne JavaScript
+            da - die sieben Bedienelemente darüber taten aber nichts, und der
+            Satz oben versprach weiter, dass Antippen und Ziehen funktionieren.
+            Der Bundeslandwähler daneben ist ein echtes GET-Formular. */}
+        <noscript>
+          <p className="fehlerkasten">
+            Ohne JavaScript siehst du die Karte und die Liste, kannst aber nicht zoomen, ziehen
+            oder eine Schule antippen. Der Bundeslandwähler funktioniert; für alles Weitere ist{" "}
+            <a href="/schulen">die Schulsuche</a> der bessere Weg.
+          </p>
+        </noscript>
+
         <form className="filter" method="get">
           <label htmlFor="bundesland" className="versteckt">Bundesland</label>
           <select id="bundesland" name="bundesland" defaultValue={bundesland ?? ""}>

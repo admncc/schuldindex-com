@@ -44,7 +44,7 @@
     "angezeigt": "Angezeigt werden die ersten {anzahl, number}.",
     "ohneWertung": "noch ohne Wertung",
     "bewertungen": "{anzahl, plural, one {# Bewertung} other {# Bewertungen}}",
-    "bundeslaender": "Bundesland",
+    "bundeslaender": "Bundesländer",
     "orte": "Orte",
     "starthinweis": "Wähle ein Bundesland - oder tippe oben den Namen deiner Schule."
   },

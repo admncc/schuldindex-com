@@ -27,8 +27,11 @@ export default function Anmeldeformular() {
 
   return (
     <form action={absenden} className="formular karte" key={zustand.versuch ?? 0}>
-      <div className="feld">
-        <span>Wie hast du bestätigt?</span>
+      {/* `fieldset` und `legend` wie im Bewertungsformular: Ohne sie hört ein
+          Screenreader „WhatsApp" und nicht, wonach gefragt ist. Es war die
+          einzige Radiogruppe im Portal ohne Beschriftung. */}
+      <fieldset className="feldgruppe">
+        <legend>Wie hast du bestätigt?</legend>
         <div className="wahl">
           {ARTEN.map((a) => (
             <label key={a.id} className={art === a.id ? "wahlfeld gewaehlt" : "wahlfeld"}>
@@ -43,13 +46,19 @@ export default function Anmeldeformular() {
             </label>
           ))}
         </div>
-      </div>
+      </fieldset>
 
+      {/* Beschriftung und Typ hingen an einem Zustand, den es ohne JavaScript
+          nicht gibt: Wer dort „E-Mail" ankreuzte, las weiter „Handynummer",
+          bekam ein Telefonfeld und sah die Hervorhebung auf WhatsApp kleben.
+          Ein Feld für beides ist in beiden Welten richtig - welcher Weg
+          gemeint ist, steht ohnehin eine Zeile darüber. */}
       <label className="feld">
-        <span>{art === "email" ? "E-Mail-Adresse" : "Handynummer"}</span>
+        <span>Handynummer oder E-Mail-Adresse</span>
         <input
           name="kontakt"
-          type={art === "email" ? "email" : "tel"}
+          type="text"
+          inputMode={art === "email" ? "email" : "tel"}
           autoComplete={art === "email" ? "email" : "tel"}
           defaultValue={zustand.kontakt ?? ""}
           placeholder={art === "email" ? "du@beispiel.de" : "0170 1234567"}
