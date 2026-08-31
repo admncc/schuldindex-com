@@ -917,10 +917,19 @@ mark.fehlt {
     radial-gradient(70rem 30rem at 8% -20%, var(--akzent-sanft), transparent 62%),
     radial-gradient(45rem 26rem at 96% -10%, var(--signal-sanft), transparent 58%);
 }
+/* **Erst ab Tabletbreite.** Auf einem Telefon ist die Karte 148 Pixel breit -
+   elftausend Punkte, von denen keiner mehr einzeln zu sehen ist -, und sie
+   kostete 37 KB der Uebertragung auf genau der Seite, die jeder Klick aus
+   einer Story zuerst oeffnet. Der Aufmacher behaelt seine Farbverlaeufe; was
+   wegfaellt, ist ein Bild, das dort nichts mehr zeigt. */
+@media (min-width: 48rem) {
+  .held-verlauf::before {
+    background: url("/karte/bestand.svg") no-repeat center / contain;
+  }
+}
 .held-verlauf::before {
   content: ""; position: absolute; inset: 0 0 auto auto; z-index: -1;
   width: min(24rem, 38vw); aspect-ratio: 800 / 1093;
-  background: url("/karte/bestand.svg") no-repeat center / contain;
   opacity: 0.55;
   /* Nach unten und links ausblenden, damit die Karte nicht gegen den Text
      ankämpft, sondern hinter ihm verschwindet. */

@@ -1,3 +1,4 @@
+import { gzipSync } from "node:zlib";
 import { istBundesland, type Bundesland } from "@/domain/bundesland";
 import { ausschnittFuer, bildfeld, projiziere, punktradius, rasterweite } from "@/domain/karte";
 import { rasterpunkte } from "@/db/karte";
@@ -20,9 +21,37 @@ export const dynamic = "force-dynamic";
 
 const BREITE = 800;
 
+/**
+ * Fertig gepackt im Arbeitsspeicher, je Bundesland eine Fassung.
+ *
+ * **Warum ueberhaupt gepackt.** Die Datei ging mit 144 KB unkomprimiert
+ * hinaus - gemessen ueber die Leitung, ohne `content-encoding`. Als XML laesst
+ * sie sich auf 37 KB packen, ein Viertel. Auf der Startseite, die sie als
+ * Hintergrund traegt, war sie damit mehr als die Haelfte des ganzen
+ * Seitengewichts, und die Startseite ist der Einstieg fuer jeden Klick aus
+ * einer Story. Next packt sie nicht selbst: Was ein Route Handler als
+ * `Response` zurueckgibt, laeuft an der eingebauten Kompression vorbei.
+ *
+ * **Warum zwischengespeichert.** Der Bestand aendert sich mit dem Import, nicht
+ * mit der Minute - dieselbe Begruendung, die schon in `cache-control` steht.
+ * Ohne den Speicher kostete jeder Aufruf eine Rasterabfrage ueber 31.770
+ * Schulen und einen Packvorgang, und die Datei wird auf zwei Seiten geladen.
+ * Siebzehn Fassungen zu je 37 KB sind gut ein halbes Megabyte - tragbar.
+ */
+const SPEICHERDAUER = 3600_000;
+const speicher = new Map<string, { gepackt: Buffer; roh: string; bis: number }>();
+
 export async function GET(anfrage: Request): Promise<Response> {
-  const roh = new URL(anfrage.url).searchParams.get("bundesland");
-  const bundesland: Bundesland | null = roh !== null && istBundesland(roh) ? roh : null;
+  const rohLand = new URL(anfrage.url).searchParams.get("bundesland");
+  const bundesland: Bundesland | null =
+    rohLand !== null && istBundesland(rohLand) ? rohLand : null;
+
+  const packen = (anfrage.headers.get("accept-encoding") ?? "").includes("gzip");
+  const schluessel = bundesland ?? "alle";
+  const abgelegt = speicher.get(schluessel);
+  if (abgelegt !== undefined && abgelegt.bis > Date.now()) {
+    return antwort(abgelegt, packen);
+  }
 
   const ausschnitt = ausschnittFuer(bundesland);
   const feld = bildfeld(ausschnitt, BREITE);
@@ -60,11 +89,25 @@ export async function GET(anfrage: Request): Promise<Response> {
     + punkte
     + `</svg>`;
 
-  return new Response(svg, {
-    headers: {
-      "content-type": "image/svg+xml; charset=utf-8",
-      // Der Schulbestand ändert sich mit dem Import, nicht mit der Minute.
-      "cache-control": "public, max-age=3600, stale-while-revalidate=86400",
-    },
+  const eintrag = { roh: svg, gepackt: gzipSync(svg), bis: Date.now() + SPEICHERDAUER };
+  speicher.set(schluessel, eintrag);
+  return antwort(eintrag, packen);
+}
+
+function antwort(
+  eintrag: { gepackt: Buffer; roh: string },
+  packen: boolean,
+): Response {
+  const kopf: Record<string, string> = {
+    "content-type": "image/svg+xml; charset=utf-8",
+    // Der Schulbestand ändert sich mit dem Import, nicht mit der Minute.
+    "cache-control": "public, max-age=3600, stale-while-revalidate=86400",
+    // Ohne diese Zeile legte ein Zwischenspeicher die gepackte Fassung auch
+    // für einen Browser ab, der sie nicht lesen kann.
+    vary: "Accept-Encoding",
+  };
+  if (!packen) return new Response(eintrag.roh, { headers: kopf });
+  return new Response(new Uint8Array(eintrag.gepackt), {
+    headers: { ...kopf, "content-encoding": "gzip" },
   });
 }
