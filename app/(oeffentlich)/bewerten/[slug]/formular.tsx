@@ -570,7 +570,7 @@ export function Bewertungsformular({
                       checked={kontaktart === art}
                       onChange={() => setKontaktart(art)}
                     />
-                    {art === "whatsapp" ? "WhatsApp" : art === "sms" ? "SMS" : "E-Mail"}
+                    {art === "whatsapp" ? "WhatsApp" : art === "sms" ? "SMS" : "E‑Mail"}
                   </label>
                 ))}
               </div>

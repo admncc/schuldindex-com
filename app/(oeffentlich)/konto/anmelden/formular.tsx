@@ -6,7 +6,9 @@ import { linkAnfordern, type Anmeldezustand } from "../aktionen";
 const ARTEN = [
   { id: "whatsapp", label: "WhatsApp" },
   { id: "sms", label: "SMS" },
-  { id: "email", label: "E-Mail" },
+  // Geschuetzter Bindestrich (U+2011): „E-Mail" brach sonst in der schmalen
+  // Spalte nach dem Strich um und machte den Knopf hoeher als seine Nachbarn.
+  { id: "email", label: "E‑Mail" },
 ] as const;
 
 export default function Anmeldeformular() {

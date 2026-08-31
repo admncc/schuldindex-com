@@ -97,12 +97,16 @@ body {
    wirkt weniger nach Amtsblatt. */
 h1, h2, h3 {
   margin: 0; text-wrap: balance; letter-spacing: -0.02em;
-  /* „Nutzungsbedingungen“ und „Förderschwerpunkten“ sind länger als ein
-     Telefon breit ist. Ohne diese beiden Zeilen schob die Überschrift die
-     ganze Seite seitlich aus dem Bild. */
-  overflow-wrap: anywhere; hyphens: auto;
+  /* „Nutzungsbedingungen" und „Förderschwerpunkten" sind länger als ein
+     Telefon breit ist. Ohne diese Zeile schob die Überschrift die ganze Seite
+     seitlich aus dem Bild.
+     **`break-word`, nicht `anywhere`.** `anywhere` bricht, sobald es enger
+     wird, auch wenn das Wort noch in die nächste Zeile passte - aus „Deine
+     Bewertungen" wurde „Deine Be-" / „wertungen". `break-word` bricht erst,
+     wenn ein Wort für sich genommen zu breit ist, und `hyphens: auto` setzt
+     den Trennstrich dann an eine Silbengrenze. */
+  overflow-wrap: break-word; hyphens: auto;
 }
-h1, h2, h3 { overflow-wrap: anywhere; hyphens: auto; }
 h1 { font-size: clamp(2.1rem, 6vw, 3.2rem); font-weight: 800; line-height: 1.08; }
 h2 { font-size: clamp(1.35rem, 3vw, 1.7rem); font-weight: 750; line-height: 1.2; }
 h3 { font-size: 1.05rem; font-weight: 700; }
@@ -429,6 +433,11 @@ main:focus { outline: none; }
 
 .wahl { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .wahlfeld {
+  /* Kein Trennen mitten im Wort, aber sehr wohl zwischen Woertern: „Schueler/in
+     unter 16 Jahre" muss umbrechen duerfen. Der erste Versuch verbot mit
+     `white-space: nowrap` jeden Umbruch - danach schob das Formular die Seite
+     auf 320 Pixeln um hundert Pixel aus dem Bild. */
+  overflow-wrap: normal; hyphens: none;
   display: inline-flex; align-items: center; gap: 0.55rem; cursor: pointer;
   border: 1.5px solid var(--linie-stark); border-radius: 999px;
   min-height: 2.9rem; padding: 0.6rem 1.1rem; font-size: 0.97rem; background: var(--flaeche);
@@ -506,7 +515,17 @@ main:focus { outline: none; }
 .moderationskopf .anmeldung { display: flex; align-items: center; gap: 0.7rem; margin-left: auto; }
 .marke.klein { font-size: 1rem; }
 .knopf.klein { padding: 0.35rem 0.7rem; font-size: 0.83rem; }
-.abschnitt.schmal { max-width: 26rem; }
+/* Die schmale Spalte trägt Anmeldung und Schulpflege. Zwei Dinge, die sie
+   braucht und nicht hatte:
+   - **Mittig.** Auf einem breiten Schirm klebte sie links, daneben achthundert
+     Pixel Leere. Eine Anmeldung ist kein Fliesstext, sie darf in der Mitte
+     stehen.
+   - **Eine Überschrift, die hineinpasst.** `h1` waechst mit der Breite des
+     Fensters (`6vw`), nicht mit der Breite ihrer Spalte - bei 1257 Pixeln
+     Fenster stand sie auf 51 Pixeln in einer 416 Pixel breiten Spalte, und
+     „Bewertungen" passte nicht mehr in eine Zeile. */
+.abschnitt.schmal { max-width: 26rem; margin-left: auto; margin-right: auto; }
+.abschnitt.schmal h1 { font-size: clamp(1.7rem, 4.5vw, 2.1rem); }
 
 .gedaempft { color: var(--schrift-3); }
 .fussnote { font-size: 0.82rem; color: var(--schrift-3); }
