@@ -49,7 +49,19 @@ export async function verbindungIstSicher(): Promise<boolean> {
     // `return false` stand hier einmal und war zu streng: Bei direktem TLS -
     // oder wenn jemand `VERTRAUTE_PROXYS` vergisst - bekam das Sitzungscookie
     // der Moderation weder `Secure` noch das `__Host-`-Präfix.
-    return (process.env["BASIS_URL"] ?? "").startsWith("https://");
+    //
+    // **Aber nur, wenn die Anfrage auch an diese Adresse ging.** `BASIS_URL`
+    // hat zwei Aufgaben, und die laufen im Testbetrieb auseinander: Sie baut
+    // die Links in den Nachrichten - dort soll die endgültige Domain stehen -
+    // und sie entscheidet hier über `Secure`. Steht sie auf der Domain,
+    // während jemand den Server über seine IP aufruft, bekam das
+    // Sitzungscookie `Secure`, der Browser verwarf es über http, und die
+    // Moderation fiel bei jedem Klick auf die Anmeldeseite zurück. Ohne einen
+    // Weg zurück, der nicht über die `.env` führt.
+    //
+    // Deshalb zählt der Gastgeber mit: Wer unter der Adresse aus `BASIS_URL`
+    // ankommt, ist über TLS gekommen; wer über eine andere ankommt, nicht.
+    return istBasisadresse(kopf.get("host"));
   }
 
   const weitergereicht = kopf.get("x-forwarded-proto");
@@ -63,6 +75,24 @@ export async function verbindungIstSicher(): Promise<boolean> {
   if (rfc) return /proto=("?)https\1/i.test(rfc);
 
   return false;
+}
+
+/**
+ * Ist `BASIS_URL` per https gesetzt **und** kam die Anfrage unter genau dieser
+ * Adresse an?
+ *
+ * Fehlt der `Host`-Kopf, entscheidet `BASIS_URL` allein - das ist der alte
+ * Stand und für eine Anfrage ohne Gastgeberangabe die sichere Annahme.
+ */
+export function istBasisadresse(gastgeber: string | null): boolean {
+  const basis = process.env["BASIS_URL"] ?? "";
+  if (!basis.startsWith("https://")) return false;
+  if (gastgeber === null) return true;
+  try {
+    return new URL(basis).host.toLowerCase() === gastgeber.trim().toLowerCase();
+  } catch {
+    return false;
+  }
 }
 
 /** Dieselbe Frage für Route Handler, die die Anfrage ohnehin in der Hand haben. */
