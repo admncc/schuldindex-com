@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FRAGEN,
   KATEGORIEN,
@@ -93,6 +93,8 @@ export function Bewertungsformular({
   const [eltern, setEltern] = useState(false);
   const [verlosung, setVerlosung] = useState(false);
   const [nummer, setNummer] = useState(0);
+  /** Der erste Durchlauf soll nicht scrollen - siehe den Effekt weiter unten. */
+  const ersterAufbau = useRef(true);
   const [gezeigt, setGezeigt] = useState(false);
   const [sendet, setSendet] = useState(false);
   const [gesendet, setGesendet] = useState<{ kontaktAnzeige: string; versandt: boolean } | null>(
@@ -152,6 +154,42 @@ export function Bewertungsformular({
   /** Freiwillige Bereiche mit mindestens einer Antwort - nicht bloß aufgeklappte. */
   const beantworteteFreiwillige = FREIWILLIG.filter((id) => beantwortet(id, antworten) > 0).length;
   const anteil = Math.round(fortschritt(antworten) * 100);
+
+  /**
+   * Nach jedem Schrittwechsel an den Anfang des Schritts.
+   *
+   * **Der Fehler, den das behebt, wiegt auf dem Telefon schwer.** Bereich A ist
+   * dort 5657 Pixel lang - siebeneinhalb Bildschirme. Der Knopf „Weiter" steht
+   * ganz unten, also steht auch die Ansicht ganz unten, wenn man ihn drückt.
+   * Der nächste Bereich wurde eingesetzt und die Ansicht blieb, wo sie war:
+   * mitten in Frage acht des neuen Bereichs, der Schritthinweis 3662 Pixel
+   * über dem oberen Bildrand. Man sah eine endlose Fragenliste ohne jedes
+   * Zeichen, dass ein neuer Bereich begonnen hat - und die Fragen darüber, die
+   * man noch nicht gesehen hatte, wirkten übersprungen.
+   *
+   * **Ohne weiches Gleiten.** Der erste Versuch glitt sanft nach oben, und über
+   * viertausend Pixel ist das keine Höflichkeit mehr, sondern eine Sekunde
+   * Fahrt durch Fragen, die man gerade beantwortet hat. Ein Schrittwechsel ist
+   * ein Seitenwechsel und soll sich so anfühlen.
+   *
+   * Nicht beim ersten Aufbau: Wer von der Schulseite kommt, soll oben landen,
+   * nicht durch einen Sprung begrüßt werden.
+   *
+   * **Der Anker ist der Schritt, nicht seine Nummer.** Beim Öffnen eines
+   * freiwilligen Bereichs bleibt die Nummer gleich: Der Bereich wird vor dem
+   * Abschluss eingefügt, die Liste wird um eins länger, und der neue Bereich
+   * steht genau dort, wo eben noch der Abschluss stand. An der Nummer war das
+   * nicht zu erkennen - der Sprung nach oben blieb aus, und man stand mitten
+   * in Frage sechs eines Bereichs, den man gerade erst geöffnet hatte.
+   */
+  const schrittanker = schritt.art === "kategorie" ? `kategorie:${schritt.id}` : schritt.art;
+  useEffect(() => {
+    if (ersterAufbau.current) {
+      ersterAufbau.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [schrittanker]);
 
   /** Ist das gerade ein freiwilliger Bereich? Die werden anders verlassen. */
   const imFreiwilligen = schritt.art === "kategorie" && FREIWILLIG.includes(schritt.id);
@@ -336,12 +374,18 @@ export function Bewertungsformular({
 
   return (
     <form className="formular" onSubmit={(e) => e.preventDefault()}>
-      <div className="fortschritt" aria-hidden="true">
-        <span style={{ width: `${anteil}%` }} />
+      {/* Balken und Zeile bleiben zusammen am oberen Rand stehen. Vorher klebte
+          nur der Balken - und der klebte hinter der Kopfleiste, war also beim
+          Scrollen unsichtbar. Auf einem Bereich, der am Telefon sieben
+          Bildschirme lang ist, war das das einzige Zeichen von Fortschritt. */}
+      <div className="fortschrittsleiste">
+        <div className="fortschritt" aria-hidden="true">
+          <span style={{ width: `${anteil}%` }} />
+        </div>
+        <p className="hinweis">
+          Schritt {nummer + 1} von {schritte.length} · Pflichtfragen zu {anteil} % beantwortet
+        </p>
       </div>
-      <p className="hinweis">
-        Schritt {nummer + 1} von {schritte.length} · Pflichtfragen zu {anteil} % beantwortet
-      </p>
 
       {schritt.art === "rolle" && (
         <fieldset className="feldgruppe">

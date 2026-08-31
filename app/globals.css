@@ -384,10 +384,30 @@ main:focus { outline: none; }
 
 /* Der Fortschritt bleibt beim Scrollen sichtbar: 61 Fragen sind viel, und wer
    nicht sieht, dass es vorangeht, hört auf. */
+/* Der Fortschritt klebt unter der Kopfleiste - **unter** ihr, nicht hinter ihr.
+   `top: 3.4rem` war knapp am Schreibtisch und auf dem Telefon falsch: Dort ist
+   die Kopfleiste 67 Pixel hoch, seit die Navigation Fingerflaechen hat, und
+   der Balken stand bei 54 bis 62. Er war also genau dort unsichtbar, wo er
+   gebraucht wird - beim Scrollen durch elf Fragen. Die Hoehe der Kopfleiste
+   steht deshalb als Wert da und nicht als Schaetzung. */
+:root { --kopfhoehe: 3.7rem; }
+@media (max-width: 64rem), (pointer: coarse) { :root { --kopfhoehe: 4.3rem; } }
+
+.fortschrittsleiste {
+  position: sticky; top: var(--kopfhoehe); z-index: 10;
+  background: var(--grund); padding: 0.5rem 0 0.35rem;
+  display: flex; flex-direction: column; gap: 0.3rem;
+  border-bottom: 1px solid var(--linie);
+  /* Bis an den Rand der Huelle, damit beim Kleben kein Streifen Inhalt
+     seitlich daneben durchscheint. Genau 1,25rem - so viel Innenabstand hat
+     `.huelle`; bei 1rem blieben links und rechts vier Pixel offen, durch die
+     die Fragen darunter hindurchliefen. */
+  margin: 0 -1.25rem; padding-left: 1.25rem; padding-right: 1.25rem;
+}
+.fortschrittsleiste .hinweis { margin: 0; }
+
 .fortschritt {
-  position: sticky; top: 3.4rem; z-index: 10;
   height: 8px; background: var(--flaeche-2); border-radius: 999px; overflow: hidden;
-  box-shadow: 0 0 0 4px var(--grund);
 }
 .fortschritt span {
   display: block; height: 100%; border-radius: 999px;
@@ -398,6 +418,12 @@ main:focus { outline: none; }
 .feldgruppe {
   border: 1px solid var(--linie); border-radius: var(--radius); background: var(--flaeche);
   padding: 1.3rem 1.4rem; margin: 0; display: flex; flex-direction: column; gap: 0.9rem;
+  /* `fieldset` hat von Haus aus `min-width: min-content` und schrumpft
+     deshalb nicht unter die breiteste Antwortmoeglichkeit - auf 320 Pixel lief
+     das Bewertungsformular dadurch zehn Pixel aus dem Bild. Das ist keine
+     Eigenheit des Entwurfs, sondern eine Vorgabe des Elements, und sie muss
+     ausdruecklich zurueckgenommen werden. */
+  min-width: 0;
 }
 .feldgruppe legend { font-weight: 750; font-size: 1.15rem; padding: 0 0.4rem; margin-left: -0.4rem; }
 
