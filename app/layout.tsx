@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
+import { basisadresse, darfIndexiert } from "./indexierung";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("allgemein");
   return {
+    metadataBase: basisadresse(),
     title: { default: t("portalname"), template: `%s - ${t("portalname")}` },
     description: t("beschreibung"),
+    // Zwei Riegel, weil sie verschiedene Fälle abdecken: `robots.txt` hält
+    // Suchmaschinen vom Abholen ab, `noindex` hält sie vom Aufnehmen ab.
+    // Wer die Adresse schon kennt oder die `robots.txt` ignoriert, wird nur
+    // vom zweiten erwischt.
+    ...(darfIndexiert() ? {} : { robots: { index: false, follow: false } }),
   };
 }
 
