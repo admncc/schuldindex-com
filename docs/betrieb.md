@@ -119,6 +119,41 @@ Die erzeugte Zeile in den Domain-Block der `Caddyfile` einbinden und mit
 `abort @nicht_cloudflare` beantworten. Vorher prüfen, dass `caddy validate`
 zufrieden ist - ein Fehler hier sperrt alle aus, nicht nur die Umgehung.
 
+## Diagnose von außen
+
+Unter `/moderation/diagnose` (nur Leitung) lässt sich ein befristeter Zugang zu
+`/api/diagnose` freischalten. Jede Freischaltung erzeugt ein **neues** Kennwort
+und beendet das vorige; angezeigt wird es genau einmal, gespeichert ist nur
+seine Prüfsumme. Dauer wählbar: 1, 8, 24 oder 72 Stunden - einen Dauerzugang
+gibt es nicht.
+
+```bash
+curl -H "Authorization: Bearer sdx_…" https://schulindex.com/api/diagnose
+curl -H "Authorization: Bearer sdx_…" "https://schulindex.com/api/diagnose/ereignisse?art=fehler&grenze=50"
+```
+
+**Die Schnittstelle ist ausschließlich lesend.** Sie führt keine Befehle aus,
+gibt keine Kontaktdaten heraus und zeigt keine Freitexte aus Bewertungen. Was
+sie liefert, sind Summen, Zustände und das Ereignisprotokoll. Jeder Zugriff
+wird protokolliert, auch der mit falschem Kennwort, und der Zähler steht im
+Panel: Ein Zugang, der mehr Zugriffe hat als erwartet, fällt dort auf.
+
+## Ereignisprotokoll
+
+Serverfehler, Versandergebnisse und Diagnosezugriffe stehen unter
+`/moderation/diagnose` und in `/api/diagnose/ereignisse`. Eingesammelt werden
+sie über `instrumentation.ts` (jeder Fehler beim Aufbau einer Seite oder in
+einem Route Handler) und an den Stellen, an denen ein Ergebnis sonst
+verschwände - vor allem beim Versand der Bestätigungsnachricht, der Stelle, an
+der eine Abgabe im Betrieb strandet.
+
+Einträge werden nach **72 Stunden gelöscht**. Das ist die einzige automatische
+Löschung im Portal; ausgelöst wird sie beiläufig beim Schreiben und Lesen, weil
+es keinen Zeitplan gibt, auf den man sie legen könnte. Vor dem Schreiben werden
+Adressen, Telefonnummern und Kennwörter unkenntlich gemacht und verdächtige
+Feldnamen (`freitext`, `kontakt`, `token`, …) ganz entfernt - ein Protokoll ist
+die bequemste Art, eine Zusage zu brechen.
+
 ## Testdaten aufräumen
 
 ```bash

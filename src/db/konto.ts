@@ -8,6 +8,7 @@
  */
 
 import type postgres from "postgres";
+import { protokolliere } from "./ereignisse";
 import { sql } from "./verbindung";
 import { aktualisiereAggregat } from "./aggregate";
 import { istKennung } from "../domain/kennung";
@@ -95,6 +96,16 @@ export function kontoumgebung(basisUrl: string): Kontoumgebung {
       zeile.kontaktart,
       baue(basisUrl, klartext, zeile.kontaktart),
     );
+
+    await protokolliere({
+      art: ergebnis.ok ? "info" : "fehler",
+      bereich: "versand",
+      meldung: ergebnis.ok
+        ? `Zugangslink über ${zeile.kontaktart} zugestellt`
+        : `Zugangslink über ${zeile.kontaktart} nicht zustellbar: ${ergebnis.ok ? "" : ergebnis.grund}`,
+      einzelheiten: { kontaktart: zeile.kontaktart },
+    });
+
     return ergebnis.ok;
   }
 }

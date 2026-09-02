@@ -1440,6 +1440,57 @@ mark.fehlt {
    Breitenregel allein nicht mehr griff und alle Tippziele wieder auf 34 Pixel
    fielen. Die Breitenregel bleibt daneben stehen, weil ein schmales Fenster am
    Rechner dieselbe Enge hat. */
+/* ---------- Diagnose ---------- */
+
+/* Die Arten des Ereignisprotokolls erben die Ampel: Ein Fehler soll dieselbe
+   Farbe haben wie eine schlechte Wertung, sonst muss man zweimal lernen. */
+.plakette.fehler  { background: var(--schlecht-flaeche); color: var(--schlecht); }
+.plakette.warnung { background: var(--mittel-flaeche); color: var(--mittel); }
+.plakette.info    { background: var(--flaeche-2); color: var(--schrift-2); }
+.plakette.zugriff { background: var(--akzent-sanft); color: var(--akzent); }
+.plakette.offen   { background: var(--gut-flaeche); color: var(--gut); }
+
+.kennwortkasten {
+  border: 1px solid var(--gut); border-radius: 10px;
+  padding: 1rem; margin: 0.8rem 0; background: var(--gut-flaeche);
+}
+/* Umbruch erzwungen: Das Kennwort ist 47 Zeichen lang und stand sonst auf dem
+   Telefon quer aus der Karte heraus. */
+.kennwort {
+  display: block; margin: 0.6rem 0; padding: 0.7rem 0.8rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9rem;
+  background: var(--flaeche); border: 1px solid var(--linie); border-radius: 8px;
+  overflow-wrap: anywhere; user-select: all;
+}
+.befehl {
+  display: block; padding: 0.6rem 0.7rem; margin-top: 0.2rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8rem;
+  color: var(--schrift-2); background: var(--flaeche); border: 1px solid var(--linie);
+  border-radius: 8px; overflow-x: auto; white-space: pre;
+}
+
+.schalterreihe { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; margin-top: 0.8rem; }
+.schalterreihe form { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: flex-end; }
+
+.filterreihe {
+  display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: flex-end;
+  margin: 0.8rem 0 1rem;
+}
+.filterreihe .feldgruppe { margin: 0; }
+
+/* Breite Inhalte scrollen in sich selbst, nie die Seite. */
+.tabellenrahmen { overflow-x: auto; }
+.protokolltabelle { font-size: 0.85rem; }
+.protokolltabelle .einspaltig { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.protokolltabelle td { max-width: 46rem; overflow-wrap: anywhere; }
+
+.einzelheiten { margin-top: 0.4rem; }
+.einzelheiten summary { cursor: pointer; color: var(--schrift-3); font-size: 0.82rem; }
+.einzelheiten pre {
+  margin: 0.4rem 0 0; padding: 0.6rem; border-radius: 8px;
+  background: var(--flaeche-2); font-size: 0.78rem; overflow-x: auto;
+}
+
 @media (max-width: 64rem), (pointer: coarse) {
   /* **Sechzehn Pixel, nicht weniger.** Safari auf dem iPhone zoomt beim
      Antippen in jedes Feld hinein, dessen Schrift kleiner ist - und zoomt

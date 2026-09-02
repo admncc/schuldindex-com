@@ -7,6 +7,7 @@
  */
 
 import type postgres from "postgres";
+import { protokolliere } from "../db/ereignisse";
 import { sql } from "../db/verbindung";
 import { freitexteAlsObjekt, type Umgebung } from "./bewertungAbgeben";
 import type { Aenderungsumgebung } from "./bewertungAendern";
@@ -182,9 +183,29 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
       await merkeEmpfehlungInDb(werber, kontoId, bewertungId);
     },
 
+    /**
+     * Der Versand ist die Stelle, an der eine Abgabe im Betrieb strandet: Die
+     * Bewertung liegt dann in der Datenbank, die Person wartet auf eine
+     * Nachricht, die nie kommt, und hat ihren einen Versuch verbraucht. Bisher
+     * stand darüber nichts - der Rückgabewert lief in eine Anzeige und war
+     * danach weg. Jetzt steht der Grund im Ereignisprotokoll.
+     */
     async sendeBestaetigung(empfaenger, art, token) {
       const nachricht = baueBestaetigung(basisUrl, token.klartext, art as Kontaktart);
       const ergebnis = await sende(versandkette(), empfaenger, art as Kontaktart, nachricht);
+
+      await protokolliere({
+        art: ergebnis.ok ? "info" : "fehler",
+        bereich: "versand",
+        meldung: ergebnis.ok
+          ? `Bestätigung über ${art} zugestellt`
+          : `Bestätigung über ${art} nicht zustellbar: ${ergebnis.ok ? "" : ergebnis.grund}`,
+        // Der Empfänger steht hier bewusst nicht. Welcher Weg gescheitert ist
+        // und woran, beantwortet die Frage; wer betroffen war, beantwortet
+        // eine andere, die diese Schnittstelle nicht stellen darf.
+        einzelheiten: { kontaktart: art },
+      });
+
       return ergebnis.ok;
     },
   };
