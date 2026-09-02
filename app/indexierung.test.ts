@@ -38,10 +38,27 @@ describe("robots.txt", () => {
 
   it("gibt nach der Freigabe frei, die Moderation aber nicht", () => {
     process.env["INDEXIERUNG"] = "an";
-    const regeln = robots().rules as { allow?: string; disallow?: string[] };
-    expect(regeln.allow).toBe("/");
-    expect(regeln.disallow).toContain("/moderation");
-    expect(regeln.disallow).toContain("/bestaetigen");
+    const regeln = robots().rules as { userAgent?: string | string[]; allow?: string; disallow?: string | string[] }[];
+    const alle = regeln.find((r) => r.userAgent === "*");
+    expect(alle?.allow).toBe("/");
+    expect(alle?.disallow).toContain("/moderation");
+    expect(alle?.disallow).toContain("/bestaetigen");
+  });
+
+  // **Der Fehler, gegen den das steht.** Cloudflare schiebt vor unsere Datei
+  // eine eigene mit Sperren für KI-Sammler. Wer die abschaltet, damit unsere
+  // Datei die maßgebliche ist, darf diese Sperren nicht dabei verlieren.
+  it("hält KI-Sammler auch nach der Freigabe draußen", () => {
+    process.env["INDEXIERUNG"] = "an";
+    const regeln = robots().rules as { userAgent?: string | string[]; disallow?: string | string[] }[];
+    const ki = regeln.find((r) => Array.isArray(r.userAgent));
+    expect(ki?.disallow).toBe("/");
+    for (const sammler of ["GPTBot", "Google-Extended", "ClaudeBot", "Bytespider", "meta-externalagent"]) {
+      expect(ki?.userAgent).toContain(sammler);
+    }
+    // Suchmaschinen gehören nicht dazu - gefunden zu werden ist der Zweck.
+    expect(ki?.userAgent).not.toContain("Googlebot");
+    expect(ki?.userAgent).not.toContain("bingbot");
   });
 });
 
