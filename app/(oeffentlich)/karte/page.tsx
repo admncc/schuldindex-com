@@ -72,7 +72,7 @@ export default async function Kartenseite({
         </form>
       </section>
 
-      <section className="abschnitt">
+      <section className="abschnitt kartenabschnitt">
         <Kartenansicht
           schulen={bewertet}
           ausschnitt={ausschnitt}

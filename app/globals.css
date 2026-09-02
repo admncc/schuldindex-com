@@ -1598,4 +1598,14 @@ mark.fehlt {
      Maus. */
   .karte-flaeche { height: min(58vh, 26rem); }
   .karte-flaeche .maplibregl-ctrl-group button { width: 2.75rem; height: 2.75rem; }
+
+  /* **Die Karte vor ihre Filter.**
+     Auf dem Telefon standen ueber der Karte erst die Ueberschrift, dann die
+     Landesauswahl, dann drei Filterfelder - gemessen 1250 Pixel, also lag das
+     Eigentliche dieser Seite vollstaendig unter dem Falz. Wer sie oeffnet,
+     will eine Karte sehen und danach entscheiden, ob er filtert; nicht
+     umgekehrt. Auf dem Schreibtisch bleibt es bei der bisherigen Folge, dort
+     ist beides gleichzeitig sichtbar. */
+  .kartenabschnitt { display: flex; flex-direction: column; }
+  .kartenabschnitt .kartenbuehne { order: -1; }
 }

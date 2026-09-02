@@ -31,16 +31,50 @@ export default async function Diagnoseseite({
 
   await raeumeAuf();
 
-  const [lage, zeilen, zahlen] = await Promise.all([
-    lageDiagnosezugang(),
-    leseEreignisse({
-      art: p.art !== undefined && istEreignisart(p.art) ? p.art : undefined,
-      bereich: p.bereich === undefined || p.bereich === "" ? undefined : p.bereich,
-      suche: p.suche === undefined || p.suche === "" ? undefined : p.suche,
-      grenze: 200,
-    }),
-    ereigniszahlen(),
-  ]);
+  let lage: Awaited<ReturnType<typeof lageDiagnosezugang>>;
+  let zeilen: Awaited<ReturnType<typeof leseEreignisse>>;
+  let zahlen: Awaited<ReturnType<typeof ereigniszahlen>>;
+
+  try {
+    [lage, zeilen, zahlen] = await Promise.all([
+      lageDiagnosezugang(),
+      leseEreignisse({
+        art: p.art !== undefined && istEreignisart(p.art) ? p.art : undefined,
+        bereich: p.bereich === undefined || p.bereich === "" ? undefined : p.bereich,
+        suche: p.suche === undefined || p.suche === "" ? undefined : p.suche,
+        grenze: 200,
+      }),
+      ereigniszahlen(),
+    ]);
+  } catch (fehler) {
+    // **Der Fehler, gegen den das steht.** Ohne diesen Zweig warf die Seite
+    // eine Serverausnahme und zeigte „Application error" samt einer
+    // Prüfsumme - ausgerechnet die Seite, die es gibt, damit man Fehlern
+    // ansieht, was ihnen fehlt. Der Postgres-Code 42P01 heisst „die Tabelle
+    // gibt es nicht", und dafür gibt es genau eine Ursache und genau eine
+    // Abhilfe. Alles andere fliegt weiter: Ein stiller Griff nach jedem
+    // Fehler machte aus dieser Seite eine, die immer freundlich aussieht.
+    if ((fehler as { code?: string }).code !== "42P01") throw fehler;
+    return (
+      <section className="abschnitt">
+        <h1>Diagnose</h1>
+        <div className="karte">
+          <span className="beschriftung">Noch nicht eingerichtet</span>
+          <p>
+            Die Tabellen für Diagnosezugang und Ereignisprotokoll fehlen. Die zugehörige
+            Migration ist noch nicht eingespielt - auf dem Server:
+          </p>
+          <code className="befehl">
+            psql &quot;$DATABASE_URL&quot; -f db/migrations/0030_diagnose.sql
+          </code>
+          <p className="fussnote">
+            Danach den Dienst neu starten. Bis dahin läuft alles Übrige unverändert; es fehlt
+            nur diese Seite und die Schnittstelle darunter.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   const bereiche = [...new Set(zahlen.map((z) => z.bereich))].sort();
   const fehlerzahl = zahlen
