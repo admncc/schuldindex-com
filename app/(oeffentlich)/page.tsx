@@ -82,7 +82,7 @@ export default async function Startseite() {
                   <a href={`/schule/${schule.slug}`}>
                     <span className="platz">{i + 1}</span>
                     <span className="name">
-                      {schule.name}
+                      <span className="schulname" title={schule.name}>{schule.name}</span>
                       <span>
                         {schule.ort ? `${schule.ort} · ` : ""}
                         {schule.anzahl} Bewertungen

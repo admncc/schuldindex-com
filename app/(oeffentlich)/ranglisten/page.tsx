@@ -170,7 +170,7 @@ function Liste({
             <li key={e.slug}>
               <span className="platz">{i + 1}</span>
               <a href={`/schule/${e.slug}`} className="eintrag">
-                <span className="titel">{e.name}</span>
+                <span className="titel" title={e.name}>{e.name}</span>
                 <span className="beiwerk">
                   {[e.ort, BUNDESLAND_LABEL[e.bundesland]].filter(Boolean).join(" · ")}
                   {" · "}

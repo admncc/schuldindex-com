@@ -72,11 +72,16 @@ export default function Ueberseite() {
         <tbody>
           {KATEGORIEN.map((k) => (
             <tr key={k.id}>
-              <td>
+              {/* `data-spalte` ist auf dem Telefon der Spaltenkopf: Dort wird
+                  die Tabelle gestapelt und `thead` ausgeblendet. Ohne die
+                  Angabe standen unter dem Bereichsnamen zwei nackte Zahlen -
+                  „4" und „36 %" -, und niemand konnte wissen, welche davon
+                  das Gewicht und welche der Anteil ist. */}
+              <td data-spalte="Bereich">
                 {k.id} - {k.titel}
               </td>
-              <td>{k.gewichtung}</td>
-              <td>{PROZENT.format(k.gewichtung / gewichtssumme)}</td>
+              <td data-spalte="Gewicht">{k.gewichtung}</td>
+              <td data-spalte="Anteil">{PROZENT.format(k.gewichtung / gewichtssumme)}</td>
             </tr>
           ))}
         </tbody>
@@ -130,8 +135,9 @@ export default function Ueberseite() {
         </li>
         <li>
           <strong>Keine Verfolgung über die Seiten hinweg.</strong> Keine Analysewerkzeuge, keine
-          Werbenetzwerke, keine Schriften und keine Kartenkacheln von fremden Servern. Die Karte
-          zeichnen wir aus unserem eigenen Schulbestand.
+          Werbenetzwerke, keine Schriften und keine Kartenkacheln von fremden Servern. Der
+          Kartenhintergrund liegt als Datei auf unserem eigenen Server; die Schriftbilder der
+          Beschriftung daneben.
         </li>
       </ul>
 

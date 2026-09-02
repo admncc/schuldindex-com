@@ -11,6 +11,18 @@
    werden sie selbst ausgeliefert - nicht von einem fremden Server geladen. */
 
 :root {
+  /* **Der Fehler, gegen den das steht.** Ohne diese Zeile zeichnet der Browser
+     jedes Bedienelement, das er selbst malt, im hellen Schema - auch dann,
+     wenn die Seite dunkel ist. Im dunklen Schema standen die Auswahlpunkte
+     der Anmeldung deshalb als weisse Vollkreise auf dunklem Grund, das
+     Klappmenue der Bundeslaender oeffnete weiss, und die Bildlaufleisten
+     blieben hell. `accent-color` faerbt nur den ausgewaehlten Zustand und
+     erreicht davon nichts.
+
+     `light dark` heisst: beides ist vorgesehen, der Browser nimmt, was die
+     Person eingestellt hat - dieselbe Quelle, aus der auch unsere Farben
+     kommen. */
+  color-scheme: light dark;
   --grund: #f6f7fa;
   --flaeche: #ffffff;
   --flaeche-2: #eef1f7;
@@ -107,7 +119,14 @@ h1, h2, h3 {
      den Trennstrich dann an eine Silbengrenze. */
   overflow-wrap: break-word; hyphens: auto;
 }
-h1 { font-size: clamp(2.1rem, 6vw, 3.2rem); font-weight: 800; line-height: 1.08; }
+/* **Die Untergrenze war zu hoch.** `clamp` nimmt auf 320 Pixeln immer den
+   kleinsten Wert, und 2,1 rem sind dort 33,6 Pixel - breit genug, dass
+   „Kopernikusschule" nicht mehr in eine Zeile passte und mitten im Wort
+   umbrach. Die Trennung an der Silbengrenze half nicht: Zum Trennen muss ein
+   Wort erst einmal ueberhaupt in zwei Haelften passen. 1,75 rem loesen das,
+   ohne dass die Ueberschrift auf breiten Schirmen kleiner wuerde - dort
+   entscheidet ohnehin der mittlere Wert. */
+h1 { font-size: clamp(1.75rem, 5.5vw + 0.4rem, 3.2rem); font-weight: 800; line-height: 1.08; }
 h2 { font-size: clamp(1.35rem, 3vw, 1.7rem); font-weight: 750; line-height: 1.2; }
 h3 { font-size: 1.05rem; font-weight: 700; }
 p { margin: 0; }
@@ -374,6 +393,24 @@ main:focus { outline: none; }
 .schulkopf { padding: 2.5rem 0 1.5rem; border-bottom: 1px solid var(--linie); display: flex; flex-direction: column; gap: 0.8rem; }
 .schulkopf .anschrift { color: var(--schrift-2); }
 .schulkopf .kopfzeile { display: flex; gap: 1.5rem; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; }
+/* **Der Fehler, gegen den das steht.** Ein Flexkind hat `min-width: auto` und
+   schrumpft deshalb nicht unter seine kleinste Inhaltsbreite - das ist hier
+   das laengste Wort der Ueberschrift. Bei 320 Pixeln stand „Grundschule
+   Nuernberg Kopernikusschule" 25 Pixel ueber dem rechten Rand und schob die
+   ganze Seite mit; jede Bewegung nach unten hatte danach einen seitlichen
+   Versatz. `overflow-wrap` allein half nicht: Umbrechen darf erst, wer
+   schrumpfen darf. */
+.schulkopf .kopfzeile > * { min-width: 0; }
+/* **Der Ring gehoert neben den Namen, nicht darunter.**
+   Die Zeile war als zwei Spalten angelegt (`space-between`), lief aber immer
+   umgebrochen: Ein Flexkind ohne `flex` bemisst sich an seiner groessten
+   Inhaltsbreite, und die ist bei einem Schulnamen die ganze Zeile in einem
+   Zug - zusammen mit dem Ring passte das nie nebeneinander. Ergebnis auf dem
+   Schreibtisch: Name links, Ring darunter, daneben siebenhundert Pixel
+   Leere. `flex: 1 1 18rem` heisst „nimm den Rest, aber gib nach"; der Ring
+   behaelt seine Groesse. */
+.schulkopf .kopfzeile > :first-child { flex: 1 1 18rem; }
+.schulkopf .wertungsblock { flex: 0 0 auto; }
 
 .abschnitt { padding-top: 2.25rem; display: flex; flex-direction: column; gap: 1rem; }
 .leerzustand {
@@ -381,7 +418,13 @@ main:focus { outline: none; }
   padding: 2rem 1.5rem; text-align: center; display: flex; flex-direction: column; gap: 0.6rem; align-items: center;
 }
 .leerzustand p { color: var(--schrift-2); max-width: 44ch; }
-.hinweis { font-size: 0.88rem; color: var(--schrift-3); }
+/* **Zeilenlaenge.** Auf 1440 Pixeln lief der Erklaertext der Kategorien ueber
+   1050 Pixel und damit ueber 150 Zeichen je Zeile. Wer so etwas liest, verliert
+   beim Zeilensprung die Spur; die Typografie nennt 60 bis 75 Zeichen als das
+   Fenster, in dem das Auge sicher zurueckfindet. Nur der Fliesstext wird
+   gedeckelt - Listen, Karten und Tabellen brauchen die Breite. */
+.hinweis { font-size: 0.88rem; color: var(--schrift-3); max-width: 72ch; }
+.abschnitt > p:not([class]), .abschnitt > .fussnote { max-width: 72ch; }
 
 /* ---------- Bewertungsformular ---------- */
 .formular { display: flex; flex-direction: column; gap: 1.5rem; max-width: 46rem; }
@@ -431,6 +474,32 @@ main:focus { outline: none; }
 }
 .feldgruppe legend { font-weight: 750; font-size: 1.15rem; padding: 0 0.4rem; margin-left: -0.4rem; }
 
+/* **Kein Rahmen im Rahmen.** Steht die Feldgruppe allein auf der Seite, ist
+   ihr Rahmen die Gruppierung. Steht sie in einer Karte, ist die Gruppierung
+   schon da, und zwei ineinandergeschachtelte Rundungen in derselben Linienfarbe
+   sehen nach Versehen aus - so auf der Anmeldeseite. Die Beschriftung traegt
+   die Gruppe dann allein; fuer den Screenreader aendert sich nichts, `fieldset`
+   und `legend` bleiben. */
+.formular.karte > .feldgruppe {
+  border: 0; background: transparent; padding: 0;
+}
+.formular.karte > .feldgruppe > legend { margin-left: 0; padding: 0; font-size: 1.05rem; }
+
+/* **Auf schmalen Schirmen faellt der Rahmen ganz weg.**
+   Eine `legend` sitzt im oberen Rahmen der Feldgruppe und unterbricht ihn.
+   Das geht auf, solange sie in eine Zeile passt - auf 320 Pixeln passte
+   „Um welchen Inhalt geht es?" nicht mehr, und die zweite Zeile stand unter
+   dem Rahmen, waehrend die erste darauf lag. Der Rahmen ist dort ohnehin der
+   Teil, der am wenigsten traegt: Auf dem Telefon steht sowieso nur ein Block
+   im Bild, die Gruppierung ist offensichtlich. Dafuer kommen 44 Pixel Breite
+   zurueck, und die sind bei 320 gemessenen mehr wert als eine Linie.
+   `fieldset` und `legend` bleiben - fuer den Screenreader aendert sich nichts. */
+@media (max-width: 40rem) {
+  .feldgruppe { border: 0; background: transparent; padding: 0; }
+  /* `legend` ist kein Flexkind und bekommt deshalb keinen `gap` ab. */
+  .feldgruppe > legend { padding: 0; margin: 0 0 0.4rem; font-size: 1.05rem; }
+}
+
 .wahl { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .wahlfeld {
   /* Kein Trennen mitten im Wort, aber sehr wohl zwischen Woertern: „Schueler/in
@@ -460,6 +529,12 @@ main:focus { outline: none; }
   color: var(--schrift-2); cursor: pointer; line-height: 1.5;
 }
 .ankreuzfeld input { margin-top: 0.25rem; accent-color: var(--akzent); flex-shrink: 0; }
+/* Einzeiliges Ankreuzfeld: Das Etikett war 29 Pixel hoch und damit unter der
+   Flaeche, mit der ein Mensch trifft, ohne hinzusehen. Mehrzeilige sind von
+   selbst hoch genug; die Untergrenze schadet ihnen nicht. */
+@media (max-width: 64rem), (pointer: coarse) {
+  .ankreuzfeld { min-height: 2.75rem; align-items: center; }
+}
 
 /* ---------- Fragen ---------- */
 .fragen { list-style: none; counter-reset: frage; margin: 0; padding: 0; display: grid; gap: 1.3rem; }
@@ -649,7 +724,17 @@ main:focus { outline: none; }
   font-variant-numeric: tabular-nums; text-align: right;
 }
 .rangliste .eintrag { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; text-decoration: none; }
-.rangliste .titel { font-weight: 650; color: var(--schrift); }
+/* **Zwei Zeilen, dann Schluss.** Schulnamen wie „Erich Kaestner-Schule
+   Sonderpaedagogisches Bildungs- und Beratungszentrum Foerderschwerpunkt
+   Lernen" sind keine Ausnahme, sondern in den Foerderschulen die Regel. Bei
+   320 Pixeln wurden daraus acht Zeilen, die Zeile wuchs auf Handhoehe, und
+   eine Rangliste, in der ein Platz einen halben Bildschirm einnimmt, ist
+   keine Liste mehr. Der volle Name steht im `title` und auf dem Profil. */
+.rangliste .titel {
+  font-weight: 650; color: var(--schrift);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .rangliste .beiwerk { font-size: 0.85rem; color: var(--schrift-3); }
 .wertungsspalte { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; }
 /* Die Plakette wiederholt in Worten, was die Farbe schon sagt - in der Liste
@@ -1019,6 +1104,12 @@ mark.fehlt {
    laenger als ein 320-px-Schirm breit ist, und die Zeile lief seitlich aus dem
    Bild - auf der Startseite, in der Rangliste, gleich dreimal untereinander. */
 .vorschauliste .name { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+/* Wie in den Ranglisten: zwei Zeilen, dann Schluss. Auf der Startseite wiegt
+   es schwerer, weil die Vorschau dort zwischen zwei anderen Bloecken steht -
+   eine Zeile, die auf Handhoehe waechst, schiebt alles Folgende aus dem Bild. */
+.vorschauliste .schulname {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
 .vorschauliste .name span { display: block; font-weight: 400; font-size: 0.85rem; color: var(--schrift-3); }
 .vorschauliste .punkte { font-weight: 800; font-variant-numeric: tabular-nums; }
 .vorschauliste .punkte.gut { color: var(--gut); }
@@ -1078,7 +1169,11 @@ mark.fehlt {
 /* Auf der Formularseite ist der Schulname eine Angabe, keine Schlagzeile: In
    voller Überschriftengröße nahm er auf dem Telefon vier Zeilen ein, und die
    erste Frage stand unterhalb des Bildschirmrands. */
-.formularkopf { padding: 1.5rem 0 1rem; gap: 0.5rem; }
+/* Auf einem breiten Schirm lief die Trennlinie unter dem Schulnamen ueber die
+   ganze Spalte, waehrend das Formular darunter bei 46 rem endete - drei
+   verschiedene Breiten uebereinander, und keine davon absichtlich. Der Kopf
+   gehoert zum Formular; er soll dieselbe Kante haben. */
+.formularkopf { padding: 1.5rem 0 1rem; gap: 0.5rem; max-width: 46rem; }
 .formularkopf h1 { font-size: clamp(1.35rem, 4.5vw, 1.9rem); line-height: 1.15; }
 .formularkopf .anschrift { font-size: 0.92rem; }
 
@@ -1514,14 +1609,33 @@ mark.fehlt {
 .karte-flaeche .maplibregl-ctrl-group button { width: 2.2rem; height: 2.2rem; }
 .karte-flaeche .maplibregl-ctrl-group button + button { border-top-color: var(--linie); }
 .karte-flaeche .maplibregl-ctrl-group button span { filter: none; }
-.karte-flaeche .maplibregl-ctrl-attrib {
-  background: color-mix(in srgb, var(--flaeche) 88%, transparent);
-  font-size: 0.72rem; border-radius: 8px 0 0 0;
+/* **Der Fehler, gegen den das steht.** MapLibre faerbt die Herkunftsangabe
+   ueber `.maplibregl-ctrl-attrib.maplibregl-compact` - zwei Klassen, also
+   dieselbe Staerke wie unsere Regel, und die Bibliothek kommt spaeter in die
+   Seite. Im dunklen Schema stand deshalb heller Text auf weissem Grund:
+   gemessen 1,93:1, gefordert sind 4,5:1. Die zweite Klasse mitzunennen genuegt. */
+.karte-flaeche .maplibregl-ctrl-attrib,
+.karte-flaeche .maplibregl-ctrl-attrib.maplibregl-compact {
+  background: color-mix(in srgb, var(--flaeche) 92%, transparent);
+  color: var(--schrift-2);
+  font-size: 0.75rem; border-radius: 8px 0 0 0;
 }
 .karte-flaeche .maplibregl-ctrl-attrib a { color: var(--schrift-2); }
+@media (max-width: 64rem), (pointer: coarse) {
+  /* Der Knopf, der die Herkunftsangabe aufklappt, stand auf 24 Pixel - die
+     Bibliothek bringt ihre eigene Groesse mit, und die ist fuer Mauszeiger
+     gedacht. */
+  .karte-flaeche .maplibregl-ctrl-attrib-button { width: 2.75rem; height: 2.75rem; }
+  /* Der Verweis auf OpenStreetMap ist eine Lizenzpflicht und muss anklickbar
+     sein: 14 Pixel hoch sind unter den 24, die WCAG 2.5.8 verlangt. */
+  .karte-flaeche .maplibregl-ctrl-attrib a { display: inline-block; padding: 0.32rem 0.15rem; }
+}
 .karte-flaeche .maplibregl-ctrl-scale {
   background: color-mix(in srgb, var(--flaeche) 82%, transparent);
   border-color: var(--linie-stark); color: var(--schrift-2); border-radius: 4px;
+  /* MapLibre liefert 10 Pixel. Das ist die Groesse, bei der eine Massstabsangabe
+     zur Verzierung wird. */
+  font-size: 0.75rem;
 }
 
 /* Im dunklen Schema sind die Symbole der Bedienelemente schwarz auf dunkel.
@@ -1538,9 +1652,24 @@ mark.fehlt {
      und scrollt den Rest der Sitzung seitwaerts. Betroffen waren die beiden
      Auswahlfelder der Suche (13,6 px), das Anmeldefeld (14,9 px) und das
      ganze Meldeformular (15,2 px). */
-  input[type="text"], input[type="tel"], input[type="email"],
-  input[type="search"], input[type="number"], select, textarea {
-    font-size: 1rem;
+  /* Die Aufzaehlung nach Typ traf zwei Faelle nicht, und beide kamen vor:
+     ein `<input>` ganz ohne `type` (das Attribut fehlt, also greift auch
+     `input[type="text"]` nicht) und jedes Feld, dessen Groesse eine
+     Klassenregel setzt - `.suchfilter .feld select` wiegt schwerer als
+     `select`, egal wie weit unten es steht. Gemessen blieben danach 13,6 px
+     in der Schulsuche, 14,7 px in den Ranglisten und 13,3 px im
+     Meldeformular.
+
+     Deshalb `!important`, und nur hier: Das ist keine Gestaltungsfrage,
+     sondern ein Riegel gegen ein Verhalten des Geraets. Safari auf dem iPhone
+     zoomt beim Antippen in jedes Feld hinein, dessen Schrift kleiner als
+     sechzehn Pixel ist - und zoomt nicht wieder heraus. Wer die Schulsuche
+     filtert, steht danach auf 130 Prozent und scrollt den Rest der Sitzung
+     seitwaerts. Eine Komponente, die das ueberschreiben will, hat unrecht. */
+  input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"], [type="hidden"]),
+  select,
+  textarea {
+    font-size: 1rem !important;
   }
 
   /* **Fingerkuppen, keine Mauszeiger.** 44 Pixel sind die Flaeche, mit der ein
@@ -1566,7 +1695,13 @@ mark.fehlt {
   /* Der Aufklapper der Frage-Aufschluesselung: 30 Pixel hoch und ohne
      seitliche Flaeche - auf dem Telefon der Unterschied zwischen „geht auf"
      und „nichts passiert". */
-  .fragedetails > summary { min-height: 2.75rem; display: flex; align-items: center; }
+  /* `gap` ist hier kein Feinschliff, sondern die Reparatur eines Fehlers, den
+     `display: flex` selbst verursacht: In einem Flexbehaelter fallen reine
+     Leerzeichen zwischen zwei Kindern weg. Auf jedem Telefon stand deshalb
+     „Einzelne Fragen(11 von 11 ausgewertet)" - am Schreibtisch, wo die Regel
+     nicht greift, mit Leerzeichen. Ein Fehler, den man nur sieht, wenn man
+     beide Breiten nebeneinanderlegt. */
+  .fragedetails > summary { min-height: 2.75rem; display: flex; align-items: center; gap: 0.3rem; }
 
   /* Kaestchen und Punkte: Das Etikett drumherum ist das eigentliche Ziel, aber
      wer das Kaestchen selbst trifft, soll es auch treffen koennen. */

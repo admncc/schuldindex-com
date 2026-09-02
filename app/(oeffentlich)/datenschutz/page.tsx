@@ -314,11 +314,15 @@ export default function Datenschutzseite() {
         <tbody>
           {REGELN.map((r) => (
             <tr key={r.art}>
-              <td>{r.gegenstand}</td>
-              <td>
+              {/* Auf dem Telefon wird gestapelt und `thead` ausgeblendet -
+                  ohne `data-spalte` stuende dort dreimal Text ohne Angabe,
+                  was er bedeutet. Ausgerechnet in der Aufbewahrungstabelle,
+                  in der die Frist die Zusage ist. */}
+              <td data-spalte="Daten">{r.gegenstand}</td>
+              <td data-spalte="Frist">
                 {fristtext(r.tage)} ab {r.ab}
               </td>
-              <td>{r.begruendung}</td>
+              <td data-spalte="Warum">{r.begruendung}</td>
             </tr>
           ))}
         </tbody>
