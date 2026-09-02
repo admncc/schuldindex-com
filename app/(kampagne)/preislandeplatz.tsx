@@ -1,3 +1,4 @@
+import { MINDESTZAHL_PROFIL, MINDESTZAHL_RANGLISTE } from "@/domain/aggregation";
 import { GEWINNE, PARTNER } from "@/domain/verlosungsgewinne";
 import { Suchfeld } from "../(oeffentlich)/suchfeld";
 import { Gewinnekarten } from "./landeplatz";
@@ -127,12 +128,24 @@ export function Preislandeplatz({
         </ul>
       </section>
 
+      {/* **Der Einwand, nicht die Mission.**
+          Die Frage vor dem Klick lautet nicht „warum gibt es diese Seite", sondern
+          „bringt das was, wenn ausgerechnet ich das ausfülle". Der erste Entwurf
+          beantwortete die erste Frage und schloss mit „Der Gutschein ist der
+          Anlass, die Wertung ist der Grund" - eine huebsche Figur, die aber das
+          Motiv der Leserin herabstuft, und zwar direkt vor dem Knopf. Wer mit
+          einem Gutschein geworben wurde, bekommt dort einen leisen Rueffel.
+
+          Deshalb steht hier der Einwand selbst als Ueberschrift und darunter die
+          Antwort, die ihn wirklich entkraeftet: die Schwellen. Sie machen aus der
+          einzelnen Bewertung einen Hebel statt einer Geste - und sie stimmen. */}
       <section className="lp-warum">
-        <h2>Und warum das Ganze?</h2>
+        <h2>„Bringt doch eh nichts“</h2>
         <p className="lp-unterzeile">
-          Schulen ändern sich nicht, weil jemand im Klassenchat schimpft. Sie ändern sich, wenn
-          schwarz auf weiß steht, was nicht läuft - und wenn es viele sagen. Der Gutschein ist der
-          Anlass. Die Wertung ist der Grund.
+          Das stimmt genau so lange, wie es alle glauben. Eine einzelne Bewertung ist eine
+          Meinung. Ab {MINDESTZAHL_PROFIL} hat deine Schule eine öffentliche Wertung, ab{" "}
+          {MINDESTZAHL_RANGLISTE} einen Platz in den Ranglisten - und damit einen Vergleich mit
+          allen anderen. Wie viele ihr noch fehlen, steht auf dem Profil deiner Schule.
         </p>
       </section>
 
