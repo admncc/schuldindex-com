@@ -119,6 +119,70 @@ Die erzeugte Zeile in den Domain-Block der `Caddyfile` einbinden und mit
 `abort @nicht_cloudflare` beantworten. Vorher prüfen, dass `caddy validate`
 zufrieden ist - ein Fehler hier sperrt alle aus, nicht nur die Umgehung.
 
+## Karte
+
+Die Karte zeichnet einen echten Kartenhintergrund aus **Vektorkacheln, die auf
+unserem eigenen Server liegen**. Das ist keine Bequemlichkeitsfrage: Eine Karte
+von Mapbox, MapTiler oder openstreetmap.org lädt beim Betrachter Bilder von
+einem fremden Server und schickt dabei dessen IP-Adresse dorthin - dieselbe
+Frage wie bei den Google-Schriften, die aus genau diesem Grund aus dem Projekt
+geflogen sind (LG München I, 3 O 17493/20). Und es hätte einen zweiten, ganz
+praktischen Preis: Ein fremder Kartendienst ist nichts, was nach § 25 Abs. 2
+Nr. 2 TDDDG „erforderlich" wäre - das Portal bräuchte ein Einwilligungsbanner.
+
+**Ohne Kachelarchiv ist nichts kaputt.** Die Karte fällt dann auf ihre alte
+Darstellung zurück, in der der Schulbestand die Umrisse des Landes selbst
+zeichnet. Die Seite prüft das bei jedem Aufruf, höchstens aber einmal je
+Minute - ein eingespieltes Archiv erscheint also ohne Neustart.
+
+### Einrichten
+
+Zwei Teile, getrennt, weil der eine Minuten und der andere eine gute Stunde
+dauert.
+
+**Zeichenbilder** (rund 2 MB), einmalig:
+
+```bash
+cd /srv/schulindex
+npx tsx scripts/kartendaten.ts
+```
+
+**Kachelarchiv** (rund 2 GB). Der Auszug wird aus dem täglichen Gesamtbestand
+von Protomaps gezogen - über Bereichsabrufe, es wird also nicht der ganze
+Planet geladen. Dafür das Werkzeug `pmtiles` von den Releases des Projekts
+`protomaps/go-pmtiles` holen, dann:
+
+```bash
+pmtiles extract https://build.protomaps.com/$(date -d yesterday +%Y%m%d).pmtiles \
+  /srv/schulindex/daten/karten/basis.pmtiles \
+  --bbox=5.7,47.1,15.3,55.3 --maxzoom=14
+```
+
+Bequemer geht es über die Oberfläche auf `build.protomaps.com`: Ausschnitt
+wählen, herunterladen, als `daten/karten/basis.pmtiles` ablegen.
+
+Prüfen:
+
+```bash
+ls -lh /srv/schulindex/daten/karten/
+curl -s -o /dev/null -w '%{http_code}\n' -H 'Range: bytes=0-1023' \
+  https://schulindex.com/karten/basis.pmtiles
+```
+
+Erwartet: `206`. Eine `200` hiesse, dass der Bereichsabruf nicht ankommt - dann
+lüde jeder Kartenaufruf zwei Gigabyte.
+
+**Der Platzbedarf gehört auf die Rechnung.** Zwei Gigabyte auf einem Server mit
+40 GB Platte sind kein Problem, aber sie sind da; vor dem Einspielen einmal
+`df -h` ansehen.
+
+### Auffrischen
+
+Der Auszug ist ein Stand, kein Abonnement. Ein- bis zweimal im Jahr denselben
+Befehl mit neuem Datum laufen lassen, die Datei austauschen, fertig - ein
+Neustart ist nicht nötig, weil die Auslieferung die Datei bei jedem Abruf
+liest.
+
 ## Diagnose von außen
 
 Unter `/moderation/diagnose` (nur Leitung) lässt sich ein befristeter Zugang zu

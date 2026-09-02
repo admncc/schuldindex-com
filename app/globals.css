@@ -1491,6 +1491,46 @@ mark.fehlt {
   background: var(--flaeche-2); font-size: 0.78rem; overflow-x: auto;
 }
 
+/* ---------- Karte mit Kachelhintergrund ---------- */
+
+/* MapLibre braucht eine feste Höhe - ein Behälter, der sich nach seinem Inhalt
+   richtet, bleibt bei einer Leinwand auf null. Deshalb keine `aspect-ratio`
+   wie bei der SVG-Darstellung, sondern ein Anteil des Sichtfensters mit
+   Deckel. */
+.karte-flaeche {
+  width: 100%; height: min(70vh, 40rem);
+  border: 1px solid var(--linie); border-radius: var(--radius);
+  overflow: hidden; background: var(--flaeche-2);
+}
+.karte-flaeche.laedt { display: block; }
+
+/* Die Bedienelemente von MapLibre bringen ihr eigenes Aussehen mit. Ohne diese
+   Zeilen sitzt ein graues Kästchen mit scharfen Ecken in einer Seite, die
+   sonst überall Radien und eigene Linien hat. */
+.karte-flaeche .maplibregl-ctrl-group {
+  background: var(--flaeche); border: 1px solid var(--linie);
+  border-radius: 10px; box-shadow: var(--schatten);
+}
+.karte-flaeche .maplibregl-ctrl-group button { width: 2.2rem; height: 2.2rem; }
+.karte-flaeche .maplibregl-ctrl-group button + button { border-top-color: var(--linie); }
+.karte-flaeche .maplibregl-ctrl-group button span { filter: none; }
+.karte-flaeche .maplibregl-ctrl-attrib {
+  background: color-mix(in srgb, var(--flaeche) 88%, transparent);
+  font-size: 0.72rem; border-radius: 8px 0 0 0;
+}
+.karte-flaeche .maplibregl-ctrl-attrib a { color: var(--schrift-2); }
+.karte-flaeche .maplibregl-ctrl-scale {
+  background: color-mix(in srgb, var(--flaeche) 82%, transparent);
+  border-color: var(--linie-stark); color: var(--schrift-2); border-radius: 4px;
+}
+
+/* Im dunklen Schema sind die Symbole der Bedienelemente schwarz auf dunkel.
+   MapLibre liefert sie als Hintergrundbild, invertieren ist der übliche und
+   hier auch der schonendste Weg. */
+@media (prefers-color-scheme: dark) {
+  .karte-flaeche .maplibregl-ctrl-group button span { filter: invert(1); }
+}
+
 @media (max-width: 64rem), (pointer: coarse) {
   /* **Sechzehn Pixel, nicht weniger.** Safari auf dem iPhone zoomt beim
      Antippen in jedes Feld hinein, dessen Schrift kleiner ist - und zoomt
@@ -1552,4 +1592,10 @@ mark.fehlt {
   /* Ein Verweis, der allein in einer Ueberschriftszeile steht, ist kein
      Fliesstextverweis - „Alle Ranglisten" stand auf 24 Pixel. */
   .abschnittskopf a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+
+  /* Auf dem Telefon ist der Bildschirm hoch und schmal: 70 vh Karte drängen
+     die Liste darunter aus dem Blick, und genau die ist die Bedienung ohne
+     Maus. */
+  .karte-flaeche { height: min(58vh, 26rem); }
+  .karte-flaeche .maplibregl-ctrl-group button { width: 2.75rem; height: 2.75rem; }
 }

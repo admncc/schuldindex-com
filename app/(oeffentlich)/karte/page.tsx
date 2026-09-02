@@ -4,6 +4,7 @@ import { ausschnittFuer, bildfeld } from "@/domain/karte";
 import { bewerteteSchulen, kartenzahlen } from "@/db/karte";
 import { Kartenansicht } from "./ansicht";
 import { einer } from "@/domain/suchparameter";
+import { kachelarchivVorhanden } from "@/kartendaten";
 
 export const metadata: Metadata = {
   title: "Karte",
@@ -28,9 +29,10 @@ export default async function Kartenseite({
   const ausschnitt = ausschnittFuer(bundesland);
   const feld = bildfeld(ausschnitt, BREITE);
 
-  const [bewertet, zahlen] = await Promise.all([
+  const [bewertet, zahlen, mitKacheln] = await Promise.all([
     bewerteteSchulen(ausschnitt, undefined, bundesland),
     kartenzahlen(ausschnitt, bundesland),
+    kachelarchivVorhanden(),
   ]);
 
   const bestandsbild = `/karte/bestand.svg${bundesland ? `?bundesland=${bundesland}` : ""}`;
@@ -40,8 +42,9 @@ export default async function Kartenseite({
       <section className="abschnitt">
         <h1>Karte</h1>
         <p className="einleitung">
-          Jeder Punkt ist eine Schule. Farbige Punkte haben eine veröffentlichte Wertung -
-          antippen zeigt sie an. Ziehen verschiebt, Scrollen zoomt.
+          {mitKacheln
+            ? "Jeder Punkt ist eine Schule mit veröffentlichter Wertung - antippen zeigt sie an. Ziehen verschiebt, Scrollen zoomt."
+            : "Jeder Punkt ist eine Schule. Farbige Punkte haben eine veröffentlichte Wertung - antippen zeigt sie an. Ziehen verschiebt, Scrollen zoomt."}
         </p>
 
         {/* Karte und Liste kommen vom Server und stehen auch ohne JavaScript
@@ -76,28 +79,50 @@ export default async function Kartenseite({
           feld={feld}
           bestandsbild={bestandsbild}
           bestandszahl={zahlen.imAusschnitt}
+          mitKacheln={mitKacheln}
         />
 
+        {/* Zwei Karten, zwei wahre Sätze. Auf der Kartenkarte stehen nur die
+            bewerteten Schulen als Punkte - der Bestand steckt im Hintergrund
+            und ist nicht einzeln gezeichnet. Den alten Satz stehen zu lassen
+            hiesse, „31.770 Schulen dargestellt“ unter eine Karte zu schreiben,
+            auf der 34 Punkte liegen. */}
         <p className="bestandshinweis">
-          {ZAHL.format(zahlen.imAusschnitt)} Schulen dargestellt
-          {zahlen.ohneKoordinate > 0
-            ? ` · ${ZAHL.format(zahlen.ohneKoordinate)} ohne Koordinate und daher nicht auf der Karte`
-            : ""}
-          {bewertet.length > 0
-            ? ` · ${ZAHL.format(bewertet.length)} mit veröffentlichter Wertung`
-            : " · noch keine Schule mit veröffentlichter Wertung in diesem Ausschnitt"}
+          {mitKacheln ? (
+            <>
+              {bewertet.length > 0
+                ? `${ZAHL.format(bewertet.length)} Schulen mit veröffentlichter Wertung`
+                : "Noch keine Schule mit veröffentlichter Wertung in diesem Ausschnitt"}
+              {` · ${ZAHL.format(zahlen.gesamt)} Schulen im Bestand`}
+            </>
+          ) : (
+            <>
+              {ZAHL.format(zahlen.imAusschnitt)} Schulen dargestellt
+              {zahlen.ohneKoordinate > 0
+                ? ` · ${ZAHL.format(zahlen.ohneKoordinate)} ohne Koordinate und daher nicht auf der Karte`
+                : ""}
+              {bewertet.length > 0
+                ? ` · ${ZAHL.format(bewertet.length)} mit veröffentlichter Wertung`
+                : " · noch keine Schule mit veröffentlichter Wertung in diesem Ausschnitt"}
+            </>
+          )}
         </p>
 
         <ul className="legende">
-          <li><span className="punkt bestand" /> Schule ohne veröffentlichte Wertung</li>
+          {mitKacheln ? null : (
+            <li><span className="punkt bestand" /> Schule ohne veröffentlichte Wertung</li>
+          )}
           <li><span className="punkt gut" /> gut bewertet</li>
           <li><span className="punkt mittel" /> durchschnittlich</li>
           <li><span className="punkt schlecht" /> unterdurchschnittlich</li>
         </ul>
 
         <p className="fussnote">
-          Die Karte lädt nichts von fremden Servern - weder Kacheln noch Schriften. Gezeichnet
-          wird aus unserem eigenen Schulbestand.
+          Die Karte lädt nichts von fremden Servern - weder Kacheln noch Schriften noch
+          Zählpixel. {mitKacheln
+            ? "Der Kartenhintergrund liegt auf unserem eigenen Server."
+            : "Gezeichnet wird aus unserem eigenen Schulbestand."}{" "}
+          Deshalb braucht diese Seite auch kein Einwilligungsbanner.
         </p>
       </section>
     </>

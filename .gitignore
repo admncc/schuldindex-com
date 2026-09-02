@@ -25,3 +25,7 @@ schulen.json
 # Die GeoIP-Datenbank ist lizenziert und 46 MB groß - sie gehört nicht ins
 # Repository. Hochgeladen wird sie im Panel unter Einstellungen.
 daten/geoip/
+
+# Kartendaten: Kachelarchiv (Gigabyte) und Zeichenbilder werden auf dem
+# Server geholt, nicht mitgeliefert - `npx tsx scripts/kartendaten.ts`.
+daten/karten/

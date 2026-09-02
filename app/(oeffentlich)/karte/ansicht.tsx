@@ -1,12 +1,24 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { BUNDESLAND_LABEL } from "@/domain/bundesland";
 import { SCHULART_LABEL, type Schulart } from "@/import/schulart";
 import { entfernungKm } from "@/domain/geopruefung";
 import { projiziere, type Ausschnitt, type Bildfeld } from "@/domain/karte";
 import { scorestufe } from "@/domain/scoring";
 import type { BewerteteSchule } from "@/db/karte";
+
+/**
+ * MapLibre wiegt rund 200 Kilobyte. Nach der Arbeit, die in das mobile Gewicht
+ * geflossen ist, wird das nicht mitgeliefert, sondern nachgeladen - und nur
+ * dann, wenn ein Kachelarchiv vorliegt. `ssr: false`, weil die Bibliothek
+ * `window` beim Laden anfasst.
+ */
+const Kartenflaeche = dynamic(() => import("./kartenflaeche"), {
+  ssr: false,
+  loading: () => <div className="karte-flaeche laedt" aria-busy="true" />,
+});
 
 /**
  * Die bedienbare Karte.
@@ -44,12 +56,15 @@ export function Kartenansicht({
   feld,
   bestandsbild,
   bestandszahl,
+  mitKacheln,
 }: {
   schulen: readonly BewerteteSchule[];
   ausschnitt: Ausschnitt;
   feld: Bildfeld;
   bestandsbild: string;
   bestandszahl: number;
+  /** Liegt ein Kachelarchiv auf dem Server? Entscheidet über die Darstellung. */
+  mitKacheln: boolean;
 }) {
   const [sicht, setSicht] = useState<Sicht>({ k: 1, x: 0, y: 0 });
   const [gewaehlt, setGewaehlt] = useState<string | null>(null);
@@ -222,144 +237,162 @@ export function Kartenansicht({
       ) : null}
 
       <div className="kartenbuehne">
-        <div
-          className="karte-rahmen"
-          ref={rahmen}
-          style={{ aspectRatio: `${feld.breite} / ${feld.hoehe}` }}
-          onWheel={beiRad}
-          onPointerDown={(e) => {
-            // Die Zoomknöpfe liegen im selben Rahmen. Ohne diese Ausnahme fängt
-            // der Rahmen den Zeiger ein, und der Knopf bekommt seinen Klick nie
-            // zu sehen - genau so ist es beim ersten Versuch passiert.
-            if ((e.target as Element).closest(".kartenknoepfe") !== null) return;
+        {mitKacheln ? (
+          /* Mit Kachelarchiv: MapLibre übernimmt Kamera, Zoom und Zeichnung.
+             Der Baustein wird erst hier geladen - MapLibre sind rund 200 KB,
+             und die haben auf einer Seite ohne Karte nichts zu suchen. */
+          <Kartenflaeche
+            schulen={sichtbar}
+            ausschnitt={ausschnitt}
+            standort={standort}
+            gewaehlt={gewaehlt}
+            aufWahl={setGewaehlt}
+          />
+        ) : (
+          /* Ohne Kachelarchiv bleibt die alte Darstellung: der Schulbestand
+             zeichnet die Umrisse des Landes selbst. Das ist kein Notbehelf für
+             den Fehlerfall, sondern der Zustand, in dem das Portal jahrelang
+             lief - und der Grund, aus dem eine fehlende Kartendatei die Seite
+             nicht kaputt macht. */
+            <div
+              className="karte-rahmen"
+              ref={rahmen}
+              style={{ aspectRatio: `${feld.breite} / ${feld.hoehe}` }}
+              onWheel={beiRad}
+              onPointerDown={(e) => {
+                // Die Zoomknöpfe liegen im selben Rahmen. Ohne diese Ausnahme fängt
+                // der Rahmen den Zeiger ein, und der Knopf bekommt seinen Klick nie
+                // zu sehen - genau so ist es beim ersten Versuch passiert.
+                if ((e.target as Element).closest(".kartenknoepfe") !== null) return;
 
-            zeiger.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-            e.currentTarget.setPointerCapture(e.pointerId);
+                zeiger.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+                e.currentTarget.setPointerCapture(e.pointerId);
 
-            if (zeiger.current.size === 2) {
-              const [a, b] = [...zeiger.current.values()];
-              kneift.current = { abstand: Math.hypot(a!.x - b!.x, a!.y - b!.y), k: sicht.k };
-              zieht.current = null;
-              return;
-            }
-            zieht.current = { x: e.clientX, y: e.clientY, sicht, ziel: e.target as Element };
-          }}
-          onPointerMove={(e) => {
-            if (!zeiger.current.has(e.pointerId)) return;
-            zeiger.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+                if (zeiger.current.size === 2) {
+                  const [a, b] = [...zeiger.current.values()];
+                  kneift.current = { abstand: Math.hypot(a!.x - b!.x, a!.y - b!.y), k: sicht.k };
+                  zieht.current = null;
+                  return;
+                }
+                zieht.current = { x: e.clientX, y: e.clientY, sicht, ziel: e.target as Element };
+              }}
+              onPointerMove={(e) => {
+                if (!zeiger.current.has(e.pointerId)) return;
+                zeiger.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-            const kasten = rahmen.current?.getBoundingClientRect();
-            if (kasten === undefined) return;
-            const massstab = feld.breite / kasten.width;
+                const kasten = rahmen.current?.getBoundingClientRect();
+                if (kasten === undefined) return;
+                const massstab = feld.breite / kasten.width;
 
-            // Zwei Finger: Der Abstand zwischen ihnen bestimmt den Maßstab.
-            if (zeiger.current.size === 2 && kneift.current !== null) {
-              const [a, b] = [...zeiger.current.values()];
-              const abstand = Math.hypot(a!.x - b!.x, a!.y - b!.y);
-              setSicht((alt) =>
-                begrenze({ ...alt, k: (kneift.current!.k * abstand) / kneift.current!.abstand }),
-              );
-              return;
-            }
-
-            const start = zieht.current;
-            if (start === null) return;
-            setSicht(
-              begrenze({
-                k: start.sicht.k,
-                x: start.sicht.x + (e.clientX - start.x) * massstab,
-                y: start.sicht.y + (e.clientY - start.y) * massstab,
-              }),
-            );
-          }}
-          onPointerUp={(e) => {
-            const start = zieht.current;
-            zeiger.current.delete(e.pointerId);
-            if (zeiger.current.size < 2) kneift.current = null;
-            zieht.current = null;
-
-            // Ein Klick ist ein Zug, der nirgendwo hingeführt hat. Die Auswahl
-            // hier zu treffen statt am Kreis selbst ist der Preis dafür, dass
-            // der Rahmen den Zeiger für das Ziehen einfängt.
-            if (start === null || start.ziel === null) return;
-            const bewegt = Math.hypot(e.clientX - start.x, e.clientY - start.y);
-            const slug = start.ziel.getAttribute("data-slug");
-            if (bewegt < 5 && slug !== null) setGewaehlt(slug);
-          }}
-          onPointerCancel={(e) => {
-            zeiger.current.delete(e.pointerId);
-            zieht.current = null;
-            kneift.current = null;
-          }}
-        >
-          <div
-            className="kartenebenen"
-            style={{ transform: `translate(${sicht.x}px, ${sicht.y}px) scale(${sicht.k})` }}
-          >
-            {/* Zwei Ebenen übereinander: der Bestand als eigene,
-                zwischenspeicherbare Datei, darüber die anklickbaren bewerteten
-                Schulen. Beide haben denselben Ausschnitt und liegen deshalb
-                deckungsgleich. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className="schulkarte bestandsebene"
-              src={bestandsbild}
-              alt={`Karte mit ${ZAHL.format(bestandszahl)} Schulen`}
-              width={feld.breite}
-              height={feld.hoehe}
-              draggable={false}
-            />
-            <svg viewBox={`0 0 ${feld.breite} ${feld.hoehe}`} className="schulkarte bewertungsebene">
-              <g className="bewertet">
-                {standort !== null
-                  ? (() => {
-                      const p = projiziere(standort.lat, standort.lon, ausschnitt, feld);
-                      return (
-                        <g className="standort">
-                          <circle cx={p.x} cy={p.y} r={14 / sicht.k} className="hof" />
-                          <circle cx={p.x} cy={p.y} r={4 / sicht.k} className="kern" />
-                        </g>
-                      );
-                    })()
-                  : null}
-
-                {sichtbar.map((s) => {
-                  const punkt = projiziere(s.lat, s.lon, ausschnitt, feld);
-                  const wert = Number(s.gesamtscore);
-                  // Größe nach Zahl der Bewertungen, gedeckelt: Eine Schule mit
-                  // 400 Bewertungen ist wichtiger als eine mit 12, aber nicht
-                  // dreißigmal so groß.
-                  const r = (4 + Math.min(4, Math.log10(Math.max(1, s.anzahl)) * 2)) / Math.sqrt(sicht.k);
-                  return (
-                    <circle
-                      key={s.slug}
-                      cx={punkt.x.toFixed(1)}
-                      cy={punkt.y.toFixed(1)}
-                      r={r.toFixed(2)}
-                      className={`${scorestufe(wert)}${gewaehlt === s.slug ? " gewaehlt" : ""}`}
-                      strokeWidth={1.5 / Math.sqrt(sicht.k)}
-                      data-slug={s.slug}
-                    >
-                      <title>{`${s.name}${s.ort ? `, ${s.ort}` : ""} - ${WERT.format(wert)} von 10`}</title>
-                    </circle>
+                // Zwei Finger: Der Abstand zwischen ihnen bestimmt den Maßstab.
+                if (zeiger.current.size === 2 && kneift.current !== null) {
+                  const [a, b] = [...zeiger.current.values()];
+                  const abstand = Math.hypot(a!.x - b!.x, a!.y - b!.y);
+                  setSicht((alt) =>
+                    begrenze({ ...alt, k: (kneift.current!.k * abstand) / kneift.current!.abstand }),
                   );
-                })}
-              </g>
-            </svg>
-          </div>
+                  return;
+                }
 
-          <div className="kartenknoepfe">
-            <button type="button" onClick={() => zoome(1.5)} aria-label="Vergrößern">+</button>
-            <button type="button" onClick={() => zoome(1 / 1.5)} aria-label="Verkleinern">−</button>
-            <button
-              type="button"
-              onClick={() => setSicht({ k: 1, x: 0, y: 0 })}
-              aria-label="Ganze Karte zeigen"
+                const start = zieht.current;
+                if (start === null) return;
+                setSicht(
+                  begrenze({
+                    k: start.sicht.k,
+                    x: start.sicht.x + (e.clientX - start.x) * massstab,
+                    y: start.sicht.y + (e.clientY - start.y) * massstab,
+                  }),
+                );
+              }}
+              onPointerUp={(e) => {
+                const start = zieht.current;
+                zeiger.current.delete(e.pointerId);
+                if (zeiger.current.size < 2) kneift.current = null;
+                zieht.current = null;
+
+                // Ein Klick ist ein Zug, der nirgendwo hingeführt hat. Die Auswahl
+                // hier zu treffen statt am Kreis selbst ist der Preis dafür, dass
+                // der Rahmen den Zeiger für das Ziehen einfängt.
+                if (start === null || start.ziel === null) return;
+                const bewegt = Math.hypot(e.clientX - start.x, e.clientY - start.y);
+                const slug = start.ziel.getAttribute("data-slug");
+                if (bewegt < 5 && slug !== null) setGewaehlt(slug);
+              }}
+              onPointerCancel={(e) => {
+                zeiger.current.delete(e.pointerId);
+                zieht.current = null;
+                kneift.current = null;
+              }}
             >
-              ⤢
-            </button>
-          </div>
-        </div>
+              <div
+                className="kartenebenen"
+                style={{ transform: `translate(${sicht.x}px, ${sicht.y}px) scale(${sicht.k})` }}
+              >
+                {/* Zwei Ebenen übereinander: der Bestand als eigene,
+                    zwischenspeicherbare Datei, darüber die anklickbaren bewerteten
+                    Schulen. Beide haben denselben Ausschnitt und liegen deshalb
+                    deckungsgleich. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="schulkarte bestandsebene"
+                  src={bestandsbild}
+                  alt={`Karte mit ${ZAHL.format(bestandszahl)} Schulen`}
+                  width={feld.breite}
+                  height={feld.hoehe}
+                  draggable={false}
+                />
+                <svg viewBox={`0 0 ${feld.breite} ${feld.hoehe}`} className="schulkarte bewertungsebene">
+                  <g className="bewertet">
+                    {standort !== null
+                      ? (() => {
+                          const p = projiziere(standort.lat, standort.lon, ausschnitt, feld);
+                          return (
+                            <g className="standort">
+                              <circle cx={p.x} cy={p.y} r={14 / sicht.k} className="hof" />
+                              <circle cx={p.x} cy={p.y} r={4 / sicht.k} className="kern" />
+                            </g>
+                          );
+                        })()
+                      : null}
+
+                    {sichtbar.map((s) => {
+                      const punkt = projiziere(s.lat, s.lon, ausschnitt, feld);
+                      const wert = Number(s.gesamtscore);
+                      // Größe nach Zahl der Bewertungen, gedeckelt: Eine Schule mit
+                      // 400 Bewertungen ist wichtiger als eine mit 12, aber nicht
+                      // dreißigmal so groß.
+                      const r = (4 + Math.min(4, Math.log10(Math.max(1, s.anzahl)) * 2)) / Math.sqrt(sicht.k);
+                      return (
+                        <circle
+                          key={s.slug}
+                          cx={punkt.x.toFixed(1)}
+                          cy={punkt.y.toFixed(1)}
+                          r={r.toFixed(2)}
+                          className={`${scorestufe(wert)}${gewaehlt === s.slug ? " gewaehlt" : ""}`}
+                          strokeWidth={1.5 / Math.sqrt(sicht.k)}
+                          data-slug={s.slug}
+                        >
+                          <title>{`${s.name}${s.ort ? `, ${s.ort}` : ""} - ${WERT.format(wert)} von 10`}</title>
+                        </circle>
+                      );
+                    })}
+                  </g>
+                </svg>
+              </div>
+
+              <div className="kartenknoepfe">
+                <button type="button" onClick={() => zoome(1.5)} aria-label="Vergrößern">+</button>
+                <button type="button" onClick={() => zoome(1 / 1.5)} aria-label="Verkleinern">−</button>
+                <button
+                  type="button"
+                  onClick={() => setSicht({ k: 1, x: 0, y: 0 })}
+                  aria-label="Ganze Karte zeigen"
+                >
+                  ⤢
+                </button>
+              </div>
+            </div>
+        )}
 
         {/* Die Liste ist die Bedienung ohne Maus: Sie zeigt dieselben Schulen,
             lässt sich mit der Tastatur durchgehen und schiebt die Karte auf den
