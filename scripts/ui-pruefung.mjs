@@ -28,6 +28,7 @@ const SLUG = "grundschule-nuernberg-kopernikusschule";
 const SEITEN = [
   ["/", "start"],
   ["/lp1", "landeplatz"],
+  ["/lp2", "landeplatz-preis"],
   ["/schulen", "suche"],
   [`/schule/${SLUG}`, "profil"],
   ["/ranglisten", "ranglisten"],

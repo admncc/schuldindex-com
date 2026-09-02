@@ -1421,19 +1421,21 @@ mark.fehlt {
    aus dem jemand einer Story folgt - stand ganz unten. Nebeneinander sieht man
    alle drei auf einen Blick; die Mega-Karte laeuft ueber beide Spalten und
    bleibt damit die groesste, ohne die Leiter 50 - 100 - 1000 zu zerreissen. */
-.lp-gewinne ul {
+/* An der Klasse, nicht an der Verschachtelung: Auf `/lp2` stehen dieselben
+   Karten in der Buehne und nicht im Abschnitt `.lp-gewinne`. */
+.lp-gewinnliste {
   list-style: none; margin: 1rem 0 0.8rem; padding: 0;
   display: grid; gap: 0.7rem; grid-template-columns: 1fr 1fr;
 }
-.lp-gewinne .lp-gewinn.gross { grid-column: 1 / -1; }
+.lp-gewinnliste .lp-gewinn.gross { grid-column: 1 / -1; }
 @media (min-width: 40rem) {
-  .lp-gewinne ul { grid-template-columns: repeat(3, 1fr); }
-  .lp-gewinne .lp-gewinn.gross { grid-column: auto; }
+  .lp-gewinnliste { grid-template-columns: repeat(3, 1fr); }
+  .lp-gewinnliste .lp-gewinn.gross { grid-column: auto; }
 }
 /* Unter 22rem reicht die Breite fuer zwei Spalten nicht mehr - dort steht die
    Zahl sonst allein in einer Zeile und die Bedingung darunter in vier. */
 @media (max-width: 22rem) {
-  .lp-gewinne ul { grid-template-columns: 1fr; }
+  .lp-gewinnliste { grid-template-columns: 1fr; }
 }
 .lp-gewinn {
   display: flex; flex-direction: column; gap: 0.2rem; padding: 1.1rem 1.2rem;
@@ -1473,6 +1475,27 @@ mark.fehlt {
   width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--gut);
 }
 .lp-vertrauen li strong { color: var(--schrift); }
+
+/* ---------- Landeplatz mit dem Gewinn zuerst (/lp2) ---------- */
+
+/* Die Ueberschrift traegt hier Betraege statt eines Satzes. Etwas kleiner als
+   auf `/lp1`: „50 €, 100 € oder 1.000 €" ist kuerzer als eine Frage und wirkt
+   bei gleicher Groesse wie ein Plakat, nicht wie eine Zusage. */
+.lp-preisbuehne h1 { font-size: clamp(1.9rem, 7.5vw, 3rem); }
+/* Der grosse Betrag in der Signalfarbe - dieselbe wie auf der Mega-Karte
+   darunter, damit die Zeile und die Karte als dasselbe gelesen werden. */
+.lp-preisbuehne h1 em { color: var(--signal); }
+.lp-preisbuehne .lp-gewinnliste { margin-top: 0.4rem; }
+
+/* Der Hinweis auf die Freiwilligkeit steht abgesetzt und nicht im Fliesstext:
+   Er ist die Antwort auf die Frage, ob man sich mit dem Kreuz etwas einhandelt,
+   und die stellt sich genau hier - unter dem Knopf, vor dem Klick. */
+.lp-freiwillig {
+  border-left: 2px solid var(--linie-stark); padding-left: 0.8rem;
+}
+.lp-freiwillig strong { color: var(--schrift-2); }
+
+.lp-warum .lp-unterzeile { max-width: 46ch; }
 
 .lp-abschluss { border-top: 1px solid var(--linie); padding-top: 2rem; }
 .lp-fuss { border-top: 1px solid var(--linie); padding-top: 1.2rem; font-size: 0.85rem; }

@@ -4,6 +4,41 @@ import { Suchfeld } from "../(oeffentlich)/suchfeld";
 const ZAHL = new Intl.NumberFormat("de-DE");
 
 /**
+ * Die drei Ziehungen als Karten.
+ *
+ * Eigenes Bauteil, weil zwei Landeplaetze sie an verschiedenen Stellen
+ * brauchen: Der eine zeigt sie nach der Ansprache, der andere macht sie zur
+ * Ansprache. Zweimal dieselbe Liste zu pflegen hiesse, dass eine von beiden
+ * irgendwann einen alten Betrag nennt - und das ist bei einem Gewinnspiel
+ * keine Kleinigkeit.
+ */
+export function Gewinnekarten() {
+  return (
+    <ul className="lp-gewinnliste">
+      {VERLOSUNGSARTEN.map((art) => (
+        <li key={art} className={art === "mega" ? "lp-gewinn gross" : "lp-gewinn"}>
+          <span className="lp-wert">{ZAHL.format(GEWINNE[art].wertEuro)} €</span>
+          {/* Der Name zuerst, die Zahl dahinter: „50× Verlosung" las sich,
+              seit die normale Ziehung schlicht „Verlosung" heisst, wie eine
+              Menge Ziehungen statt einer Menge Gutscheine. */}
+          <span className="lp-anzahl">
+            {VERLOSUNG_LABEL[art]} · {GEWINNE[art].anzahl}{" "}
+            {GEWINNE[art].anzahl === 1 ? "Gutschein" : "Gutscheine"}
+          </span>
+          <span className="lp-bedingung">
+            {GEWINNE[art].mindestEmpfehlungen === 0
+              ? "Für Schülerinnen und Schüler, die bewerten"
+              : GEWINNE[art].mindestEmpfehlungen === 1
+                ? "Sobald eine Person über deinen Link bewertet"
+                : `Ab ${GEWINNE[art].mindestEmpfehlungen} Personen über deinen Link`}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
  * Der Landeplatz für Kampagnen.
  *
  * Eine Seite, ein Ziel: die Schule suchen und bewerten. Alles darauf zahlt auf
@@ -63,27 +98,7 @@ export function Landeplatz({
 
       <section className="lp-gewinne">
         <h2>Jeden Monat zu gewinnen</h2>
-        <ul>
-          {VERLOSUNGSARTEN.map((art) => (
-            <li key={art} className={art === "mega" ? "lp-gewinn gross" : "lp-gewinn"}>
-              <span className="lp-wert">{ZAHL.format(GEWINNE[art].wertEuro)} €</span>
-              {/* Der Name zuerst, die Zahl dahinter: „50× Verlosung" las sich,
-                  seit die normale Ziehung schlicht „Verlosung" heisst, wie eine
-                  Menge Ziehungen statt einer Menge Gutscheine. */}
-              <span className="lp-anzahl">
-                {VERLOSUNG_LABEL[art]} · {GEWINNE[art].anzahl}{" "}
-                {GEWINNE[art].anzahl === 1 ? "Gutschein" : "Gutscheine"}
-              </span>
-              <span className="lp-bedingung">
-                {GEWINNE[art].mindestEmpfehlungen === 0
-                  ? "Für Schülerinnen und Schüler, die bewerten"
-                  : GEWINNE[art].mindestEmpfehlungen === 1
-                    ? "Sobald eine Person über deinen Link bewertet"
-                    : `Ab ${GEWINNE[art].mindestEmpfehlungen} Personen über deinen Link`}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <Gewinnekarten />
         <p className="lp-klein">
           Gutscheine von {PARTNER} - einlösbar in über 500 Geschäften. Teilnahme ab einer
           bestätigten Bewertung, ein Los je Konto und Monat.{" "}
