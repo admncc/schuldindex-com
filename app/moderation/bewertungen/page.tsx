@@ -120,6 +120,7 @@ export default async function Bewertungsseite({
               <th scope="col">Rolle</th>
               <th scope="col">Wertung</th>
               <th scope="col">Zustand</th>
+              <th scope="col">Tempo</th>
               <th scope="col">Risiko</th>
               <th scope="col">Befund</th>
               <th scope="col">Kontakt</th>
@@ -147,6 +148,21 @@ export default async function Bewertungsseite({
                     {z.hat_freitext ? <span className="gedaempft" title="mit Freitext"> ·&nbsp;T</span> : null}
                   </td>
                   <td data-spalte="Zustand">{ZUSTAND_LABEL[z.status]}</td>
+                  {/* **Tempo gehört in die Übersicht**, weil sich an ihm die
+                      Schwellen beurteilen lassen - und weil die gemessene Dauer
+                      bis zum 08.11.2026 gar nicht gespeichert wurde, war die
+                      Frage „hätte das Signal angeschlagen" nachträglich nicht
+                      zu beantworten. */}
+                  <td data-spalte="Tempo">
+                    {z.dauer_sekunden === null ? (
+                      <span className="gedaempft">–</span>
+                    ) : (
+                      <>{z.dauer_sekunden} s</>
+                    )}
+                    {z.median_ms === null ? null : (
+                      <span className="gedaempft"> · ⌀{z.median_ms} ms</span>
+                    )}
+                  </td>
                   <td data-spalte="Risiko">
                     {punkte === 0 ? (
                       "–"

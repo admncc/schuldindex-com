@@ -665,6 +665,10 @@ export interface Bewertungszeile {
   konto_bestaetigt: boolean;
   version: number;
   ist_demo: boolean;
+  /** Vom Server gemessen. `null` bei Abgaben vor dem 08.11.2026. */
+  dauer_sekunden: number | null;
+  /** Mittlerer Abstand zwischen zwei Antworten, in Millisekunden. */
+  median_ms: number | null;
 }
 
 export interface Bewertungsfilter {
@@ -708,7 +712,8 @@ export async function alleBewertungen(f: Bewertungsfilter = {}): Promise<Bewertu
   return sql<Bewertungszeile[]>`
     select b.id, b.erstellt_am, b.aktualisiert_am, b.status::text as status,
            b.rolle::text as rolle, b.klassenstufe, b.signalpunkte, b.signale,
-           b.aktuelle_version as version, b.ist_demo,
+           b.aktuelle_version as version, b.ist_demo, b.dauer_sekunden,
+           (b.klickmuster->>'medianMs')::numeric::int as median_ms,
            s.name as schule_name, s.slug as schule_slug, s.ort as schule_ort, s.bundesland,
            v.gesamtscore,
            v.freitexte <> '{}'::jsonb as hat_freitext,

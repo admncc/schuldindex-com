@@ -100,6 +100,16 @@ export interface Gespeicherte {
    * folgt, steht in `domain/klickmuster.ts`.
    */
   readonly klickfolge: readonly number[] | null;
+  /**
+   * Die vom Server gemessene Dauer, in Sekunden.
+   *
+   * **Sie wurde bisher geprüft und danach weggeworfen.** Aufgefallen ist das
+   * beim ersten Versuch, eine Schwelle zu beurteilen: Die Frage „hätte das
+   * Tempo-Signal bei dieser Abgabe angeschlagen" liess sich nachträglich nicht
+   * mehr beantworten, obwohl genau dafür gemessen wird. Eine Stellschraube, die
+   * sich nur raten lässt, ist keine.
+   */
+  readonly dauerSekunden: number | null;
   /** Abdruck der Browserkennung, nicht die Kennung selbst. */
   readonly geraetHash: string | null;
   readonly token: Token;
@@ -246,6 +256,7 @@ export async function bewertungAbgeben(
     signalpunkte: betrug.punkte,
     klick: betrug.klick,
     klickfolge: folge.length > 0 ? folge : null,
+    dauerSekunden: eingabe.dauerSekunden ?? null,
     geraetHash,
     token,
   });

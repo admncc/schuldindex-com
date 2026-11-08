@@ -182,9 +182,28 @@ export const KATALOG: readonly Einstellungsbeschreibung[] = [
     gruppe: "tempo",
     label: "Mindestabstand zwischen zwei Klicks",
     hilfe:
-      "Der mittlere Abstand zwischen zwei Antworten. Wer eine Frage liest und entscheidet, braucht mehr als eine halbe Sekunde; 400 Millisekunden lassen selbst schnellem Durchgehen Raum.",
+      "Der mittlere Abstand zwischen zwei Antworten. Eine Frage wie „Wie sauber und funktionsfähig sind die Sanitäranlagen?“ ist in unter einer Sekunde nicht gelesen. Weil eine Kategorie als Block auf dem Schirm steht, lässt sich die nächste Frage zwar schon lesen, während der Daumen die vorige antippt - ein *Median* unter einer Sekunde heißt aber, dass die Hälfte der Antworten schneller kam als Lesen dauert. Das ist Überfliegen, nicht Beantworten.",
     art: "ganzzahl",
-    vorgabe: 400,
+    /**
+     * **Von 400 auf 2000 heraufgesetzt (08.11.2026).**
+     *
+     * Die 400 stammten aus der Überlegung „mehr als eine halbe Sekunde“ und
+     * waren an keiner echten Abgabe geprüft. Die ersten drei Abgaben lieferten
+     * den Maßstab: eine bewusst schnell durchgeklickte kam auf einen Median von
+     * 906 ms, zwei normal ausgefüllte auf 4 808 und 6 848 ms. Zwischen
+     * „überflogen“ und „gelesen“ liegt also eine ganze Größenordnung - und die
+     * alte Grenze lag unter allen dreien, konnte also nie etwas unterscheiden.
+     *
+     * **Warum 2000 trotzdem nicht zu streng ist.** Es ist der Median: Die
+     * Hälfte der Antworten darf schneller kommen. Und das Signal wiegt 2, die
+     * Halteschwelle liegt bei 3 - allein hält es nichts an, es braucht immer
+     * ein zweites Signal daneben. Ein zu Unrecht eingestuftes Tempo kostet
+     * damit nichts; ein durchgelassenes Skript kostet die Glaubwürdigkeit
+     * einer Schulwertung.
+     *
+     * Mit Daten aus ein paar hundert Abgaben gehört der Wert erneut angesehen.
+     */
+    vorgabe: 2000,
     min: 50,
     max: 5000,
     einheit: "ms",
