@@ -419,6 +419,32 @@ sie liefert, sind Summen, Zustände und das Ereignisprotokoll. Jeder Zugriff
 wird protokolliert, auch der mit falschem Kennwort, und der Zähler steht im
 Panel: Ein Zugang, der mehr Zugriffe hat als erwartet, fällt dort auf.
 
+### „Absender nicht lokalisierbar" bei jeder Abgabe
+
+Das Ortssignal wiegt 3, die Halteschwelle liegt bei 3 - schlägt es bei jeder
+Abgabe an, landet **jede** Bewertung in der Handarbeit. Drei Ursachen sehen
+von aussen gleich aus, und `/api/diagnose/netz` unterscheidet sie:
+
+```
+curl -H "Authorization: Bearer sdx_…" https://schulindex.com/api/diagnose/netz
+```
+
+Das Feld `befund` sagt, woran es liegt:
+
+| Was dort steht | Ursache |
+|---|---|
+| `VERTRAUTE_PROXYS ist nicht gesetzt` | Der Kopf wird gar nicht gelesen. Richtig ist 2 (Cloudflare + Caddy). |
+| `Nur n Eintraege, aber m Proxys erwartet` | `VERTRAUTE_PROXYS` zu hoch - dann ist der Absender *immer* unbekannt. |
+| `nicht in der Datenbank gefunden` | Adresse ausserhalb des installierten Auszugs, VPN oder Rechenzentrum. Korrekter Befund, kein Fehler. |
+| `In Ordnung` | Kette und Datenbank arbeiten; das Signal kam von der Adresse selbst. |
+
+Die Auskunft gilt **nur für die eigene Anfrage** und wird nirgends gespeichert.
+Es gibt bewusst keine Abfrage über fremde Besucher.
+
+Hilft kein Nachziehen, ist nicht `entfernung_km` die Stellschraube, sondern das
+Gewicht des Ortssignals. Bei vielen VPN-Nutzern ist „nicht lokalisierbar" der
+Normalfall und sollte dann nicht mehr allein zum Anhalten reichen.
+
 ## Ereignisprotokoll
 
 Serverfehler, Versandergebnisse und Diagnosezugriffe stehen unter

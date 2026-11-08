@@ -30,6 +30,9 @@ export async function GET(anfrage: Request): Promise<Response> {
     protokollUebersicht: await ereigniszahlen(),
     wege: {
       "/api/diagnose": "Zustand des Systems (diese Auskunft)",
+      "/api/diagnose/netz":
+        "Was der Server von dieser Anfrage als Absender ableitet - zur Klaerung von "
+        + "\"Absender nicht lokalisierbar\".",
       "/api/diagnose/ereignisse":
         `Ereignisprotokoll der letzten ${PROTOKOLL_STUNDEN} Stunden. ` +
         "Parameter: art=fehler|warnung|info|zugriff, bereich=…, suche=…, grenze=1-500, vor=<id>",
