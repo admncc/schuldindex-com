@@ -654,6 +654,7 @@ export interface Bewertungszeile {
   status: Zustand;
   rolle: string;
   klassenstufe: number | null;
+  abgangsjahr: number | null;
   schule_name: string;
   schule_slug: string;
   schule_ort: string | null;
@@ -661,7 +662,7 @@ export interface Bewertungszeile {
   gesamtscore: string | null;
   hat_freitext: boolean;
   signalpunkte: number | null;
-  signale: { art: string; erlaeuterung?: string }[] | null;
+  signale: { art: string; gewicht?: number; erlaeuterung?: string }[] | null;
   kontaktart: Kontaktart | null;
   konto_bestaetigt: boolean;
   version: number;
@@ -712,7 +713,7 @@ export async function alleBewertungen(f: Bewertungsfilter = {}): Promise<Bewertu
 
   return sql<Bewertungszeile[]>`
     select b.id, b.erstellt_am, b.aktualisiert_am, b.status::text as status,
-           b.rolle::text as rolle, b.klassenstufe, b.signalpunkte, b.signale,
+           b.rolle::text as rolle, b.klassenstufe, b.abgangsjahr, b.signalpunkte, b.signale,
            b.aktuelle_version as version, b.ist_demo, b.dauer_sekunden,
            (b.klickmuster->>'medianMs')::numeric::int as median_ms,
            s.name as schule_name, s.slug as schule_slug, s.ort as schule_ort, s.bundesland,
