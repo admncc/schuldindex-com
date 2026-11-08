@@ -71,16 +71,34 @@ export function Anschrift({ angaben: a }: { angaben: Betreiberangaben }) {
  * Abs. 4 DSGVO macht ihn zur Anlaufstelle für Betroffene und Behörden - dann
  * muss er auch aussehen wie eine Adresse, an die man schreibt.
  *
+ * Zwei Dinge, die der erste Entwurf falsch machte:
+ *
+ *  - **Der Abstand vor der letzten Zeile.** Den setzt `.anschriftsblock` für
+ *    den Betreiberblock, wo unten die E-Mail-Zeile steht und sich von der
+ *    Postanschrift absetzen soll. Hier ist die letzte Zeile „10557 Berlin“ -
+ *    mitten aus der Anschrift herausgerissen. Deshalb `knapp`.
+ *  - **Die Beschriftung stand als eigener Satz darüber.** Ein freistehendes
+ *    „Vertreter in der Europäischen Union nach Art. 27 DSGVO:“ über einer
+ *    großen weißen Karte liest sich wie zwei Dinge, nicht wie eines. Sie
+ *    gehört in die Karte.
+ *
  * Getrennt wird am Komma. Das ist die Schreibweise, die `.env.example`
  * vorgibt; steht dort kein Komma, bleibt es eine Zeile - falsch wird es nie.
  */
-export function Vertreteranschrift({ wert }: { wert: string }) {
+export function Vertreteranschrift({
+  wert,
+  beschriftung,
+}: {
+  wert: string;
+  beschriftung?: string;
+}) {
   const zeilen = wert
     .split(",")
     .map((z) => z.trim())
     .filter((z) => z !== "");
   return (
-    <address className="anschriftsblock">
+    <address className="anschriftsblock knapp">
+      {beschriftung ? <span className="anschrift-marke">{beschriftung}</span> : null}
       {zeilen.map((z, i) => (i === 0 ? <strong key={z}>{z}</strong> : <span key={z}>{z}</span>))}
     </address>
   );

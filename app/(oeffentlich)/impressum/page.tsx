@@ -51,13 +51,15 @@ export default function Impressumsseite() {
       {a.land !== null && a.land !== "Deutschland" ? (
         <>
           <h2>Vertreter in der Europäischen Union</h2>
-          <p>Nach Art. 27 DSGVO und Art. 13 DSA benannt:</p>
           {a.euVertreter === null ? (
             <p>
               <Fehlt feld="euVertreter" />
             </p>
           ) : (
-            <Vertreteranschrift wert={a.euVertreter} />
+            <Vertreteranschrift
+              wert={a.euVertreter}
+              beschriftung="Benannt nach Art. 27 DSGVO und Art. 13 DSA"
+            />
           )}
         </>
       ) : null}

@@ -50,13 +50,16 @@ export default async function Datenschutzseite() {
           nachlesen. */}
       {a.land !== null && a.land !== "Deutschland" ? (
         <>
-          <p>Vertreter in der Europäischen Union nach Art. 27 DSGVO:</p>
           {a.euVertreter === null ? (
             <p>
+              Vertreter in der Europäischen Union nach Art. 27 DSGVO:{" "}
               <Fehlt feld="euVertreter" />
             </p>
           ) : (
-            <Vertreteranschrift wert={a.euVertreter} />
+            <Vertreteranschrift
+              wert={a.euVertreter}
+              beschriftung="Vertreter in der EU nach Art. 27 DSGVO"
+            />
           )}
         </>
       ) : null}
