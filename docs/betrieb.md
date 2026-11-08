@@ -183,6 +183,54 @@ Befehl mit neuem Datum laufen lassen, die Datei austauschen, fertig - ein
 Neustart ist nicht nötig, weil die Auslieferung die Datei bei jedem Abruf
 liest.
 
+## Zugriffsprotokolle
+
+Die Datenschutzerklärung sagt zu, dass die Zugriffsprotokolle des Servers nach
+einer bestimmten Frist gelöscht werden. Diese Frist muss jemand durchsetzen -
+sonst ist es keine Frist, sondern ein Satz.
+
+**Caddy schreibt ohne `log`-Anweisung keine Zugriffsprotokolle.** Was ohne sie
+im systemd-Journal landet, sind Fehlermeldungen, und das Journal löscht nach
+Größe, nicht nach Zeit. Beides zusammen hieße: Die Erklärung beschreibt
+Protokolle, die es so nicht gibt, und nennt eine Frist, die nichts durchsetzt.
+
+Deshalb wird protokolliert, und zwar mit Verfallsdatum. Im Domainblock der
+`Caddyfile`:
+
+```
+log {
+    output file /var/log/caddy/zugriff.log {
+        roll_size 10MiB
+        roll_keep 5
+        roll_keep_for 168h
+    }
+}
+```
+
+`roll_keep_for 168h` sind sieben Tage. Sieben, weil die Protokolle der Abwehr
+von Angriffen dienen und nicht der Auswertung: Eine Woche reicht, um einem
+Vorfall nachzugehen, der am Freitagabend begann und am Montag auffällt. Länger
+wäre begründungsbedürftig, kürzer nützt im Zweifel nichts.
+
+Dazu das Journal auf dieselbe Frist, damit nicht der zweite Weg offenbleibt:
+
+```bash
+mkdir -p /etc/systemd/journald.conf.d
+printf '[Journal]\nMaxRetentionSec=7day\n' > /etc/systemd/journald.conf.d/frist.conf
+systemctl restart systemd-journald
+```
+
+Anschließend `BETREIBER_PROTOKOLLFRIST="7 Tagen"` in der `.env` - der Wert
+steht in der Erklärung im Satz „die Protokolle werden nach … gelöscht", daher
+der Dativ.
+
+Prüfen, dass die Protokolle wirklich entstehen und wirklich rollen:
+
+```bash
+ls -lh /var/log/caddy/
+journalctl --disk-usage
+```
+
 ## Diagnose von außen
 
 Unter `/moderation/diagnose` (nur Leitung) lässt sich ein befristeter Zugang zu
