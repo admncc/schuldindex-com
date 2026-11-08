@@ -50,6 +50,16 @@ export interface Betreiberangaben {
   readonly kiRegion: string | null;
   /** Wer die Anwendung betreibt - Empfänger der Zugriffsprotokolle. */
   readonly hoster: string | null;
+  /**
+   * Wer die Bestätigungsnachrichten zustellt.
+   *
+   * Art. 13 Abs. 1 lit. e DSGVO verlangt die Empfaenger oder zumindest die
+   * Kategorien. „Unser E-Mail-Dienstleister" war die Kategorie - und solange
+   * keiner feststand, auch das Genaueste, was sich sagen liess. Steht einer
+   * fest, gehoert er benannt: Er bekommt die E-Mail-Adresse jeder Person,
+   * die hier bewertet.
+   */
+  readonly emaildienst: string | null;
   /** Wie lange die Zugriffsprotokolle des Servers aufbewahrt werden. */
   readonly protokollfrist: string | null;
   /**
@@ -91,6 +101,7 @@ export function betreiber(): Betreiberangaben {
     datenschutzbeauftragter: ausUmgebung("BETREIBER_DATENSCHUTZBEAUFTRAGTER"),
     kiRegion: ausUmgebung("KI_VERARBEITUNGSREGION"),
     hoster: ausUmgebung("BETREIBER_HOSTER"),
+    emaildienst: ausUmgebung("BETREIBER_EMAILDIENST"),
     protokollfrist: ausUmgebung("BETREIBER_PROTOKOLLFRIST"),
     // Nur ein ausdrueckliches "an" zaehlt. Eine Messung, die sich
     // versehentlich einschaltet, weil irgendetwas in der Variable stand,
@@ -146,6 +157,7 @@ export const FELDNAME: Readonly<Record<keyof Betreiberangaben, string>> = {
   datenschutzbeauftragter: "Datenschutzbeauftragte Person",
   kiRegion: "Verarbeitungsregion der Claude API",
   hoster: "Hosting-Anbieter",
+  emaildienst: "E-Mail-Dienstleister",
   protokollfrist: "Aufbewahrungsfrist der Zugriffsprotokolle",
   cloudflareZaehler: "Reichweitenmessung von Cloudflare",
 };

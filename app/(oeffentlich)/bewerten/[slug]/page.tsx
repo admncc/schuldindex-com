@@ -7,6 +7,7 @@ import { erzeugeStempel, stempelText } from "@/domain/formularstempel";
 import { Bewertungsformular } from "./formular";
 import { einer } from "@/domain/suchparameter";
 import { erlaubteKontaktarten } from "@/domain/einstellungen";
+import { zustellbareArten } from "@/versand/wege";
 import { holeEinstellungen } from "@/db/einstellungen";
 
 export async function generateMetadata({
@@ -44,6 +45,18 @@ export default async function Bewertungsseite({
     if (aenderung === null) notFound();
   }
 
+  // Nur Wege, die auch zustellen - und nur die, die in den Einstellungen
+
+  // angehakt sind.
+
+  const zustellbar = zustellbareArten();
+
+  const wege = erlaubteKontaktarten(await holeEinstellungen()).filter((a) =>
+
+    zustellbar.includes(a),
+
+  );
+
   return (
     <>
       <section className="schulkopf formularkopf">
@@ -76,13 +89,24 @@ export default async function Bewertungsseite({
         {/* Der Stempel wird hier ausgestellt und beim Absenden zurückgeschickt.
             Aus ihm rechnet der Server die Dauer - eine Angabe des Browsers wäre
             wertlos (siehe domain/formularstempel.ts). */}
-        <Bewertungsformular
-          schulSlug={schule.slug}
-          schulname={schule.name}
-          aenderung={aenderung}
-          stempel={stempelText(erzeugeStempel(schule.slug))}
-          kontaktwege={erlaubteKontaktarten(await holeEinstellungen())}
-        />
+        {wege.length === 0 ? (
+          /* Lieber eine ehrliche Absage als ein Formular ohne Weg zur
+             Bestätigung: Die Bewertung wäre sonst abgegeben und für immer
+             unbestätigt. */
+          <p className="fehlerkasten">
+            Bewerten ist gerade nicht möglich: Wir können den Bestätigungslink zurzeit nicht
+            zustellen. Versuch es später noch einmal - deine Antworten gehen dabei nicht
+            verloren, weil sie noch gar nicht abgeschickt wurden.
+          </p>
+        ) : (
+          <Bewertungsformular
+            schulSlug={schule.slug}
+            schulname={schule.name}
+            aenderung={aenderung}
+            stempel={stempelText(erzeugeStempel(schule.slug))}
+            kontaktwege={wege}
+          />
+        )}
       </section>
     </>
   );

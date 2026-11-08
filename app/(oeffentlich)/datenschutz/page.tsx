@@ -463,9 +463,13 @@ export default async function Datenschutzseite() {
       <ul>
         <li>
           <strong>Nachrichtenversand:</strong> Zur Zustellung des Bestätigungslinks geben wir
-          deine Telefonnummer an den WhatsApp Business Service (Meta Platforms Ireland Ltd.) oder
-          an unseren SMS-Dienstleister weiter, beziehungsweise deine E-Mail-Adresse an unseren
-          E-Mail-Dienstleister. Es wird genau ein Weg genutzt - der, den du angibst.
+          deine E-Mail-Adresse an{" "}
+          {a.emaildienst ?? <>unseren E-Mail-Dienstleister</>} weiter, als Auftragsverarbeiter
+          nach Art. 28 DSGVO. Gibst du stattdessen eine Telefonnummer an, geht sie an den
+          WhatsApp Business Service (Meta Platforms Ireland Ltd.) oder an unseren
+          SMS-Dienstleister. Es wird genau ein Weg genutzt - der, den du angibst - und die
+          Angabe wird für nichts anderes verwendet: kein Newsletter, keine Werbung, keine
+          Weitergabe.
         </li>
         <li>
           <strong>Hosting:</strong> {a.hoster ?? <Fehlt feld="hoster" />}, als Auftragsverarbeiter

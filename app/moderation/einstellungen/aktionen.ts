@@ -6,6 +6,9 @@ import { KATALOG, beschreibung, pruefeWert } from "@/domain/einstellungen";
 import { verlangeAnmeldung } from "../sitzung";
 import { ANTHROPIC, entferneSchluessel, setzeSchluessel } from "@/db/geheimnisse";
 import { sichtbarKeinSchluessel } from "@/domain/geheimnis";
+import { emailweg, pruefeEmpfaenger, smtpAusUmgebung } from "@/versand/email";
+import { zaehle } from "@/domain/drosselung";
+import { protokolliere } from "@/db/ereignisse";
 
 export interface Einstellungszustand {
   readonly meldung?: string;
@@ -109,4 +112,81 @@ export async function schluesselEntfernen(
   await entferneSchluessel(ANTHROPIC, moderatorin.id);
   revalidatePath("/moderation/einstellungen");
   return { erfolg: "Schlüssel entfernt.", versuch };
+}
+
+export interface Versandzustand {
+  readonly meldung?: string;
+  readonly erfolg?: string;
+  readonly versuch?: number;
+}
+
+/**
+ * Verschickt eine Testnachricht.
+ *
+ * **Warum es diesen Knopf gibt.** Ob SMTP richtig eingerichtet ist, zeigte
+ * sich bisher erst, wenn jemand eine Bewertung abgab und auf eine Nachricht
+ * wartete, die nicht kam - und dann stand die Bewertung unbestätigt in der
+ * Datenbank, und niemand wusste, ob es an der Einrichtung lag, am Anbieter
+ * oder am Spamfilter. Ein Knopf, der denselben Weg benutzt wie der Ernstfall,
+ * beantwortet das in fünf Sekunden.
+ *
+ * **Und warum er gedrosselt ist.** Er verschickt Post an eine frei
+ * eingetragene Adresse. Wer sich Zugang zum Panel verschafft, hätte damit
+ * einen Versender in der Hand, der unter unserem Namen und mit unserer
+ * Zustellreputation schreibt. Fünf je Stunde reichen zum Einrichten und zu
+ * nichts sonst; jeder Versuch steht im Protokoll.
+ */
+export async function testmailSenden(
+  vorher: Versandzustand,
+  formular: FormData,
+): Promise<Versandzustand> {
+  const moderatorin = await verlangeAnmeldung();
+  const versuch = (vorher.versuch ?? 0) + 1;
+
+  if (moderatorin.rolle !== "leitung") {
+    return { meldung: "Testnachrichten darf nur die Leitung verschicken.", versuch };
+  }
+
+  const smtp = smtpAusUmgebung();
+  if (smtp === null) {
+    return {
+      meldung:
+        "SMTP ist nicht eingerichtet. Ohne SMTP_HOST, SMTP_BENUTZER, SMTP_KENNWORT und SMTP_ABSENDER in der .env geht nichts hinaus.",
+      versuch,
+    };
+  }
+
+  const an = pruefeEmpfaenger(String(formular.get("an") ?? ""));
+  if (an === null) return { meldung: "Diese Adresse ist nicht zustellbar.", versuch };
+
+  if (!zaehle("testmail", moderatorin.id, 5, 3_600_000).erlaubt) {
+    return { meldung: "Fünf Testnachrichten je Stunde reichen. Bitte später noch einmal.", versuch };
+  }
+
+  const ergebnis = await emailweg(smtp).sende({
+    empfaenger: an,
+    betreff: "SCHULINDEX: Testnachricht aus dem Panel",
+    text:
+      `Diese Nachricht bestätigt, dass der E-Mail-Versand von SCHULINDEX funktioniert.\n\n` +
+      `Verschickt von: ${moderatorin.name} (${moderatorin.kennung})\n` +
+      `Über: ${smtp.host}:${smtp.port}\n\n` +
+      `Kommt sie im Posteingang an und nicht im Spam, ist auch SPF und DKIM in Ordnung.\n\n` +
+      `- SCHULINDEX`,
+  });
+
+  await protokolliere({
+    art: ergebnis.ok ? "info" : "warnung",
+    bereich: "versand",
+    meldung: ergebnis.ok
+      ? "Testnachricht verschickt"
+      : `Testnachricht fehlgeschlagen: ${ergebnis.ok ? "" : ergebnis.grund}`,
+    // Die Adresse nicht mitgeben - `saeubere` würde sie schwärzen, aber sie
+    // hat hier ohnehin nichts verloren.
+  });
+
+  if (!ergebnis.ok) return { meldung: ergebnis.grund, versuch };
+  return {
+    erfolg: `Verschickt an ${an}. Kommt sie nicht an, sieh im Spam nach - dann fehlen SPF oder DKIM.`,
+    versuch,
+  };
 }

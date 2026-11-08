@@ -321,6 +321,59 @@ Der Widerruf läuft über „Cookie-Einstellungen" in der Fußzeile; der Link
 erscheint nur bei aktivem Banner und ruft `__tcfapi('displayConsentUi')` auf.
 Antwortet der Anbieter nicht, landet man auf `/datenschutz#einwilligung`.
 
+## Nachrichtenversand
+
+Ohne zugestellte Bestätigung wird **keine einzige Bewertung veröffentlicht**.
+Der Versand ist damit kein Beiwerk, sondern die Voraussetzung für alles andere.
+
+Stand: E-Mail stellt zu, sobald SMTP eingerichtet ist. WhatsApp und SMS sind
+weiterhin Protokollwege - in der Produktion gesperrt, weil der
+Bestätigungslink sonst in der Serverausgabe stünde. Das Formular bietet nur
+Wege an, die auch ankommen (`zustellbareArten()`): In der Produktion ohne SMTP
+bietet es gar keinen an und sagt das, statt eine Bewertung entgegenzunehmen,
+die nie bestätigt werden kann.
+
+### Einrichten
+
+SMTP und nicht die Schnittstelle eines Anbieters: Jeder Anbieter spricht SMTP,
+ein Wechsel kostet vier Zeilen in der `.env` und keinen Code.
+
+Anbieter, die zum Versprechen der Seite passen (Verarbeitung in der EU):
+**Brevo** (Paris, kostenlos bis 300 Nachrichten am Tag), **Mailjet** (Paris),
+**Scaleway TEM** (Paris), **Rapidmail** (Freiburg). Entscheidend ist weniger
+der Preis als die Zustellquote - transaktionale Anbieter sind dafür gebaut,
+ein gewöhnliches Postfach nicht.
+
+1. Konto anlegen, Domäne `schulindex.com` als Absender eintragen.
+2. Die DNS-Einträge, die der Anbieter nennt, bei Cloudflare setzen - **SPF**
+   (TXT auf der Domäne) und **DKIM** (TXT auf einer Unterdomäne). Beide auf
+   „DNS only" stellen, nicht proxied.
+3. Dazu ein **DMARC**-Eintrag auf `_dmarc.schulindex.com`, zu Beginn
+   beobachtend: `v=DMARC1; p=none; rua=mailto:info@schulindex.com`. Ohne ihn
+   sortiert Gmail transaktionale Post zunehmend aus.
+4. In `/srv/schulindex/.env` eintragen: `SMTP_HOST`, `SMTP_PORT` (587 für
+   STARTTLS, 465 für durchgehendes TLS), `SMTP_BENUTZER`, `SMTP_KENNWORT`,
+   `SMTP_ABSENDER`. Dazu `BETREIBER_EMAILDIENST` mit vollem Namen und Sitz -
+   er steht dann in der Datenschutzerklärung, wie Art. 13 DSGVO es verlangt.
+5. `systemctl restart schulindex` - die Werte werden beim Start gelesen.
+6. Unter `/moderation/einstellungen` die **Testnachricht** verschicken. Sie
+   geht denselben Weg wie eine echte Bestätigung. Landet sie im Spam statt im
+   Posteingang, fehlen SPF oder DKIM - dann landet auch jede echte
+   Bestätigung dort.
+
+### Wenn nichts ankommt
+
+Im Ereignisprotokoll steht der Grund, ohne den Empfänger:
+
+```
+curl -H "Authorization: Bearer sdx_…" \
+  "https://schulindex.com/api/diagnose/ereignisse?bereich=versand"
+```
+
+Verschlüsselt wird immer: Port 465 durchgehend, sonst STARTTLS verbindlich
+(`requireTLS`). Ein Anbieter ohne TLS wird abgelehnt statt im Klartext
+beliefert - der Bestätigungslink **ist** das Geheimnis.
+
 ## Schutzköpfe
 
 Stehen in `next.config.ts`, nicht in der Caddy-Konfiguration: So werden sie mit

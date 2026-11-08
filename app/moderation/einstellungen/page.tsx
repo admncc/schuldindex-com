@@ -7,6 +7,8 @@ import Schluesselblock from "./schluesselblock";
 import { ANTHROPIC, lage } from "@/db/geheimnisse";
 import { datenbanklage } from "@/geo/mmdb";
 import Geoipblock from "./geoipblock";
+import Versandblock from "./versandblock";
+import { smtpAusUmgebung } from "@/versand/email";
 
 export const metadata: Metadata = { title: "Einstellungen", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -30,6 +32,7 @@ export default async function Einstellungsseite() {
     datenbanklage(),
   ]);
   const geaendert = abweichungen(werte);
+  const smtp = smtpAusUmgebung();
 
   return (
     <section className="abschnitt">
@@ -60,6 +63,19 @@ export default async function Einstellungsseite() {
       )}
 
       <Einstellungsformular werte={werte} darfAendern={moderatorin.rolle === "leitung"} />
+
+      {/* Der Versand steht oben, weil ohne ihn nichts von dem wirkt, was
+          darunter eingestellt wird: Eine Bewertung ohne zugestellte
+          Bestätigung wird nie veröffentlicht. */}
+      <Versandblock
+        darfAendern={moderatorin.rolle === "leitung"}
+        eigeneKennung={moderatorin.kennung}
+        email={{
+          eingerichtet: smtp !== null,
+          host: smtp === null ? null : `${smtp.host}:${smtp.port}`,
+          absender: smtp?.absender ?? null,
+        }}
+      />
 
       {/* Zugangsschlüssel gehören nicht zur Betrugserkennung, aber sehr wohl in
           die Einstellungen: Es ist die Seite, auf der die Leitung Dinge setzt,
