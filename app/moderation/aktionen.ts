@@ -7,8 +7,6 @@ import { sitzungscookie, SITZUNGSCOOKIE_NAMEN } from "@/domain/anmeldung";
 import { melde } from "@/dienste/moderationsanmeldung";
 import { zweiterFaktorPflicht } from "@/domain/zweiterfaktor";
 import { verbindungIstSicher } from "../sichere-verbindung";
-import { holeEinstellungen } from "@/db/einstellungen";
-import { zahl } from "@/domain/einstellungen";
 import {
   beendeSitzung,
   entscheide,
@@ -20,6 +18,18 @@ import {
 import { pruefeEntscheidung, pruefeSammelaktion, type Aktion, AKTIONEN } from "@/domain/moderation";
 import type { Zustand } from "@/domain/bewertungsstatus";
 import { holeAngemeldete, verlangeAnmeldung } from "./sitzung";
+import {
+  bestaetigeVonHand,
+  BESTAETIGUNG_BEGRUENDUNG_MINDESTLAENGE,
+  fuerErneutenVersand,
+  merkeErneutenVersand,
+} from "@/db/moderation";
+import { erzeugeToken } from "@/domain/verifizierung";
+import { baueBestaetigung, sende } from "@/versand/nachricht";
+import { versandkette } from "@/versand/wege";
+import { zaehle } from "@/domain/drosselung";
+import { holeEinstellungen } from "@/db/einstellungen";
+import { zahl } from "@/domain/einstellungen";
 
 export interface Anmeldezustand {
   readonly meldung?: string;
@@ -204,6 +214,107 @@ export async function sammelAblehnen(
 
   return {
     erfolg: `${ergebnis.abgelehnt} Bewertung${ergebnis.abgelehnt === 1 ? "" : "en"} abgelehnt.${uebersprungen}`,
+    versuch,
+  };
+}
+
+export interface Bestaetigungszustand {
+  readonly meldung?: string;
+  readonly erfolg?: string;
+  readonly versuch?: number;
+}
+
+/**
+ * Schickt den Bestätigungslink noch einmal - der Regelweg.
+ *
+ * Zustellung scheitert: Postfach voll, Spamfilter, Tippfehler. Bis hierher gab
+ * es dafür nichts; die Bewertung blieb liegen, und die Person hatte ihren
+ * einen Versuch für diese Schule verbraucht. Der Kontakt wird dafür
+ * entschlüsselt, aber nicht angezeigt - er geht direkt in den Versand.
+ */
+export async function bestaetigungErneutSenden(
+  vorher: Bestaetigungszustand,
+  formular: FormData,
+): Promise<Bestaetigungszustand> {
+  const moderatorin = await verlangeAnmeldung();
+  const versuch = (vorher.versuch ?? 0) + 1;
+  const bewertungId = String(formular.get("bewertung") ?? "");
+
+  if (!zaehle("bestaetigung-erneut", moderatorin.id, 20, 3_600_000).erlaubt) {
+    return { meldung: "Zwanzig erneute Versände je Stunde reichen. Bitte später noch einmal.", versuch };
+  }
+
+  const auftrag = await fuerErneutenVersand(bewertungId);
+  if (auftrag === null) {
+    return {
+      meldung:
+        "Hier ist nichts zu bestätigen: Das Konto ist bereits bestätigt, oder die Bewertung wartet nicht mehr darauf.",
+      versuch,
+    };
+  }
+
+  const token = erzeugeToken();
+  const basis = process.env["BASIS_URL"] ?? "http://localhost:3000";
+  const nachricht = baueBestaetigung(basis, token.klartext, auftrag.kontaktart);
+  const ergebnis = await sende(
+    versandkette(),
+    auftrag.kontaktKlartext,
+    auftrag.kontaktart,
+    nachricht,
+  );
+
+  if (!ergebnis.ok) return { meldung: `Versand gescheitert: ${ergebnis.grund}`, versuch };
+
+  await merkeErneutenVersand(auftrag, bewertungId, moderatorin.id, token);
+  revalidatePath(`/moderation/${bewertungId}`);
+  return { erfolg: `Neuer Bestätigungslink verschickt (${auftrag.kontaktart}).`, versuch };
+}
+
+/**
+ * Bestätigt den Kontakt von Hand - die Ausnahme.
+ *
+ * **Sie ersetzt den Klick, nicht die Prüfung.** Die wartenden Bewertungen
+ * gehen anschliessend denselben Weg wie nach einem echten Klick: Wer über der
+ * Halteschwelle liegt, landet in der Moderation. Veröffentlicht wird dadurch
+ * nichts, was nach einem echten Klick nicht auch veröffentlicht worden wäre.
+ *
+ * Nur die Leitung, nur mit geschriebener Begründung, eigene Protokollart. Das
+ * ist Absicht: Der Weg soll erklärbar sein, nicht bequem. Wer ihn gewohnheits-
+ * mässig benutzt, hebt die Zusage auf, dass jede Bewertung einen bestätigten
+ * Kontakt hat - und das steht in den Nutzungsbedingungen.
+ */
+export async function vonHandBestaetigen(
+  vorher: Bestaetigungszustand,
+  formular: FormData,
+): Promise<Bestaetigungszustand> {
+  const moderatorin = await verlangeAnmeldung();
+  const versuch = (vorher.versuch ?? 0) + 1;
+
+  if (moderatorin.rolle !== "leitung") {
+    return { meldung: "Von Hand bestätigen darf nur die Leitung.", versuch };
+  }
+
+  const bewertungId = String(formular.get("bewertung") ?? "");
+  const begruendung = String(formular.get("begruendung") ?? "").trim();
+  if (begruendung.length < BESTAETIGUNG_BEGRUENDUNG_MINDESTLAENGE) {
+    return {
+      meldung: `Schreib auf, warum von Hand bestätigt wird - mindestens ${BESTAETIGUNG_BEGRUENDUNG_MINDESTLAENGE} Zeichen. Das steht später im Protokoll.`,
+      versuch,
+    };
+  }
+
+  const schwelle = zahl(await holeEinstellungen(), "halteschwelle");
+  const ergebnis = await bestaetigeVonHand(bewertungId, moderatorin.id, begruendung, schwelle);
+  if (ergebnis === null) {
+    return { meldung: "Das Konto ist bereits bestätigt, oder die Bewertung gibt es nicht.", versuch };
+  }
+
+  revalidatePath(`/moderation/${bewertungId}`);
+  revalidatePath("/moderation");
+  return {
+    erfolg:
+      `Kontakt bestätigt. ${ergebnis.bewertungen} wartende Bewertung(en) weitergeleitet, ` +
+      `davon ${ergebnis.veroeffentlicht} sofort veröffentlicht - der Rest liegt jetzt in der Moderation.`,
     versuch,
   };
 }

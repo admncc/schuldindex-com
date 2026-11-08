@@ -9,13 +9,14 @@
 import type postgres from "postgres";
 import { sql } from "./verbindung";
 import type { Bundesland } from "../domain/bundesland";
-import type { Zustand } from "../domain/bewertungsstatus";
+import { wechsle, type Zustand } from "../domain/bewertungsstatus";
 import type { Antwort } from "../domain/fragebogen";
 import type { Moderatorkonto, Zugang } from "../dienste/moderationsanmeldung";
 import { entschluesseleWennMoeglich, verschleiere, type Kontaktart } from "../domain/kontakt";
 import { hasheSitzung } from "../domain/anmeldung";
 import type { Aktion } from "../domain/moderation";
-import { aktualisiereAggregat } from "./aggregate";
+import { aktualisiereAggregat, aktualisiereAggregate } from "./aggregate";
+import { ausloeserNachBestaetigung } from "../domain/betrugspruefung";
 import { istKennung } from "../domain/kennung";
 import { maskierePlatzhalter } from "./schulsuche";
 
@@ -486,4 +487,159 @@ export async function wartendeDesKontos(bewertungId: string): Promise<Verwandt[]
       and b.status in ('in_pruefung_geo', 'in_pruefung_betrug')
     order by b.erstellt_am asc
   `;
+}
+
+/* --------------------------------------------- Bestätigungslink erneut senden */
+
+export interface Erneutauftrag {
+  readonly kontoId: string;
+  readonly kontaktKlartext: string;
+  readonly kontaktart: Kontaktart;
+  readonly schuleId: string;
+}
+
+/**
+ * Was für einen erneuten Bestätigungsversand nötig ist.
+ *
+ * Gibt `null` zurück, wenn das Konto längst bestätigt ist - dann gibt es
+ * nichts zu bestätigen, und ein zweiter Link wäre ein zweiter Weg ins Konto.
+ *
+ * **Der Kontakt wird hier entschlüsselt, aber nirgends angezeigt.** Er geht
+ * direkt in den Versand. Deshalb steht im Protokoll auch nicht
+ * „Kontaktdaten eingesehen", sondern der Versand selbst: Wer den Link erneut
+ * schickt, hat den Kontakt nicht gelesen, sondern benutzt.
+ */
+export async function fuerErneutenVersand(bewertungId: string): Promise<Erneutauftrag | null> {
+  if (!istKennung(bewertungId)) return null;
+
+  const [zeile] = await sql<
+    {
+      konto_id: string;
+      kontakt_chiffre: Uint8Array | null;
+      kontaktart: Kontaktart;
+      verifiziert_am: Date | null;
+      schule_id: string;
+    }[]
+  >`
+    select k.id as konto_id, k.kontakt_chiffre, k.kontaktart, k.verifiziert_am, b.schule_id
+    from bewertungen b join konten k on k.id = b.konto_id
+    where b.id = ${bewertungId} and b.status = 'wartet_auf_verifizierung'
+  `;
+  if (!zeile || zeile.verifiziert_am !== null || zeile.kontakt_chiffre === null) return null;
+
+  const klartext = entschluesseleWennMoeglich(Buffer.from(zeile.kontakt_chiffre));
+  if (klartext === null) return null;
+
+  return {
+    kontoId: zeile.konto_id,
+    kontaktKlartext: klartext,
+    kontaktart: zeile.kontaktart,
+    schuleId: zeile.schule_id,
+  };
+}
+
+/** Legt einen frischen Bestätigungstoken an und hält den Versand im Protokoll fest. */
+export async function merkeErneutenVersand(
+  auftrag: Erneutauftrag,
+  bewertungId: string,
+  moderatorId: string,
+  token: { hash: string; gueltigBis: Date },
+): Promise<void> {
+  await sql.begin(async (tx) => {
+    // Die alten Token des Kontos werden nicht gelöscht: Wer den ersten Link
+    // doch noch findet, soll ihn benutzen können. Beide führen zum selben Ziel.
+    await tx`
+      insert into verifizierungstoken (konto_id, token_hash, zweck, gueltig_bis)
+      values (${auftrag.kontoId}, ${token.hash}, 'bestaetigung', ${token.gueltigBis})
+    `;
+    await tx`
+      insert into moderationsprotokoll (aktion, moderator_id, bewertung_id, schule_id, begruendung)
+      values ('bestaetigung_erneut', ${moderatorId}, ${bewertungId}, ${auftrag.schuleId},
+              ${`Bestätigungslink erneut verschickt (${auftrag.kontaktart})`})
+    `;
+  });
+}
+
+/* ------------------------------------------- Bestätigung von Hand (Ausnahme) */
+
+export const BESTAETIGUNG_BEGRUENDUNG_MINDESTLAENGE = 20;
+
+export interface Handbestaetigung {
+  readonly bewertungen: number;
+  readonly veroeffentlicht: number;
+}
+
+/**
+ * Bestätigt den Kontakt eines Kontos von Hand.
+ *
+ * **Was das ist, und was es ausdrücklich nicht ist.** Es ersetzt den Klick auf
+ * den Bestätigungslink - nicht die Prüfung danach. Die wartenden Bewertungen
+ * durchlaufen anschliessend genau denselben Weg wie nach einem echten Klick:
+ * Wer über der Halteschwelle liegt, landet in der Moderation und wird dort
+ * einzeln entschieden. Eine Bewertung wird hierdurch also nie veröffentlicht,
+ * die es nach einem echten Klick nicht auch geworden wäre.
+ *
+ * Diese Trennung ist der ganze Punkt. Ein Knopf, der direkt auf „freigegeben"
+ * setzt, hätte die Betrugsprüfung mit übersprungen - und zwar genau bei den
+ * Bewertungen, bei denen sie angeschlagen hat.
+ *
+ * **Warum es die Ausnahme trotzdem gibt.** Zustellung scheitert: Postfach
+ * voll, Spamfilter, Tippfehler in der Adresse. Ohne diesen Weg bliebe die
+ * Bewertung für immer liegen, und die Person hat ihren einen Versuch für
+ * diese Schule verbraucht. Der Weg steht nur der Leitung offen, verlangt eine
+ * geschriebene Begründung und steht als eigene Art im Protokoll - er soll
+ * nachträglich erklärbar sein, nicht bequem.
+ */
+export async function bestaetigeVonHand(
+  bewertungId: string,
+  moderatorId: string,
+  begruendung: string,
+  halteschwelle: number,
+): Promise<Handbestaetigung | null> {
+  if (!istKennung(bewertungId)) return null;
+
+  return sql.begin(async (tx) => {
+    const [zeile] = await tx<{ konto_id: string; verifiziert_am: Date | null; schule_id: string }[]>`
+      select k.id as konto_id, k.verifiziert_am, b.schule_id
+      from bewertungen b join konten k on k.id = b.konto_id
+      where b.id = ${bewertungId}
+      for update of k
+    `;
+    if (!zeile || zeile.verifiziert_am !== null) return null;
+
+    await tx`update konten set verifiziert_am = now() where id = ${zeile.konto_id}`;
+
+    const wartende = await tx<
+      { id: string; schule_id: string; signalpunkte: number | null; signale: { art: string }[] }[]
+    >`
+      select id, schule_id, signalpunkte, coalesce(signale, '[]'::jsonb) as signale
+      from bewertungen
+      where konto_id = ${zeile.konto_id} and status = 'wartet_auf_verifizierung'
+      for update
+    `;
+
+    let veroeffentlicht = 0;
+    for (const b of wartende) {
+      const uebergang = wechsle(
+        "wartet_auf_verifizierung",
+        ausloeserNachBestaetigung(b.signalpunkte, b.signale, halteschwelle),
+      );
+      if (!uebergang.ok) continue;
+      if (uebergang.nach === "freigegeben") veroeffentlicht += 1;
+      await tx`
+        update bewertungen set status = ${uebergang.nach}::bewertungsstatus, aktualisiert_am = now()
+        where id = ${b.id}
+      `;
+    }
+
+    await aktualisiereAggregate(wartende.map((z) => z.schule_id), tx);
+
+    await tx`
+      insert into moderationsprotokoll (aktion, moderator_id, bewertung_id, schule_id, begruendung)
+      values ('bestaetigung_von_hand', ${moderatorId}, ${bewertungId}, ${zeile.schule_id},
+              ${begruendung})
+    `;
+
+    return { bewertungen: wartende.length, veroeffentlicht };
+  });
 }

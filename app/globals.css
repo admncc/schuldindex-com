@@ -1855,3 +1855,8 @@ p.spamhinweis.spamhinweis { color: var(--signal-schrift); }
 /* Formular als Knopf in einer Tabellenzelle: ohne das steht es als Block und
    reisst die Zeile auseinander. */
 .reihe { display: inline-block; margin: 0; }
+
+/* Die Ausnahme steht unter dem Regelweg und sieht auch danach aus. */
+.ausnahme { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--linie); }
+.ausnahme > summary { cursor: pointer; font-size: 0.92rem; color: var(--schrift-3); }
+.ausnahme[open] > summary { margin-bottom: 0.75rem; color: var(--schrift-2); }

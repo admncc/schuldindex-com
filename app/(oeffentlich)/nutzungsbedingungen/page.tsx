@@ -59,7 +59,9 @@ export default function Nutzungsbedingungenseite() {
 
       <h2>4. Wie wir prüfen</h2>
       <p>
-        Jede Bewertung braucht eine Bestätigung über Telefon oder E-Mail. Mehrere automatische
+        Jede Bewertung braucht eine Bestätigung über Telefon oder E-Mail. Scheitert die
+        Zustellung dauerhaft, kann die Redaktion den Kontakt ausnahmsweise von Hand bestätigen -
+        das ersetzt den Klick, nicht die Prüfung danach, und wird mit Begründung protokolliert. Mehrere automatische
         Verfahren halten Auffälliges zurück; über die Veröffentlichung entscheidet dann ein
         Mensch. Welche Merkmale dabei geprüft werden, legen wir nicht offen - das würde denen
         helfen, gegen die sich die Prüfung richtet. Welche Daten dafür verarbeitet werden, steht

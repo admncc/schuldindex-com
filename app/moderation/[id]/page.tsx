@@ -12,6 +12,7 @@ import { alterInStunden, dringlichkeit, DRINGLICHKEIT_LABEL } from "@/domain/mod
 import { fristtext, regel } from "@/domain/aufbewahrung";
 import { holeVorgang, protokollZurBewertung, weitereBewertungenDesKontos } from "@/db/moderation";
 import Entscheidungsfeld from "./entscheidung";
+import Bestaetigungsfeld from "./bestaetigung";
 import Kontaktfeld from "./kontakt";
 import { zahl } from "@/domain/einstellungen";
 import { holeEinstellungen } from "@/db/einstellungen";
@@ -43,7 +44,7 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
   // **Als erstes**, vor jeder Datenbankabfrage. Hier stehen Betrugssignale,
   // Klickfolge, Geoentfernung, Kontaktstand und das Protokoll mit Namen -
   // die Kennung einer Bewertung kennt aber auch, wer sie abgegeben hat.
-  await verlangeAnmeldung();
+  const moderatorin = await verlangeAnmeldung();
 
   const { id } = await params;
 
@@ -284,7 +285,18 @@ export default async function Vorgangsseite({ params }: { params: Promise<{ id: 
         </div>
 
         <aside>
-          <Entscheidungsfeld bewertungId={vorgang.id} status={status} />
+          {/* Eine Bewertung, die auf die Bestätigung wartet, ist nicht
+              „abgeschlossen" - sie hat nur noch keinen Klick gesehen. Dafür
+              gibt es ein eigenes Feld statt des Entscheidungsfeldes, das hier
+              nichts anzubieten hätte. */}
+          {status === "wartet_auf_verifizierung" ? (
+            <Bestaetigungsfeld
+              bewertungId={vorgang.id}
+              darfVonHand={moderatorin.rolle === "leitung"}
+            />
+          ) : (
+            <Entscheidungsfeld bewertungId={vorgang.id} status={status} />
+          )}
 
           <h2>Verlauf</h2>
           {protokoll.length === 0 ? (
