@@ -26,6 +26,38 @@ export async function GET(anfrage: Request): Promise<Response> {
   const tuer = await einlass(anfrage);
   if (!tuer.ok) return tuer.antwort;
 
+  /**
+   * Eine Adresse zum Nachschlagen, statt der eigenen.
+   *
+   * **Wofür.** Ob die Datenbank arbeitet, lässt sich an der eigenen Anfrage
+   * nicht ablesen: Wer vom Server aus prüft, bekommt eine
+   * Rechenzentrumsadresse, und die haben in den City-Datenbanken oft gar
+   * keine Koordinaten. Dann steht „nicht gefunden" da und man weiss nicht, ob
+   * das an der Adresse liegt oder an der Datei. Mit `?ip=` schlägt man eine
+   * bekannte Adresse nach und weiss es.
+   *
+   * Herausgegeben wird dabei nichts über Besucher - nur, was in der
+   * öffentlich erhältlichen MaxMind-Datenbank zu einer frei gewählten Adresse
+   * steht. Gespeichert wird weiterhin nichts.
+   */
+  const gefragt = new URL(anfrage.url).searchParams.get("ip");
+  if (gefragt !== null) {
+    const sauber = gefragt.trim().slice(0, 45);
+    const lage = await datenbanklage();
+    const treffer = /^[0-9a-fA-F:.]+$/.test(sauber) ? await ortungFuerIp(sauber) : null;
+    return auskunft({
+      gefragteAdresse: sauber,
+      ortung: treffer,
+      datenbank: { vorhanden: lage.vorhanden, art: lage.art, groesseMb: lage.groesseMb, pfad: lage.pfad },
+      befund:
+        !lage.vorhanden
+          ? "Keine Datenbank hinterlegt."
+          : treffer === null
+            ? "Diese Adresse steht nicht in der hinterlegten Datenbank."
+            : "Treffer - die Datenbank arbeitet.",
+    });
+  }
+
   const kopf = await headers();
   const roh = kopf.get("x-forwarded-for");
   const kette = (roh ?? "").split(",").map((t) => t.trim()).filter((t) => t !== "");
