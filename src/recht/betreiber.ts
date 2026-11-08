@@ -96,8 +96,19 @@ export const PFLICHTANGABEN: readonly (keyof Betreiberangaben)[] = [
   "email",
 ];
 
+/**
+ * Was zusätzlich Pflicht wird, sobald der Sitz nicht in Deutschland liegt.
+ *
+ * Das Land, weil eine Anschrift ohne Land nicht zustellbar ist - und der
+ * Vertreter in der Union, weil Art. 27 DSGVO und Art. 13 DSA ihn von jedem
+ * Anbieter ausserhalb der EU verlangen. Beides hing bisher an keiner
+ * Vollständigkeitsprüfung: Die Seite zeigte „Impressum vollständig" und liess
+ * die eine Angabe aus, die bei einem Sitz in Delaware am ehesten fehlt.
+ */
 export function fehlendeAngaben(a: Betreiberangaben = betreiber()): readonly (keyof Betreiberangaben)[] {
-  return PFLICHTANGABEN.filter((feld) => a[feld] === null);
+  const pflicht = [...PFLICHTANGABEN];
+  if (a.land !== null && a.land !== "Deutschland") pflicht.push("euVertreter");
+  return pflicht.filter((feld) => a[feld] === null);
 }
 
 export const FELDNAME: Readonly<Record<keyof Betreiberangaben, string>> = {

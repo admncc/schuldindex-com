@@ -7,7 +7,7 @@ export default function Nutzungsbedingungenseite() {
   return (
     <section className="abschnitt rechtstext">
       <h1>Nutzungsbedingungen</h1>
-      <p className="stand">Stand: 26. August 2026</p>
+      <p className="stand">Stand: 8. November 2026</p>
 
       <h2>1. Worum es geht</h2>
       <p>

@@ -135,8 +135,16 @@ export default async function Verlosungsseite() {
           Teilnahmen, die durch falsche Angaben oder mehrfache Konten zustande kommen.
         </li>
         <li>
-          <strong>Der Rechtsweg ist ausgeschlossen.</strong> Eine Barauszahlung des Gewinns gibt
-          es nicht.
+          {/* „Der Rechtsweg ist ausgeschlossen" stand hier und ist in
+              Deutschland unwirksam: Den Weg zu den Gerichten kann niemand
+              durch Teilnahmebedingungen abschneiden. Die Klausel steht in
+              unzaehligen Gewinnspielen, haelt aber keiner Pruefung stand -
+              und eine Bedingung, von der wir wissen, dass sie nicht gilt,
+              hat in einem Text nichts zu suchen, den wir Minderjaehrigen
+              vorlegen. Was zulaessig ist und gemeint war, steht jetzt da. */}
+          <strong>Keine Barauszahlung.</strong> Der Gewinn wird als Gutschein übergeben; er wird
+          weder ausgezahlt noch getauscht. Eine Übertragung auf eine andere Person ist nach
+          Rücksprache möglich.
         </li>
         <li>
           <strong>Veranstalter</strong> ist {a.name ?? <Fehlt feld="name" />}
