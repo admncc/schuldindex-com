@@ -200,27 +200,38 @@ Deshalb wird protokolliert, und zwar mit Verfallsdatum. Im Domainblock der
 ```
 log {
     output file /var/log/caddy/zugriff.log {
-        roll_size 10MiB
-        roll_keep 5
-        roll_keep_for 168h
+        roll_size 20MiB
+        roll_keep 30
+        roll_keep_for 2160h
     }
 }
 ```
 
-`roll_keep_for 168h` sind sieben Tage. Sieben, weil die Protokolle der Abwehr
-von Angriffen dienen und nicht der Auswertung: Eine Woche reicht, um einem
-Vorfall nachzugehen, der am Freitagabend begann und am Montag auffällt. Länger
-wäre begründungsbedürftig, kürzer nützt im Zweifel nichts.
+`roll_keep_for 2160h` sind neunzig Tage.
+
+**Die Frist muss zum genannten Zweck passen, nicht umgekehrt.** Für die reine
+Abwehr von Angriffen wären sieben Tage der übliche Rahmen, und neunzig wären
+begründungsbedürftig. Der Grund, der hier trägt, steht deshalb ausdrücklich in
+der Datenschutzerklärung: Der Versuch, die Wertung einer Schule zu drehen,
+läuft über Wochen und fällt erst auf, wenn das Muster erkennbar wird - ohne
+Protokolle aus dieser Zeit lässt sich hinterher nicht mehr klären, was
+geschehen ist. Wer die Frist ändert, ändert den Absatz dort mit.
+
+`roll_keep 30` bei `roll_size 20MiB` deckelt den Platzbedarf auf 600 MiB. Die
+Zahl ist bewusst so hoch, dass die **Zeit** die Grenze ist und nicht die
+Größe: Bei fünf Dateien à 10 MiB wären die Protokolle nach starkem Verkehr
+früher weg als nach neunzig Tagen, und dann stünde in der Erklärung wieder
+eine Frist, die nichts beschreibt.
 
 Dazu das Journal auf dieselbe Frist, damit nicht der zweite Weg offenbleibt:
 
 ```bash
 mkdir -p /etc/systemd/journald.conf.d
-printf '[Journal]\nMaxRetentionSec=7day\n' > /etc/systemd/journald.conf.d/frist.conf
+printf '[Journal]\nMaxRetentionSec=90day\n' > /etc/systemd/journald.conf.d/frist.conf
 systemctl restart systemd-journald
 ```
 
-Anschließend `BETREIBER_PROTOKOLLFRIST="7 Tagen"` in der `.env` - der Wert
+Anschließend `BETREIBER_PROTOKOLLFRIST="90 Tagen"` in der `.env` - der Wert
 steht in der Erklärung im Satz „die Protokolle werden nach … gelöscht", daher
 der Dativ.
 

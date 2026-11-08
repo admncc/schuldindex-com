@@ -106,8 +106,14 @@ export default function Datenschutzseite() {
       </p>
       <p>
         Beim Ausliefern entstehen Zugriffsprotokolle des Servers (IP-Adresse, Zeitpunkt,
-        angefragte Adresse, Browserkennung). Sie dienen dem Betrieb und der Abwehr von Angriffen,
-        Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Betrieben wird der Server von{" "}
+        angefragte Adresse, Browserkennung). Sie dienen dem Betrieb, der Abwehr von Angriffen und
+        der nachträglichen Aufklärung von Manipulationsversuchen. Rechtsgrundlage ist Art. 6
+        Abs. 1 lit. f DSGVO; unser berechtigtes Interesse ist ein Portal, dessen Wertungen nicht
+        gefälscht sind. <strong>Warum wir sie länger aufbewahren, als für die reine
+        Angriffsabwehr nötig wäre:</strong> Der Versuch, die Wertung einer Schule zu drehen,
+        geschieht nicht an einem Nachmittag, sondern über Wochen - und fällt erst auf, wenn das
+        Muster erkennbar wird. Ohne Protokolle aus dieser Zeit lässt sich danach nicht mehr
+        klären, was geschehen ist. Betrieben wird der Server von{" "}
         {a.hoster ?? <Fehlt feld="hoster" />}; die Protokolle werden nach{" "}
         {a.protokollfrist ?? <Fehlt feld="protokollfrist" />} gelöscht.
       </p>
