@@ -302,8 +302,7 @@ womöglich einen anderen als den, in dem sie gerade bewertet hat.
 In `/srv/schulindex/.env`:
 
 ```
-SMS_BENUTZER=…
-SMS_KENNWORT=…
+SMS_API_KEY=…
 SMS_ABSENDER=SCHULINDEX
 BETREIBER_SMSDIENST="GTX Messaging GmbH, Bonn, Deutschland"
 ```
@@ -313,12 +312,16 @@ Danach `systemctl restart schulindex`. Der Weg schaltet sich selbst frei:
 unter *Einstellungen → Wege der Bestätigung* muss „SMS" zusätzlich angehakt
 sein.
 
-**Zwei Eigenheiten der GTX-Schnittstelle**, beide im Code berücksichtigt:
+Den Schlüssel gibt das GTX-Dashboard unter *Routingaccounts → API
+Credentials → **REST API (v2.x)*** aus. **Nicht** die Zugangsdaten der
+*Simple HTTP API (v1.x)* darunter: Jene legt ihr Ergebnis in den Antworttext
+statt in den HTTP-Status - ein Ausfall kommt dort als HTTP 200 mit `503` im
+Körper und sieht aus wie eine Zustellung.
 
-* Der Erfolg steht im **Antworttext**, nicht im HTTP-Status. Ein Fehler kommt
-  als HTTP 200 mit `503` im Körper. Wer nur `response.ok` prüft, hält jeden
-  Ausfall für eine Zustellung.
-* Die Nummer geht **ohne `+`** hinaus (`491701717179`).
+**Der Schlüssel steht im Pfad der Adresse.** Das ist die Entscheidung des
+Anbieters. Folge davon: Alles, was eine Adresse protokolliert - auch eine
+Fehlermeldung von `fetch` -, trägt ihn mit. Deshalb geht keine Fehlermeldung
+ungefiltert ins Ereignisprotokoll (`ohneSchluessel` in `src/versand/sms.ts`).
 
 **Der Nachrichtentext bleibt im GSM-7-Zeichenvorrat.** Ein einziger Umlaut
 zwingt die SMS in UCS-2, und damit schrumpft sie von 160 auf 70 Zeichen - aus

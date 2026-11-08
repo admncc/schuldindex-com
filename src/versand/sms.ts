@@ -1,39 +1,39 @@
 /**
- * Der SMS-Weg über GTX Messaging.
+ * Der SMS-Weg über GTX Messaging (REST-Schnittstelle).
  *
- * **Zwei Eigenheiten dieser Schnittstelle, die man kennen muss:**
+ * **Warum die REST- und nicht die ältere HTTP-Schnittstelle.** Die alte
+ * (`smsc.php`) legt ihr Ergebnis in den *Antworttext*: Eine gelungene
+ * Einlieferung antwortet `200 OK (<Kennung>)`, ein Ausfall kommt als HTTP 200
+ * mit `503` darin. Wer dort nur `response.ok` prüft, hält jeden Ausfall für
+ * eine Zustellung. Die REST-Schnittstelle benutzt echte Statuscodes, nimmt die
+ * Nummer mit führendem `+` - also genau so, wie wir sie ohnehin führen - und
+ * ihr Schlüssel ist der, den das Dashboard ausgibt.
  *
- *  - **Der Erfolg steht im Antworttext, nicht im HTTP-Status.** Eine gelungene
- *    Einlieferung antwortet mit `200 OK (<Kennung>)` im Körper; ein Fehler
- *    kommt als HTTP 200 mit `503 Service Unavailable` darin. Wer nur
- *    `response.ok` prüft, hält jeden Ausfall für eine Zustellung - und die
- *    Person wartet auf eine Nachricht, die nie losgeschickt wurde.
- *  - **Die Nummer geht ohne `+` hinaus.** Intern führen wir sie als
- *    `+491701717179`, die Schnittstelle will `491701717179`.
- *
- * **POST und nicht GET**, obwohl beides ginge: Bei GET stünden Benutzername
- * und Kennwort in der Adresse - und damit in jedem Proxy-Protokoll zwischen
- * hier und dort.
+ * **Der Schlüssel steht im Pfad der Adresse.** Das ist die Entscheidung des
+ * Anbieters, nicht unsere, und sie hat eine Folge, die man bedenken muss:
+ * Alles, was eine Adresse protokolliert - auch eine Fehlermeldung von `fetch` -
+ * trägt ihn mit. Deshalb geht hier keine Fehlermeldung ungefiltert weiter
+ * (`ohneSchluessel`).
  */
 
 import { telefonZustaendig, type Nachricht, type Versandweg, type Zustellergebnis } from "./nachricht";
 
 export interface Smseinstellungen {
-  readonly benutzer: string;
-  readonly kennwort: string;
+  /** Der API-Key aus dem GTX-Dashboard. */
+  readonly schluessel: string;
   /**
    * Die Absenderkennung, wie sie im Telefon erscheint.
    *
    * In Deutschland sind alphanumerische Absender bei transaktionalen
    * Nachrichten erlaubt und brauchen keine Anmeldung - anders als in den USA.
    * Höchstens elf Zeichen; „SCHULINDEX" sind zehn. Auf eine solche Nachricht
-   * kann niemand antworten, was hier richtig ist: Ein Code braucht keine
+   * kann niemand antworten, und das ist hier richtig: Ein Code braucht keine
    * Rückmeldung.
    */
   readonly absender: string;
 }
 
-const ENDPUNKT = "https://http.gtx-messaging.net/smsc.php";
+const ENDPUNKT = "https://rest.gtx-messaging.net/smsc/sendsms";
 const ZEITGRENZE_MS = 15_000;
 
 function ausUmgebung(name: string): string | null {
@@ -41,90 +41,110 @@ function ausUmgebung(name: string): string | null {
   return wert === undefined || wert.trim() === "" ? null : wert.trim();
 }
 
-/** Die Einstellungen aus der Umgebung - oder `null`, wenn nichts eingerichtet ist. */
 export function smsAusUmgebung(): Smseinstellungen | null {
-  const benutzer = ausUmgebung("SMS_BENUTZER");
-  const kennwort = ausUmgebung("SMS_KENNWORT");
-  if (benutzer === null || kennwort === null) return null;
-  return { benutzer, kennwort, absender: ausUmgebung("SMS_ABSENDER") ?? "SCHULINDEX" };
+  const schluessel = ausUmgebung("SMS_API_KEY");
+  if (schluessel === null) return null;
+  return { schluessel, absender: ausUmgebung("SMS_ABSENDER") ?? "SCHULINDEX" };
 }
 
 /**
- * Bringt eine Nummer in die Form, die die Schnittstelle erwartet.
+ * Prüft, ob eine Nummer in der Form dasteht, die die Schnittstelle erwartet.
  *
- * `null`, wenn sie keine sein kann: Was nicht als internationale Nummer
- * dasteht, wird nicht „zurechtgebogen" - eine falsch geratene Nummer geht an
- * einen Fremden.
+ * Was nicht als internationale Nummer dasteht, wird **nicht zurechtgebogen**:
+ * Eine falsch geratene Nummer geht an einen Fremden, und der bekommt dann
+ * einen Code, der ihn nichts angeht.
  */
-export function fuerGtx(nummer: string): string | null {
-  const sauber = nummer.trim();
-  if (!/^\+[1-9]\d{7,14}$/.test(sauber)) return null;
-  return sauber.slice(1);
+export function istVersandnummer(nummer: string): boolean {
+  return /^\+[1-9]\d{7,14}$/.test(nummer.trim());
 }
 
 /**
- * Liest die Antwort von GTX.
+ * Nimmt den Schlüssel aus einem Text.
  *
- * Der Körper ist Text, keine Struktur: `200 OK (26818021)` oder ein Fehlercode
- * mit Klartext dahinter. Beides wird hier auseinandergehalten.
+ * Fehlermeldungen von `fetch` enthalten die angefragte Adresse, und in der
+ * steht der Schlüssel. Der Grund geht ins Ereignisprotokoll - ohne diese
+ * Zeile stünde dort der Zugang zum SMS-Konto.
  */
-export function leseAntwort(koerper: string): { ok: true; kennung: string } | { ok: false; grund: string } {
-  const text = koerper.trim();
-  const treffer = /^200\s+OK\s*(?:\(([^)]*)\))?/i.exec(text);
-  if (treffer !== null) return { ok: true, kennung: treffer[1] ?? "" };
-
-  const code = /^(\d{3})/.exec(text)?.[1];
-  const erklaerung: Record<string, string> = {
-    "400": "Anfrage fehlerhaft",
-    "401": "Benutzername oder Kennwort falsch",
-    "408": "Empfänger auf der Sperrliste",
-    "503": "Dienst gerade nicht verfügbar",
-  };
-  return {
-    ok: false,
-    grund: code !== undefined ? `${code} - ${erklaerung[code] ?? "unbekannter Fehler"}` : text.slice(0, 120),
-  };
+export function ohneSchluessel(text: string, schluessel: string): string {
+  return schluessel === "" ? text : text.split(schluessel).join("<schluessel>");
 }
 
-/** Was der Weg zum Senden braucht - als Naht, damit er ohne Netz prüfbar bleibt. */
-export type Absendefunktion = (felder: URLSearchParams) => Promise<string>;
+export type Absendefunktion = (
+  adresse: string,
+  felder: URLSearchParams,
+) => Promise<{ status: number; koerper: string }>;
 
-async function ueberHttp(felder: URLSearchParams): Promise<string> {
-  const antwort = await fetch(ENDPUNKT, {
+async function ueberHttp(
+  adresse: string,
+  felder: URLSearchParams,
+): Promise<{ status: number; koerper: string }> {
+  const antwort = await fetch(adresse, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: felder,
     signal: AbortSignal.timeout(ZEITGRENZE_MS),
   });
-  return antwort.text();
+  return { status: antwort.status, koerper: await antwort.text() };
+}
+
+/**
+ * Wertet die Antwort aus.
+ *
+ * Ein 2xx allein genügt nicht: Die Schnittstelle schickt im Körper einen
+ * `message-status`, und nur `OK` heisst eingeliefert.
+ */
+export function leseAntwort(
+  status: number,
+  koerper: string,
+): { ok: true; kennung: string } | { ok: false; grund: string } {
+  if (status >= 200 && status < 300) {
+    try {
+      const d = JSON.parse(koerper) as { "message-status"?: string; "message-id"?: string };
+      if ((d["message-status"] ?? "").toUpperCase() === "OK") {
+        return { ok: true, kennung: d["message-id"] ?? "" };
+      }
+      return { ok: false, grund: `Status ${d["message-status"] ?? "unbekannt"}` };
+    } catch {
+      return { ok: false, grund: "Antwort nicht lesbar" };
+    }
+  }
+
+  const erklaerung: Record<number, string> = {
+    400: "Anfrage fehlerhaft",
+    401: "API-Key falsch oder abgelaufen",
+    403: "Nicht erlaubt - Absenderkennung oder Guthaben prüfen",
+    500: "Störung beim Anbieter",
+  };
+  return { ok: false, grund: `${status} - ${erklaerung[status] ?? "unbekannter Fehler"}` };
 }
 
 export function smsweg(e: Smseinstellungen, absenden: Absendefunktion = ueberHttp): Versandweg {
   return {
     art: "sms",
     zustaendig: (empfaenger, gewuenscht) =>
-      telefonZustaendig(empfaenger, gewuenscht) && fuerGtx(empfaenger) !== null,
+      telefonZustaendig(empfaenger, gewuenscht) && istVersandnummer(empfaenger),
 
     async sende(nachricht: Nachricht): Promise<Zustellergebnis> {
-      const an = fuerGtx(nachricht.empfaenger);
-      if (an === null) return { ok: false, grund: "Nummer nicht zustellbar" };
+      const an = nachricht.empfaenger.trim();
+      if (!istVersandnummer(an)) return { ok: false, grund: "Nummer nicht zustellbar" };
 
-      const felder = new URLSearchParams({
-        user: e.benutzer,
-        pass: e.kennwort,
-        from: e.absender,
-        to: an,
-        text: nachricht.text,
-      });
+      const felder = new URLSearchParams({ from: e.absender, to: an, text: nachricht.text });
+      const adresse = `${ENDPUNKT}/${encodeURIComponent(e.schluessel)}/json`;
 
       try {
-        const ergebnis = leseAntwort(await absenden(felder));
-        // **Nie den Text mitgeben.** Im Fehlergrund landet der Code, und der
-        // Grund geht ins Ereignisprotokoll.
-        return ergebnis.ok ? { ok: true, weg: "sms" } : { ok: false, grund: `SMS: ${ergebnis.grund}` };
+        const { status, koerper } = await absenden(adresse, felder);
+        const ergebnis = leseAntwort(status, koerper);
+        // **Nie den Nachrichtentext mitgeben.** Im Fehlergrund stünde sonst der
+        // Code, und der Grund geht ins Ereignisprotokoll.
+        return ergebnis.ok
+          ? { ok: true, weg: "sms" }
+          : { ok: false, grund: `SMS: ${ohneSchluessel(ergebnis.grund, e.schluessel)}` };
       } catch (fehler) {
-        const grund = fehler instanceof Error ? fehler.message : "unbekannter Fehler";
-        return { ok: false, grund: `SMS-Versand fehlgeschlagen: ${grund.slice(0, 120)}` };
+        const roh = fehler instanceof Error ? fehler.message : "unbekannter Fehler";
+        return {
+          ok: false,
+          grund: `SMS-Versand fehlgeschlagen: ${ohneSchluessel(roh, e.schluessel).slice(0, 120)}`,
+        };
       }
     },
   };

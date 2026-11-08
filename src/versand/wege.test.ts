@@ -28,23 +28,23 @@ describe("zustellbareArten", () => {
    */
   it("bietet in der Produktion nichts an, solange SMTP fehlt", () => {
     setze({ NODE_ENV: "production", SMTP_HOST: undefined, SMTP_BENUTZER: undefined,
-            SMS_BENUTZER: undefined, SMS_KENNWORT: undefined });
+            SMS_API_KEY: undefined });
     expect(zustellbareArten()).toEqual([]);
   });
 
   it("bietet in der Produktion E-Mail an, sobald SMTP steht - und nur E-Mail", () => {
-    setze({ NODE_ENV: "production", ...SMTP, SMS_BENUTZER: undefined, SMS_KENNWORT: undefined });
+    setze({ NODE_ENV: "production", ...SMTP, SMS_API_KEY: undefined });
     expect(zustellbareArten()).toEqual(["email"]);
   });
 
   it("nimmt SMS dazu, sobald Zugangsdaten da sind - WhatsApp bleibt aussen vor", () => {
-    setze({ NODE_ENV: "production", ...SMTP, SMS_BENUTZER: "u", SMS_KENNWORT: "p" });
+    setze({ NODE_ENV: "production", ...SMTP, SMS_API_KEY: "k" });
     expect(zustellbareArten()).toEqual(["sms", "email"]);
   });
 
   it("lässt ausserhalb der Produktion alle drei zu - dort ist die Konsole die Zustellung", () => {
     setze({ NODE_ENV: "development", SMTP_HOST: undefined, SMTP_BENUTZER: undefined,
-            SMS_BENUTZER: undefined, SMS_KENNWORT: undefined });
+            SMS_API_KEY: undefined });
     expect(zustellbareArten()).toEqual(["whatsapp", "sms", "email"]);
   });
 });
