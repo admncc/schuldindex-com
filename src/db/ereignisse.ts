@@ -7,7 +7,7 @@
  */
 
 import { sql } from "./verbindung";
-import { PROTOKOLL_STUNDEN, saeubere, saeubereWert, type Ereignisart } from "../domain/diagnose";
+import { PROTOKOLL_STUNDEN, saeubere, saeubereWert, type Ereignisart, nurPfad } from "../domain/diagnose";
 
 export interface Ereignis {
   readonly art: Ereignisart;
@@ -45,7 +45,7 @@ export async function protokolliere(e: Ereignis): Promise<void> {
       values (
         ${e.art}, ${saeubere(e.bereich).slice(0, 60)}, ${saeubere(e.meldung)},
         ${sql.json(saeubereWert(e.einzelheiten ?? {}) as never)},
-        ${e.pfad === undefined || e.pfad === null ? null : saeubere(e.pfad).slice(0, 500)},
+        ${e.pfad === undefined || e.pfad === null ? null : saeubere(nurPfad(e.pfad)).slice(0, 500)},
         ${e.status ?? null}, ${e.dauerMs ?? null}
       )
     `;

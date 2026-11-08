@@ -321,6 +321,32 @@ Der Widerruf läuft über „Cookie-Einstellungen" in der Fußzeile; der Link
 erscheint nur bei aktivem Banner und ruft `__tcfapi('displayConsentUi')` auf.
 Antwortet der Anbieter nicht, landet man auf `/datenschutz#einwilligung`.
 
+## Schutzköpfe
+
+Stehen in `next.config.ts`, nicht in der Caddy-Konfiguration: So werden sie mit
+der Anwendung ausgeliefert und mitversioniert - eine Einstellung auf dem Server
+überlebt kein neues Aufsetzen.
+
+| Kopf | Wogegen |
+|---|---|
+| `Content-Security-Policy: frame-ancestors 'none'` + `X-Frame-Options: DENY` | Clickjacking. In der Moderation liegt „Freigeben" hinter einem Klick. |
+| `X-Content-Type-Options: nosniff` | Geratene Inhaltstypen, vor allem bei den Kartendateien. |
+| `Referrer-Policy: strict-origin-when-cross-origin` | Verweisquelle nach draussen. Auf Adressen mit Geheimnis überschreibt die Middleware das mit `no-referrer`. |
+| `Permissions-Policy` | Kamera, Mikrofon, Bezahlen. Standort bleibt erlaubt - „in meiner Nähe" braucht ihn. |
+| `Strict-Transport-Security: max-age=31536000` | Abfangen des **ersten** Aufrufs über http. Ohne `includeSubDomains` und ohne `preload`, damit es rücknehmbar bleibt. |
+
+Nachsehen:
+
+```
+curl -sI https://schulindex.com/ | grep -iE 'frame|content-security|nosniff|referrer|permissions|strict-transport'
+```
+
+**Was noch fehlt:** eine vollständige `Content-Security-Policy` mit `script-src`.
+Sie ist mit den eingetragenen Fremdskripten vereinbar - die Hosts stehen in
+`einbettungen`, und der erzeugte Rahmen liesse sich über seinen Hash erlauben -,
+aber Next bringt eigene Skripte mit, die dafür einen Nonce brauchen. Nicht
+nebenbei zu machen.
+
 ## Diagnose von außen
 
 Unter `/moderation/diagnose` (nur Leitung) lässt sich ein befristeter Zugang zu

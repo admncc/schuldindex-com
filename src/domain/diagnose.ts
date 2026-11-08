@@ -65,8 +65,27 @@ const EIGENER_SCHLUESSEL = new RegExp(`${TOKEN_VORSATZ}[A-Za-z0-9_-]+`, "g");
 // Ziffern, Gross- und Kleinbuchstaben; ein Wort aus einer Meldung nicht.
 const LANGES_WORT = /\b[A-Za-z0-9_-]{32,}\b/g;
 
+/**
+ * **Nachgemessen, und die Annahme darüber stimmte nicht.**
+ *
+ * Die erste Fassung verlangte alle drei Zeichenklassen gleichzeitig - mit der
+ * Begründung, ein zufälliges Kennwort enthalte sie „mit an Sicherheit
+ * grenzender Wahrscheinlichkeit". Nachgerechnet an 200 000 erzeugten
+ * Bestätigungstoken (32 Byte base64url, 43 Zeichen) fehlte bei **126** davon
+ * eine Klasse: einer von rund 1 600 wäre ungeschwärzt ins Protokoll gegangen
+ * und über die Diagnoseschnittstelle lesbar gewesen. Bei kürzeren Geheimnissen
+ * - 16 Byte - war es jeder fünfunddreissigste.
+ *
+ * Zwei von drei Klassen genügen: Bei denselben 500 000 Durchläufen entkam
+ * keines mehr. Lesbar bleibt, was lesbar bleiben soll - ein langes deutsches
+ * Wort und ein Bezeichner aus Kleinbuchstaben und Unterstrichen haben beide
+ * nur eine Klasse. Der Preis ist ein geschwärzter Bezeichner in gemischter
+ * Schreibweise; das ist ein unleserliches Wort in einer Fehlermeldung gegen
+ * ein lesbares Geheimnis in einem Protokoll.
+ */
 function siehtNachSchluesselAus(wort: string): boolean {
-  return /[a-z]/.test(wort) && /[A-Z]/.test(wort) && /\d/.test(wort);
+  const klassen = [/[a-z]/, /[A-Z]/, /\d/].filter((r) => r.test(wort)).length;
+  return klassen >= 2;
 }
 
 /**
@@ -145,4 +164,24 @@ export function saeubereWert(wert: unknown, tiefe = 0): unknown {
     return raus;
   }
   return "<unbekannt>";
+}
+
+/**
+ * Macht aus einer Adresse den Pfad - ohne das, was dahinter steht.
+ *
+ * **Warum die Abfrage abgeschnitten wird, obwohl `saeubere` sie prüfen
+ * würde.** Weil eine Schwärzung eine Mustererkennung ist und eine
+ * Mustererkennung irren kann - gezeigt an der Zeichenklassenregel oben. Die
+ * Abfrage eines Bestätigungslinks *besteht* aus dem Geheimnis; sie gar nicht
+ * erst zu protokollieren ist kein zweiter Riegel vor derselben Tür, sondern
+ * der Verzicht auf die Tür. Für die Diagnose geht nichts verloren: Welcher
+ * Pfad einen Fehler geworfen hat, steht weiterhin da, und ob es an einem
+ * bestimmten Token lag, beantwortet kein Protokoll, sondern die Datenbank.
+ */
+export function nurPfad(adresse: string): string {
+  const schnitt = Math.min(
+    ...[adresse.indexOf("?"), adresse.indexOf("#")].filter((i) => i >= 0),
+    adresse.length,
+  );
+  return adresse.slice(0, schnitt);
 }

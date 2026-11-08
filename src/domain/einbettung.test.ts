@@ -108,6 +108,26 @@ describe("pruefeSchnipsel", () => {
     expect(p.hinweise.join(" ")).toContain("document.write");
   });
 
+  it("löst HTML-Entitäten in Attributwerten auf", () => {
+    // Schnipsel von Tag-Verwaltungen tragen ihre Parameter regelmaessig als
+    // `&amp;`. Roh weitergereicht laedt der Browser eine Adresse mit einem
+    // literalen „&amp;" darin - das Banner erscheint dann nicht.
+    const p = nimmAn('<script src="https://a.example/b.js?id=X&amp;v=2"></script>');
+    expect(p.skripte[0]!.src).toBe("https://a.example/b.js?id=X&v=2");
+
+    const q = nimmAn('<script src="https://a.example/b.js" data-t="A&quot;B"></script>');
+    expect(q.skripte[0]!.attribute["data-t"]).toBe('A"B');
+  });
+
+  it("fängt ein als Entität verstecktes </script ab", () => {
+    // Die Auflösung laeuft **vor** der Pruefung - sonst kaeme ein
+    // `&lt;/script&gt;` ungeprueft durch und braeche beim Ausliefern aus dem
+    // umgebenden Element aus.
+    expect(
+      lehntAb('<script src="https://a.example/b.js" data-x="&lt;/script&gt;"></script>'),
+    ).toContain("</script");
+  });
+
   it("lehnt einen Ausbruch über </script ab", () => {
     // `</script >` zaehlt in HTML als Schluss-Tag, der Zerleger schneidet aber
     // nur bei `</script>`. Ohne diese Regel kaeme der Rest als HTML in die

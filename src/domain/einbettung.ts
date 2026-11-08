@@ -80,6 +80,45 @@ export type Pruefung =
   | { readonly ok: false; readonly meldung: string };
 
 /**
+ * Löst HTML-Entitäten in einem Attributwert auf.
+ *
+ * **Der Fund, der das nötig gemacht hat.** Die erste Fassung las Attributwerte
+ * roh. Ein Browser tut das nicht: In einem Attribut ist `&amp;` ein
+ * kaufmännisches Und, `&quot;` ein Anführungszeichen. Der Unterschied ist
+ * nicht theoretisch - Schnipsel von Tag-Verwaltungen tragen ihre Parameter
+ * regelmässig als `?id=X&amp;v=2`, und roh weitergereicht lädt der Browser
+ * eine Adresse mit einem literalen „&amp;" darin. Das Banner erscheint dann
+ * nicht, und niemand weiss, warum.
+ *
+ * **Die Reihenfolge ist sicherheitsrelevant.** Aufgelöst wird *vor* der
+ * Prüfung auf `</script` in `pruefeSchnipsel` - sonst käme ein
+ * `&lt;/script&gt;` ungeprüft durch und bräche beim Ausliefern aus dem
+ * umgebenden Element aus. Deshalb steht die Auflösung hier in der
+ * Attributzerlegung und nicht erst beim Ausliefern.
+ */
+function entschluessle(wert: string): string {
+  return wert.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (ganz, kern: string) => {
+    const k = kern.toLowerCase();
+    if (k === "amp") return "&";
+    if (k === "lt") return "<";
+    if (k === "gt") return ">";
+    if (k === "quot") return '"';
+    if (k === "apos" || k === "#39") return "'";
+    if (k.startsWith("#x")) {
+      const n = Number.parseInt(k.slice(2), 16);
+      return Number.isFinite(n) && n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : ganz;
+    }
+    if (k.startsWith("#")) {
+      const n = Number.parseInt(k.slice(1), 10);
+      return Number.isFinite(n) && n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : ganz;
+    }
+    // Was wir nicht kennen, bleibt stehen. Eine halb geratene Auflösung wäre
+    // schlechter als gar keine.
+    return ganz;
+  });
+}
+
+/**
  * Attribute, die ein `<script>` behalten darf.
  *
  * Eine Positivliste, keine Sperrliste: Bei einer Sperrliste entscheidet die
@@ -123,7 +162,7 @@ function leseAttribute(roh: string): Record<string, string | true> | string {
     if (!ERLAUBTE_ATTRIBUTE.has(name) && !name.startsWith("data-")) {
       return `Das Attribut „${name}“ ist in einem eingebetteten Skript nicht erlaubt.`;
     }
-    attribute[name] = wert === undefined ? true : wert;
+    attribute[name] = wert === undefined ? true : entschluessle(wert);
   }
 
   // Was die Attributsuche nicht erfasst hat, darf nur Leerraum und das

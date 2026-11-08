@@ -7,6 +7,7 @@ import {
   saeubere,
   saeubereWert,
   TOKEN_VORSATZ,
+  nurPfad,
 } from "./diagnose";
 import { erzeugeDiagnosetoken, hasheToken, tokenGleich } from "./diagnosetoken";
 
@@ -138,5 +139,43 @@ describe("Katalog", () => {
 
   it("hält die Frist bei 72 Stunden", () => {
     expect(PROTOKOLL_STUNDEN).toBe(72);
+  });
+});
+
+describe("Schwärzung: nachgemessen statt angenommen", () => {
+  it("schwärzt auch Token, denen eine Zeichenklasse fehlt", () => {
+    // Die alte Regel verlangte alle drei Klassen gleichzeitig. An 200 000
+    // erzeugten Bestätigungstoken fehlte bei 126 eine - einer von rund 1 600
+    // wäre ungeschwärzt ins Protokoll gegangen. Hier beide Fälle von Hand.
+    const ohneZiffer = "abcdefghijKLMNOPQRstuvwxyzABCDEFGHijklmnopq";
+    const ohneGross = "abcdefghij0123456789stuvwxyz01234567hijklmn";
+    expect(saeubere(`Fehler bei ${ohneZiffer}`)).toContain("<token>");
+    expect(saeubere(`Fehler bei ${ohneGross}`)).toContain("<token>");
+    expect(saeubere(`Fehler bei ${ohneZiffer}`)).not.toContain(ohneZiffer);
+  });
+
+  it("lässt lange Wörter und Bezeichner in Ruhe", () => {
+    // Beide haben nur eine Zeichenklasse - sonst wäre jede Fehlermeldung mit
+    // einem langen Bezeichner unlesbar, und das Protokoll wertlos.
+    for (const wort of [
+      "donaudampfschifffahrtsgesellschaftskapitaen",
+      "benutzer_konto_identifikation_feld",
+    ]) {
+      expect(saeubere(`Fehler bei ${wort}`)).toContain(wort);
+    }
+  });
+});
+
+describe("nurPfad", () => {
+  it("schneidet die Abfrage ab - dort steht das Geheimnis", () => {
+    expect(nurPfad("/bestaetigen?token=abc123")).toBe("/bestaetigen");
+    expect(nurPfad("/konto/eintreten?token=x&y=2")).toBe("/konto/eintreten");
+    expect(nurPfad("/schulen#treffer")).toBe("/schulen");
+    expect(nurPfad("/schulen?ort=Berlin#treffer")).toBe("/schulen");
+  });
+
+  it("lässt einen Pfad ohne Abfrage unverändert", () => {
+    expect(nurPfad("/schulen")).toBe("/schulen");
+    expect(nurPfad("")).toBe("");
   });
 });

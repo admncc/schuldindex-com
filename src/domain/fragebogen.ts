@@ -348,6 +348,12 @@ export const FRAGEN: readonly Frage[] = [
   { id: "C5", kategorie: "C", skala: "qualitaet", wertung: "direkt",
     text: "Wie sauber und funktionsfähig sind die Sanitäranlagen (Toiletten, Waschräume)?",
     varianten: {
+      // **Eltern sehen die Schultoiletten nicht.** Sie hören davon - und zwar
+      // oft und deutlich; die Frage kam aus genau dieser Richtung. Ohne diese
+      // Fassung bittet das Portal ein Elternteil um eine Note für einen Raum,
+      // den es nie betreten hat, und bekommt eine Vermutung, die mit derselben
+      // Gewichtung in die Wertung geht wie die Beobachtung eines Kindes.
+      eltern: "Wie sauber und funktionsfähig sind die Sanitäranlagen (Toiletten, Waschräume) nach dem, was dein Kind berichtet?",
       ehemalig: "Wie sauber und funktionsfähig waren die Sanitäranlagen (Toiletten, Waschräume)?",
     },
   },
