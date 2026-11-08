@@ -59,3 +59,29 @@ export function Anschrift({ angaben: a }: { angaben: Betreiberangaben }) {
     </address>
   );
 }
+
+/**
+ * Der Vertreter in der Union als Briefanschrift.
+ *
+ * **Warum er zerlegt wird.** In der Umgebung steht er als eine Zeile
+ * („Name, Straße, PLZ Ort“), weil eine Umgebungsvariable keine Absätze kennt.
+ * Als Satz gelesen ist das dasselbe Problem wie vorher bei der Anschrift des
+ * Betreibers: Wer prüfen will, ob er diese Stelle anschreiben kann, sucht die
+ * Zeilen einer Anschrift und findet in einer Kommakette keine davon. Art. 27
+ * Abs. 4 DSGVO macht ihn zur Anlaufstelle für Betroffene und Behörden - dann
+ * muss er auch aussehen wie eine Adresse, an die man schreibt.
+ *
+ * Getrennt wird am Komma. Das ist die Schreibweise, die `.env.example`
+ * vorgibt; steht dort kein Komma, bleibt es eine Zeile - falsch wird es nie.
+ */
+export function Vertreteranschrift({ wert }: { wert: string }) {
+  const zeilen = wert
+    .split(",")
+    .map((z) => z.trim())
+    .filter((z) => z !== "");
+  return (
+    <address className="anschriftsblock">
+      {zeilen.map((z, i) => (i === 0 ? <strong key={z}>{z}</strong> : <span key={z}>{z}</span>))}
+    </address>
+  );
+}

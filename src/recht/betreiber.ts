@@ -52,6 +52,19 @@ export interface Betreiberangaben {
   readonly hoster: string | null;
   /** Wie lange die Zugriffsprotokolle des Servers aufbewahrt werden. */
   readonly protokollfrist: string | null;
+  /**
+   * Ob die Reichweitenmessung von Cloudflare eingeschaltet ist.
+   *
+   * **Warum das eine Angabe und keine Feststellung ist.** Cloudflare fuegt
+   * das Zaehlskript selbst in die Antwort ein, ausserhalb unseres Codes und
+   * umschaltbar in einer fremden Oberflaeche - der Server kann es nicht
+   * ablesen. Ein fest geschriebener Absatz in der Datenschutzerklaerung
+   * waere deshalb entweder eine Zusage ueber etwas, das nicht laeuft, oder
+   * ein Verschweigen von etwas, das laeuft. Beides ist ein Mangel, also
+   * steht es hier: Wer den Schalter bei Cloudflare umlegt, legt ihn auch
+   * hier um.
+   */
+  readonly cloudflareZaehler: boolean;
 }
 
 function ausUmgebung(name: string): string | null {
@@ -79,6 +92,10 @@ export function betreiber(): Betreiberangaben {
     kiRegion: ausUmgebung("KI_VERARBEITUNGSREGION"),
     hoster: ausUmgebung("BETREIBER_HOSTER"),
     protokollfrist: ausUmgebung("BETREIBER_PROTOKOLLFRIST"),
+    // Nur ein ausdrueckliches "an" zaehlt. Eine Messung, die sich
+    // versehentlich einschaltet, weil irgendetwas in der Variable stand,
+    // waere der falsche Fehler.
+    cloudflareZaehler: (ausUmgebung("CLOUDFLARE_ZAEHLER") ?? "").toLowerCase() === "an",
   };
 }
 
@@ -130,4 +147,5 @@ export const FELDNAME: Readonly<Record<keyof Betreiberangaben, string>> = {
   kiRegion: "Verarbeitungsregion der Claude API",
   hoster: "Hosting-Anbieter",
   protokollfrist: "Aufbewahrungsfrist der Zugriffsprotokolle",
+  cloudflareZaehler: "Reichweitenmessung von Cloudflare",
 };

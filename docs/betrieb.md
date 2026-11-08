@@ -292,6 +292,23 @@ Messung - der ihn einlösen könnte. Dieselben Seiten senden
 auf der nächsten Seite ankommt. Wer eine neue Route mit einem Geheimnis in der
 Adresse baut, trägt sie dort ein.
 
+### Der Zähler von Cloudflare
+
+Cloudflare Web Analytics wird in der Cloudflare-Oberfläche ein- und
+ausgeschaltet; das Zählskript fügt Cloudflare selbst in die Antwort ein.
+**Der Server kann das nicht ablesen.** Darum gibt es `CLOUDFLARE_ZAEHLER` in
+der `.env`: Nur bei `an` steht der zugehörige Absatz in der
+Datenschutzerklärung und nennt `static.cloudflareinsights.com`. Wer den
+Schalter bei Cloudflare umlegt, legt ihn auch hier um - sonst behauptet die
+Erklärung etwas, das nicht läuft, oder verschweigt etwas, das läuft.
+
+Nachsehen, was tatsächlich ausgeliefert wird:
+
+```
+curl -s -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)' \
+  https://schulindex.com/ | grep -c cloudflareinsights
+```
+
 ### Datenschutzerklärung
 
 `/datenschutz` liest dieselbe Quelle wie die Auslieferung: Abschnitt 2.2 nennt

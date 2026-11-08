@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { betreiber, fehlendeAngaben } from "@/recht/betreiber";
-import { Anschrift, Fehlt } from "../rechtsteile";
+import { Anschrift, Fehlt, Vertreteranschrift } from "../rechtsteile";
 
 export const metadata: Metadata = { title: "Impressum" };
 export const dynamic = "force-dynamic";
@@ -51,10 +51,14 @@ export default function Impressumsseite() {
       {a.land !== null && a.land !== "Deutschland" ? (
         <>
           <h2>Vertreter in der Europäischen Union</h2>
-          <p>
-            Nach Art. 27 DSGVO und Art. 13 DSA:{" "}
-            {a.euVertreter ?? <Fehlt feld="euVertreter" />}
-          </p>
+          <p>Nach Art. 27 DSGVO und Art. 13 DSA benannt:</p>
+          {a.euVertreter === null ? (
+            <p>
+              <Fehlt feld="euVertreter" />
+            </p>
+          ) : (
+            <Vertreteranschrift wert={a.euVertreter} />
+          )}
         </>
       ) : null}
 

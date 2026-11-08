@@ -5,7 +5,7 @@ import { MINDESTZAHL_FREITEXTE } from "@/ki/pruefung";
 import { fristtext, regel, REGELN } from "@/domain/aufbewahrung";
 import { hostsAus } from "@/domain/einbettung";
 import { holeEinbettungenFuerSeite } from "@/db/einbettungen";
-import { Angabe, Anschrift, Fehlt } from "../rechtsteile";
+import { Angabe, Anschrift, Fehlt, Vertreteranschrift } from "../rechtsteile";
 
 export const metadata: Metadata = { title: "Datenschutz" };
 export const dynamic = "force-dynamic";
@@ -49,10 +49,16 @@ export default async function Datenschutzseite() {
           wenden koennen - das muessen sie dort erfahren, wo sie ihre Rechte
           nachlesen. */}
       {a.land !== null && a.land !== "Deutschland" ? (
-        <p>
-          Vertreter in der Europäischen Union nach Art. 27 DSGVO:{" "}
-          {a.euVertreter ?? <Fehlt feld="euVertreter" />}
-        </p>
+        <>
+          <p>Vertreter in der Europäischen Union nach Art. 27 DSGVO:</p>
+          {a.euVertreter === null ? (
+            <p>
+              <Fehlt feld="euVertreter" />
+            </p>
+          ) : (
+            <Vertreteranschrift wert={a.euVertreter} />
+          )}
+        </>
       ) : null}
       {a.datenschutzbeauftragter ? (
         <p>Datenschutzbeauftragte Person: {a.datenschutzbeauftragter}.</p>
@@ -60,50 +66,79 @@ export default async function Datenschutzseite() {
 
       <h2>2. Was beim bloßen Besuch passiert</h2>
       {/* **Dieser Absatz behauptete bis zuletzt das Gegenteil.** Er sagte
-          „nichts von fremden Servern", und das stimmte, solange die Seite
-          direkt ausgeliefert wurde. Seit Cloudflare als Proxy davorsteht,
-          laeuft jede Anfrage ueber einen Dritten - und dessen
-          Reichweitenmessung fuegt zusaetzlich ein Skript ein. Ein Satz, der
-          das verschweigt, ist schlimmer als die Sache selbst. */}
-      <p>
-        Von <strong>fremden Servern</strong> laden diese Seiten{" "}
-        {fremdeHosts.length === 0 ? (
-          <>
-            nur eines: den Zähler von Cloudflare (siehe unten). Keine Schriften, keine
-            Kartenkacheln, keine Werbenetzwerke, keine Werbe- oder Analysecookies.
-          </>
-        ) : (
-          <>
-            den Zähler von Cloudflare (siehe unten) und das, was in Abschnitt 2.2 steht:{" "}
-            {fremdeHosts.map((h, i) => (
-              <span key={h}>
-                {i > 0 ? ", " : ""}
-                <code>{h}</code>
-              </span>
-            ))}
-            . Keine Schriften und keine Kartenkacheln von Dritten.
-          </>
-        )}{" "}
-        Alles Übrige - Schriften, Karte, Bilder - kommt von unserem eigenen Server.
-      </p>
+          „nichts von fremden Servern" und „deine IP-Adresse geht an niemanden
+          ausser an den Server, der die Seite ausliefert". Das stimmte, solange
+          die Seite direkt ausgeliefert wurde. Seit Cloudflare als Proxy
+          davorsteht, laeuft jede Anfrage ueber einen Dritten - und damit war
+          der Satz falsch, und zwar an der empfindlichsten Stelle einer
+          Datenschutzerklaerung: beim Versprechen, dass nichts weitergeht.
+
+          Was hier jetzt steht, haengt an drei Angaben und nicht an meiner
+          Erinnerung: an den im Panel eingetragenen Einbettungen, am Schalter
+          `CLOUDFLARE_ZAEHLER` und am Sitz des Verantwortlichen. */}
       <p>
         <strong>Cloudflare steht unserem Server vor.</strong> Jede Anfrage an schulindex.com
         läuft zuerst über Cloudflare (Cloudflare Germany GmbH, Rosental 7, 80331 München);
         Cloudflare entschlüsselt sie dort, prüft sie auf Angriffe und reicht sie an uns weiter.
-        Dabei verarbeitet Cloudflare deine IP-Adresse. Grundlage ist ein
-        Auftragsverarbeitungsvertrag nach Art. 28 DSGVO, unser berechtigtes Interesse nach Art. 6
-        Abs. 1 lit. f DSGVO ist der Schutz vor Überlastung und Angriffen.
+        Dabei verarbeitet Cloudflare deine IP-Adresse.{" "}
+        {/* „an sonst niemanden" war hier eine Zusage, die eine eingeschaltete
+            Messung sofort gebrochen haette: Auch sie sieht die IP-Adresse. */}
+        <strong>
+          Deine IP-Adresse geht damit an Cloudflare und an unseren Server
+          {a.cloudflareZaehler || messungAktiv
+            ? " - und, soweit du zugestimmt hast, an die in Abschnitt 2.2 genannte Messung"
+            : " - an sonst niemanden"}
+          .
+        </strong>{" "}
+        Grundlage ist ein
+        Auftragsverarbeitungsvertrag nach Art. 28 DSGVO; unser berechtigtes Interesse nach
+        Art. 6 Abs. 1 lit. f DSGVO ist der Schutz vor Überlastung und Angriffen.
       </p>
       <p>
-        <strong>Reichweitenmessung:</strong> Cloudflare zählt außerdem die Seitenaufrufe. Dafür
-        lädt dein Browser ein kleines Skript von <code>static.cloudflareinsights.com</code>.
-        Gemessen werden aufgerufene Seite, Verweisquelle, Land, Geräteklasse und Ladezeiten.
-        <strong>Dabei wird nichts auf deinem Gerät gespeichert</strong> - kein Cookie, keine
-        Kennung, nichts, woran du bei einem zweiten Besuch wiedererkannt würdest. Eine Verfolgung
-        über mehrere Seitenbesuche oder gar über andere Webseiten hinweg findet nicht statt.
-        Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse ist zu
-        wissen, ob das Portal benutzt wird. Du kannst dem nach Art. 21 DSGVO widersprechen.
+        Von <strong>fremden Servern</strong> laden diese Seiten{" "}
+        {fremdeHosts.length === 0 && !a.cloudflareZaehler ? (
+          <>
+            <strong>nichts</strong>: keine Schriften, keine Kartenkacheln, keine
+            Analysewerkzeuge, keine Werbenetzwerke, keine Werbe- oder Analysecookies.
+          </>
+        ) : (
+          <>
+            nur{" "}
+            {[
+              ...(a.cloudflareZaehler ? ["den Zähler von Cloudflare (siehe unten)"] : []),
+              ...(fremdeHosts.length > 0 ? ["das, was in Abschnitt 2.2 steht"] : []),
+            ].join(" und ")}
+            {fremdeHosts.length > 0 ? (
+              <>
+                {" ("}
+                {fremdeHosts.map((h, i) => (
+                  <span key={h}>
+                    {i > 0 ? ", " : ""}
+                    <code>{h}</code>
+                  </span>
+                ))}
+                {")"}
+              </>
+            ) : null}
+            . Keine Schriften, keine Kartenkacheln und keine Werbenetzwerke von Dritten.
+          </>
+        )}{" "}
+        Alles Übrige - Schriften, Karte, Bilder - kommt von unserem eigenen Server.
       </p>
+      {a.cloudflareZaehler ? (
+        <p>
+          <strong>Reichweitenmessung von Cloudflare:</strong> Cloudflare zählt die
+          Seitenaufrufe. Dafür lädt dein Browser ein kleines Skript von{" "}
+          <code>static.cloudflareinsights.com</code>. Gemessen werden aufgerufene Seite,
+          Verweisquelle, Land, Geräteklasse und Ladezeiten.{" "}
+          <strong>Dabei wird nichts auf deinem Gerät gespeichert</strong> - kein Cookie, keine
+          Kennung, nichts, woran du bei einem zweiten Besuch wiedererkannt würdest. Eine
+          Verfolgung über mehrere Seitenbesuche oder über andere Webseiten hinweg findet nicht
+          statt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse
+          ist zu wissen, ob das Portal benutzt wird. Du kannst dem nach Art. 21 DSGVO
+          widersprechen.
+        </p>
+      ) : null}
 
       <h3>2.1 Was auf deinem Gerät gespeichert wird</h3>
       <p>
@@ -437,6 +472,13 @@ export default async function Datenschutzseite() {
           <strong>Auslieferung und Schutz vor Angriffen:</strong> Cloudflare Germany GmbH, als
           Auftragsverarbeiter nach Art. 28 DSGVO (Abschnitt 2).
         </li>
+        {messungAktiv ? (
+          <li>
+            <strong>Reichweitenmessung:</strong> der Anbieter der in Abschnitt 2.2 genannten
+            Messung - aber nur, wenn du im Banner zugestimmt hast. Ohne Zustimmung wird dort
+            nichts hingeschickt.
+          </li>
+        ) : null}
       </ul>
       <p>Eine Weitergabe zu Werbezwecken findet nicht statt. Wir verkaufen keine Daten.</p>
 
