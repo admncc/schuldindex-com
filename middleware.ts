@@ -6,6 +6,7 @@ import {
   istEmpfehlungscode,
 } from "@/domain/empfehlung";
 import { GERAET_TAGE, GERAETECOOKIE, istGeraetekennung } from "@/domain/geraetekennung";
+import { adresseIstGeheim, GEHEIMKOPFZEILE } from "@/domain/geheimeadresse";
 
 /**
  * Setzt die Gerätekennung, wenn noch keine da ist.
@@ -24,7 +25,36 @@ import { GERAET_TAGE, GERAETECOOKIE, istGeraetekennung } from "@/domain/geraetek
  * (`domain/geraetekennung.ts`). Zu verbergen ist an einer Zufallszahl nichts.
  */
 export function middleware(anfrage: NextRequest): NextResponse {
-  const antwort = NextResponse.next();
+  /**
+   * Trägt an die Seite weiter, ob in dieser Adresse ein Geheimnis steckt.
+   *
+   * Hier und nicht in der Seite, weil die Middleware jede öffentliche Anfrage
+   * ohnehin sieht: Die nächste Seite mit einem Token in der Adresse wäre sonst
+   * die eine, bei der es niemand bedenkt. Die Seite liest die Kopfzeile und
+   * lädt dann nichts Fremdes (`app/einbettung.tsx`).
+   */
+  const kopfzeilen = new Headers(anfrage.headers);
+  // Was von draußen kommt, gilt nicht: Sonst könnte jeder die Messung
+  // abschalten - oder, schlimmer, sie auf einer Geheimseite erzwingen.
+  kopfzeilen.delete(GEHEIMKOPFZEILE);
+  if (adresseIstGeheim(anfrage.nextUrl.pathname, anfrage.nextUrl.searchParams)) {
+    kopfzeilen.set(GEHEIMKOPFZEILE, "1");
+  }
+
+  const antwort = NextResponse.next({ request: { headers: kopfzeilen } });
+  if (kopfzeilen.get(GEHEIMKOPFZEILE) === "1") {
+    /**
+     * Und das Geheimnis darf auch nicht auf der **nächsten** Seite ankommen.
+     *
+     * Die Einbettung auf der Geheimseite selbst ist damit schon abgeschaltet.
+     * Wer von dort aber weiterklickt, bringt die aufrufende Adresse mit:
+     * `document.referrer` steht dann auf `/bestaetigen?token=…`, und das liest
+     * eine Reichweitenmessung aus und schickt es mit. Deshalb hier `no-referrer`
+     * - gezielt nur auf diesen Seiten, weil die Verweisquelle überall sonst die
+     * Angabe ist, aus der sich überhaupt ablesen lässt, woher die Leute kommen.
+     */
+    antwort.headers.set("Referrer-Policy", "no-referrer");
+  }
   const sicher = anfrage.nextUrl.protocol === "https:";
 
   const vorhanden = anfrage.cookies.get(GERAETECOOKIE)?.value;

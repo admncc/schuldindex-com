@@ -3,6 +3,7 @@ import { KATEGORIEN } from "@/domain/fragebogen";
 import { MINDESTZAHL_PROFIL, MINDESTZAHL_RANGLISTE } from "@/domain/aggregation";
 import { MINDESTZAHL_FREITEXTE } from "@/ki/pruefung";
 import { SCORE_GRENZEN } from "@/domain/scoring";
+import { bannerLaeuft } from "../../einbettung";
 
 export const metadata: Metadata = {
   title: "Über uns",
@@ -18,7 +19,12 @@ const PROZENT = new Intl.NumberFormat("de-DE", { style: "percent", maximumFracti
  * das es nicht begründet. Deshalb stehen hier die tatsächlichen Zahlen aus dem
  * Code - Gewichte, Schwellen, Grenzen -, nicht ihre ungefähre Beschreibung.
  */
-export default function Ueberseite() {
+export default async function Ueberseite() {
+  // **Diese Liste ist ein Versprechen**, und ein Versprechen darf nicht
+  // davon abhaengen, ob jemand daran gedacht hat, es nachzuziehen. Sie
+  // liest deshalb dieselbe Quelle wie die Auslieferung: Laeuft eine
+  // Messung, sagt die Seite es - und zwar hier, nicht nur im Kleingedruckten.
+  const messung = await bannerLaeuft();
   const gewichtssumme = KATEGORIEN.reduce((s, k) => s + k.gewichtung, 0);
 
   return (
@@ -134,11 +140,25 @@ export default function Ueberseite() {
           <strong>Keine Namen.</strong> Wir fragen sie nicht ab.
         </li>
         <li>
-          <strong>Keine Verfolgung über die Seiten hinweg.</strong> Keine Analysewerkzeuge, keine
-          Werbenetzwerke, keine Schriften und keine Kartenkacheln von fremden Servern. Der
+          <strong>Keine Verfolgung über fremde Seiten hinweg.</strong> Keine Werbenetzwerke,
+          keine Profile, keine Schriften und keine Kartenkacheln von fremden Servern. Der
           Kartenhintergrund liegt als Datei auf unserem eigenen Server; die Schriftbilder der
           Beschriftung daneben.
         </li>
+        {messung ? (
+          <li>
+            <strong>Eine Reichweitenmessung - aber nur, wenn du zustimmst.</strong> Sie zählt
+            Seitenaufrufe und woher die Leute kommen; ohne deine Zustimmung im Banner läuft sie
+            nicht. Was sie <em>nicht</em> erfährt: welche Schule du bewertet hast, was du
+            geschrieben hast und wie du dich entschieden hast. Mehr dazu in der{" "}
+            <a href="/datenschutz#einwilligung">Datenschutzerklärung</a>.
+          </li>
+        ) : (
+          <li>
+            <strong>Keine Analysewerkzeuge.</strong> Wir messen nicht, wie du dich durch die
+            Seiten bewegst - es gibt dafür kein Werkzeug auf diesen Seiten.
+          </li>
+        )}
       </ul>
 
       <h2>Woher die Schuldaten stammen</h2>

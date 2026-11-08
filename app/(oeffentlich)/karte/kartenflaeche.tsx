@@ -24,8 +24,10 @@ import type { BewerteteSchule } from "@/db/karte";
  * auf unserem Server, die Zeichenbilder daneben; der Browser holt daraus über
  * `Range` genau die Bereiche für den sichtbaren Ausschnitt. Keine Kachel, kein
  * Zeichensatz, kein Zählpixel von einem fremden Server - was auch bedeutet:
- * kein Einwilligungsbanner, weil nichts übertragen wird, wofür es eine
- * Einwilligung bräuchte (§ 25 Abs. 2 Nr. 2 TDDDG).
+ * Die Karte braucht fuer sich keine Einwilligung, weil sie nichts
+ * uebertraegt, wofuer es eine braeuchte (§ 25 Abs. 2 Nr. 2 TDDDG). Ob auf
+ * der Seite ein Banner steht, entscheidet etwas anderes: die im Panel
+ * eingetragene Reichweitenmessung (`app/einbettung.tsx`).
  *
  * **Der Standort verlässt das Gerät nicht.** „In meiner Nähe“ fragt den Browser
  * nach der Position; gerechnet wird damit hier. An den Server geht davon

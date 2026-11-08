@@ -3,6 +3,8 @@ import { betreiber } from "@/recht/betreiber";
 import { GUELTIG_STUNDEN } from "@/domain/verifizierung";
 import { MINDESTZAHL_FREITEXTE } from "@/ki/pruefung";
 import { fristtext, regel, REGELN } from "@/domain/aufbewahrung";
+import { hostsAus } from "@/domain/einbettung";
+import { holeEinbettungenFuerSeite } from "@/db/einbettungen";
 import { Angabe, Anschrift, Fehlt } from "../rechtsteile";
 
 export const metadata: Metadata = { title: "Datenschutz" };
@@ -17,8 +19,23 @@ export const dynamic = "force-dynamic";
  * die Vorlage dafür, und er ist an den Stellen genau, an denen eine Kanzlei
  * sonst raten müsste.
  */
-export default function Datenschutzseite() {
+export default async function Datenschutzseite() {
   const a = betreiber();
+
+  // **Warum der Abschnitt zur Einwilligung nicht fest im Text steht.**
+  // Das Banner und die Messung werden im Panel eingetragen, nicht im Code.
+  // Ein fester Absatz wuerde entweder etwas nennen, was nicht laeuft, oder
+  // etwas verschweigen, was laeuft - und beides ist ein Datenschutzmangel.
+  // Deshalb liest die Erklaerung dieselbe Quelle wie die Auslieferung.
+  const einbettungen = await holeEinbettungenFuerSeite();
+  const bannerAktiv = einbettungen.einwilligung?.aktiv ?? false;
+  const messungAktiv = bannerAktiv && (einbettungen.messung?.aktiv ?? false);
+  const fremdeHosts = hostsAus(
+    [
+      bannerAktiv ? einbettungen.einwilligung?.inhalt : undefined,
+      messungAktiv ? einbettungen.messung?.inhalt : undefined,
+    ].filter((x): x is string => typeof x === "string"),
+  );
 
   return (
     <section className="abschnitt rechtstext">
@@ -42,11 +59,50 @@ export default function Datenschutzseite() {
       ) : null}
 
       <h2>2. Was beim bloßen Besuch passiert</h2>
+      {/* **Dieser Absatz behauptete bis zuletzt das Gegenteil.** Er sagte
+          „nichts von fremden Servern", und das stimmte, solange die Seite
+          direkt ausgeliefert wurde. Seit Cloudflare als Proxy davorsteht,
+          laeuft jede Anfrage ueber einen Dritten - und dessen
+          Reichweitenmessung fuegt zusaetzlich ein Skript ein. Ein Satz, der
+          das verschweigt, ist schlimmer als die Sache selbst. */}
       <p>
-        Diese Seiten laden <strong>nichts von fremden Servern</strong> - keine Schriften, keine
-        Kartenkacheln, keine Analysewerkzeuge, keine Werbenetzwerke. Deine IP-Adresse geht damit
-        an niemanden außer an den Server, der die Seite ausliefert. Es gibt keine Werbe- und keine
-        Analysecookies, und es wird nichts an Dritte weitergegeben.
+        Von <strong>fremden Servern</strong> laden diese Seiten{" "}
+        {fremdeHosts.length === 0 ? (
+          <>
+            nur eines: den Zähler von Cloudflare (siehe unten). Keine Schriften, keine
+            Kartenkacheln, keine Werbenetzwerke, keine Werbe- oder Analysecookies.
+          </>
+        ) : (
+          <>
+            den Zähler von Cloudflare (siehe unten) und das, was in Abschnitt 2.2 steht:{" "}
+            {fremdeHosts.map((h, i) => (
+              <span key={h}>
+                {i > 0 ? ", " : ""}
+                <code>{h}</code>
+              </span>
+            ))}
+            . Keine Schriften und keine Kartenkacheln von Dritten.
+          </>
+        )}{" "}
+        Alles Übrige - Schriften, Karte, Bilder - kommt von unserem eigenen Server.
+      </p>
+      <p>
+        <strong>Cloudflare steht unserem Server vor.</strong> Jede Anfrage an schulindex.com
+        läuft zuerst über Cloudflare (Cloudflare Germany GmbH, Rosental 7, 80331 München);
+        Cloudflare entschlüsselt sie dort, prüft sie auf Angriffe und reicht sie an uns weiter.
+        Dabei verarbeitet Cloudflare deine IP-Adresse. Grundlage ist ein
+        Auftragsverarbeitungsvertrag nach Art. 28 DSGVO, unser berechtigtes Interesse nach Art. 6
+        Abs. 1 lit. f DSGVO ist der Schutz vor Überlastung und Angriffen.
+      </p>
+      <p>
+        <strong>Reichweitenmessung:</strong> Cloudflare zählt außerdem die Seitenaufrufe. Dafür
+        lädt dein Browser ein kleines Skript von <code>static.cloudflareinsights.com</code>.
+        Gemessen werden aufgerufene Seite, Verweisquelle, Land, Geräteklasse und Ladezeiten.
+        <strong>Dabei wird nichts auf deinem Gerät gespeichert</strong> - kein Cookie, keine
+        Kennung, nichts, woran du bei einem zweiten Besuch wiedererkannt würdest. Eine Verfolgung
+        über mehrere Seitenbesuche oder gar über andere Webseiten hinweg findet nicht statt.
+        Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse ist zu
+        wissen, ob das Portal benutzt wird. Du kannst dem nach Art. 21 DSGVO widersprechen.
       </p>
 
       <h3>2.1 Was auf deinem Gerät gespeichert wird</h3>
@@ -117,6 +173,82 @@ export default function Datenschutzseite() {
         {a.hoster ?? <Fehlt feld="hoster" />}; die Protokolle werden nach{" "}
         {a.protokollfrist ?? <Fehlt feld="protokollfrist" />} gelöscht.
       </p>
+
+      {/* **Dieser Abschnitt richtet sich nach dem, was eingetragen ist.**
+          Banner und Messung kommen aus dem Panel; ein fest geschriebener Text
+          wuerde entweder etwas nennen, was nicht laeuft, oder etwas
+          verschweigen, was laeuft. */}
+      <h3 id="einwilligung">2.2 Einwilligung, Banner und Reichweitenmessung</h3>
+      {!bannerAktiv ? (
+        <>
+          <p>
+            <strong>Zurzeit fragen wir dich nicht nach einer Einwilligung</strong> - weil es
+            nichts zu fragen gibt. Es laufen keine Werbenetzwerke, keine Analysedienste und keine
+            Dienste, die dich über mehrere Seiten hinweg wiedererkennen. Was auf deinem Gerät
+            abgelegt wird, steht vollständig in Abschnitt 2.1 und ist für den Betrieb
+            erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG); dafür ist nach dem Gesetz keine Einwilligung
+            nötig und deshalb auch kein Banner.
+          </p>
+          <p>
+            Sollte sich das ändern, erscheint ein Banner, das <em>vorher</em> fragt - und dieser
+            Abschnitt nennt dann den Anbieter, die Daten und die Widerrufsmöglichkeit.
+          </p>
+        </>
+      ) : (
+        <>
+          <p>
+            Beim ersten Aufruf fragt dich ein <strong>Einwilligungsbanner</strong>, ob du mit der
+            Reichweitenmessung einverstanden bist. Bis du zustimmst, wird nichts gemessen und
+            nichts dafür auf deinem Gerät gespeichert. Das Banner stammt von einem
+            Dienstleister; dafür lädt dein Browser ein Skript von{" "}
+            {fremdeHosts.map((h, i) => (
+              <span key={h}>
+                {i > 0 ? ", " : ""}
+                <code>{h}</code>
+              </span>
+            ))}
+            . Rechtsgrundlage für das Speichern und Auslesen auf deinem Gerät ist § 25 Abs. 1
+            TDDDG, für die anschließende Verarbeitung Art. 6 Abs. 1 lit. a DSGVO - also deine
+            Einwilligung und nichts anderes.
+          </p>
+          <p>
+            <strong>Du kannst jederzeit widerrufen</strong>, so einfach wie du zugestimmt hast
+            (Art. 7 Abs. 3 DSGVO): über „Cookie-Einstellungen" unten auf jeder Seite. Ein
+            Widerruf wirkt ab sofort; was bis dahin gemessen wurde, bleibt beim Anbieter, bis
+            dessen Frist abgelaufen ist. Wenn du ablehnst, fragen wir nicht bei jedem Aufruf
+            erneut.
+          </p>
+          <p>
+            <strong>Deine Bewertung ist davon nicht berührt.</strong> Die Messung erfährt nicht,
+            welche Schule du bewertet hast, was du geschrieben hast oder wie du dich entschieden
+            hast - sie zählt Seitenaufrufe. Dein Kontakt, dein Freitext und deine Antworten gehen
+            nie an den Anbieter. Auf den Seiten, über die eine Bewertung bestätigt wird, lädt
+            auch das Banner nicht: In deren Adresse steht ein Geheimnis, und das hat bei einem
+            Dritten nichts zu suchen.
+          </p>
+          {/* Das ist die unangenehme Stelle - und sie gehoert deshalb in den
+              Text und nicht in eine Fussnote. Art. 8 DSGVO macht die
+              Einwilligung einer Person unter 16 ohne die Eltern unwirksam, und
+              das Publikum dieses Portals ist ueberwiegend minderjaehrig. */}
+          <p>
+            <strong>Wenn du unter 16 Jahre alt bist:</strong> Deine Einwilligung in die Messung
+            ist nach Art. 8 DSGVO nur wirksam, wenn deine Eltern einverstanden sind - genauso wie
+            beim Bewerten selbst. Frag sie, oder lehn im Banner ab. Das Portal funktioniert
+            vollständig ohne Zustimmung; du verlierst dadurch nichts, und an deiner Bewertung
+            oder deiner Teilnahme an der Verlosung ändert sich nichts.
+          </p>
+          {messungAktiv ? (
+            <p>
+              <strong>Was die Messung erhebt:</strong> aufgerufene Seiten, Verweisquelle
+              (also woher du kamst), ungefähren Ort auf Landes- oder Stadtebene, Geräte- und
+              Browserklasse sowie eine zufällige Kennung, an der dein Browser bei einem zweiten
+              Besuch wiedererkannt wird. Nicht erhoben werden Name, Adresse, Telefonnummer oder
+              E-Mail - diese Angaben kennt die Messung nicht, weil wir sie ihr nicht geben. Die
+              Daten werden auch in die USA übermittelt; was dafür gilt, steht in Abschnitt 5.1.
+            </p>
+          ) : null}
+        </>
+      )}
 
       <h2>3. Wenn du eine Schule bewertest</h2>
 
@@ -301,8 +433,55 @@ export default function Datenschutzseite() {
           <strong>Hosting:</strong> {a.hoster ?? <Fehlt feld="hoster" />}, als Auftragsverarbeiter
           nach Art. 28 DSGVO.
         </li>
+        <li>
+          <strong>Auslieferung und Schutz vor Angriffen:</strong> Cloudflare Germany GmbH, als
+          Auftragsverarbeiter nach Art. 28 DSGVO (Abschnitt 2).
+        </li>
       </ul>
       <p>Eine Weitergabe zu Werbezwecken findet nicht statt. Wir verkaufen keine Daten.</p>
+
+      {/* **Fehlte bis zuletzt vollstaendig.** Der Betreiber sitzt in Delaware -
+          damit ist jede Verarbeitung durch ihn selbst eine Uebermittlung in ein
+          Drittland, unabhaengig davon, wo der Server steht. Eine
+          Datenschutzerklaerung, die Art. 44 ff. DSGVO nicht erwaehnt, obwohl
+          der Verantwortliche ausserhalb der EU sitzt, ist nicht unvollstaendig,
+          sondern falsch. */}
+      <h3 id="drittland">5.1 Übermittlung in Drittländer</h3>
+      <p>
+        <strong>Wo die Daten liegen.</strong> Server und Datenbank stehen in der Europäischen
+        Union beziehungsweise im Europäischen Wirtschaftsraum
+        {a.hoster ? <> ({a.hoster})</> : null}. Deine Bewertung, dein Freitext und dein Kontakt
+        verlassen diesen Raum nicht.
+      </p>
+      {a.land !== null && a.land !== "Deutschland" ? (
+        <p>
+          <strong>Wer verantwortlich ist, sitzt außerhalb der EU.</strong> Verantwortlich ist{" "}
+          <Angabe angaben={a} feld="name" /> mit Sitz in{" "}
+          {a.land}. Soweit Mitarbeitende von dort auf die Daten zugreifen - etwa bei der
+          Moderation -, liegt darin eine Übermittlung in ein Drittland nach Art. 44 ff. DSGVO.
+          Für Betroffene in der EU ist der{" "}
+          {a.euVertreter ? <>in Abschnitt 1 genannte Vertreter</> : <Fehlt feld="euVertreter" />}{" "}
+          erreichbar; die Zuständigkeit der europäischen Aufsichtsbehörden bleibt davon
+          unberührt.
+        </p>
+      ) : null}
+      {messungAktiv ? (
+        <p>
+          <strong>Reichweitenmessung.</strong> Die Messung überträgt Daten an ihren Anbieter und
+          dessen Konzerngesellschaften, auch in die USA. Grundlage ist deine Einwilligung
+          (Art. 6 Abs. 1 lit. a, Art. 49 Abs. 1 lit. a DSGVO) in Verbindung mit dem
+          Angemessenheitsbeschluss der EU-Kommission für das EU-US Data Privacy Framework,
+          soweit der Anbieter dort zertifiziert ist, sonst mit den Standardvertragsklauseln der
+          EU-Kommission. Du sollst wissen, was das praktisch bedeutet: Ein vollständiger Schutz
+          vor dem Zugriff US-amerikanischer Behörden lässt sich damit nicht zusichern. Wenn dir
+          das zu weit geht, lehn im Banner ab - es ändert nichts an deiner Nutzung des Portals.
+        </p>
+      ) : null}
+      <p>
+        Für den Versand des Bestätigungslinks über WhatsApp gilt dasselbe: Meta Platforms
+        Ireland Ltd. verarbeitet dabei auch in den USA. Du kannst stattdessen SMS oder E-Mail
+        wählen - der Weg ist deine Entscheidung.
+      </p>
 
       <h2>6. Wie lange wir speichern</h2>
       {/* Diese Tabelle kommt aus demselben Regelkatalog, den der tägliche

@@ -242,6 +242,68 @@ ls -lh /var/log/caddy/
 journalctl --disk-usage
 ```
 
+## Einwilligungsbanner und Reichweitenmessung
+
+Beides steht **nicht im Code**, sondern im Panel unter `/moderation/einbettungen`
+(nur die Leitung). Dahinter liegen zwei Felder: das Banner des Anbieters
+(InMobi CMP oder ein anderes) und danach die Messung, zum Beispiel Google
+Analytics.
+
+Vor der ersten Nutzung einmal die Migration einspielen:
+
+```
+psql "$DATABASE_URL" -f db/migrations/0031_einbettungen.sql
+```
+
+### Was geprüft wird, und was nicht
+
+Der eingetragene Schnipsel wird zerlegt (`src/domain/einbettung.ts`). Erlaubt
+sind `<script>`-Elemente und HTML-Kommentare; ein `<noscript>`-Teil wird
+verworfen. Abgelehnt werden `<iframe>`, `<img>`, Stylesheets,
+Ereignisattribute wie `onload`, Adressen ohne `https`, ein Skript mit `src`
+*und* Code zugleich sowie alles, was `</script` im Inhalt trägt.
+
+**Das begrenzt die Form, nicht die Macht.** Ein Skript von `cmp.inmobi.com`
+kann alles, was JavaScript kann - Formulare mitlesen inbegriffen. Die Prüfung
+sorgt dafür, dass die Entscheidung bewusst fällt (welchem Anbieter öffne ich
+die Seite?) und nicht als Nebenwirkung eines Tippfehlers. Deshalb: nur
+Schnipsel eintragen, die beim Anbieter selbst erzeugt wurden.
+
+### Reihenfolge und Auslieferung
+
+Der ganze Schnipsel geht als **ein** Skript hinaus, das die Elemente selbst in
+der eingetragenen Reihenfolge anlegt (`app/skripte.tsx`). Grund: React zieht
+`<script async src>` in den Dokumentkopf und liefert es vor den übrigen aus -
+damit stünde der Lader des Anbieters vor dem Stub, der `window.__tcfapi`
+anlegt. Die Prüfung in `app/skripte.test.tsx` hält das fest.
+
+Ausgeliefert wird nur in den Gruppen `(oeffentlich)` und `(kampagne)`, nicht in
+der Moderation. Die Messung läuft außerdem **nur**, wenn auch das Banner aktiv
+ist: Messen ohne vorherige Einwilligung wäre nach § 25 Abs. 1 TDDDG
+rechtswidrig, und das Panel sagt das an der Stelle, an der es auffällt.
+
+### Seiten mit Geheimnis in der Adresse
+
+Auf `/bestaetigen?token=…` und den `eintreten`-Routen wird **nichts** Fremdes
+geladen (`src/domain/geheimeadresse.ts`, gesetzt in `middleware.ts`). Sonst
+ginge der Bestätigungstoken als Teil der Seitenadresse an den Anbieter der
+Messung - der ihn einlösen könnte. Dieselben Seiten senden
+`Referrer-Policy: no-referrer`, damit der Token nicht über `document.referrer`
+auf der nächsten Seite ankommt. Wer eine neue Route mit einem Geheimnis in der
+Adresse baut, trägt sie dort ein.
+
+### Datenschutzerklärung
+
+`/datenschutz` liest dieselbe Quelle wie die Auslieferung: Abschnitt 2.2 nennt
+die eingebundenen Hosts automatisch und sagt ohne Einbettung, dass nicht
+gefragt wird, weil es nichts zu fragen gibt. Der erklärende Text daneben
+(welche Daten, welche Fristen beim Anbieter) bleibt Handarbeit - nach einem
+Anbieterwechsel durchlesen.
+
+Der Widerruf läuft über „Cookie-Einstellungen" in der Fußzeile; der Link
+erscheint nur bei aktivem Banner und ruft `__tcfapi('displayConsentUi')` auf.
+Antwortet der Anbieter nicht, landet man auf `/datenschutz#einwilligung`.
+
 ## Diagnose von außen
 
 Unter `/moderation/diagnose` (nur Leitung) lässt sich ein befristeter Zugang zu

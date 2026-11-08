@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { EMPFEHLUNGSCOOKIE } from "@/domain/empfehlung";
 import { GERAETECOOKIE } from "@/domain/geraetekennung";
+import { bannerLaeuft, Einbettungen } from "../einbettung";
+import { Cookieschalter } from "./cookieschalter";
 import { Markenzeichen } from "./marke";
 import { Kennungsspiegel } from "./kennung";
 
@@ -16,8 +18,14 @@ export default async function OeffentlichesLayout({ children }: { children: Reac
   const geraet = speicher.get(GERAETECOOKIE)?.value ?? null;
   const refcode = speicher.get(`${EMPFEHLUNGSCOOKIE}_spiegel`)?.value ?? null;
 
+  // Der Link zum Widerruf steht nur da, wenn es etwas zu widerrufen gibt.
+  const banner = await bannerLaeuft();
+
   return (
     <>
+      {/* Vor allem anderen: Das Banner setzt die Einwilligung auf
+          „abgelehnt“, bevor die Messung sich danach richten kann. */}
+      <Einbettungen />
       <Kennungsspiegel geraet={geraet} refcode={refcode} />
       {/* Sprungmarke (WCAG 2.4.1). Sichtbar erst beim Anspringen mit der
           Tabulatortaste - wer mit der Maus liest, soll sie nie sehen. */}
@@ -51,6 +59,7 @@ export default async function OeffentlichesLayout({ children }: { children: Reac
             <li><a href="/inhalt-melden">{t("fusszeile.melden")}</a></li>
             <li><a href="/verlosung">{t("fusszeile.verlosung")}</a></li>
             <li><a href="/schulsupport">{t("fusszeile.schulen")}</a></li>
+            {banner ? <li><Cookieschalter /></li> : null}
           </ul>
           <p className="fussmarke">
             <Markenzeichen groesse={18} />

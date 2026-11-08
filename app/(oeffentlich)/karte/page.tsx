@@ -122,7 +122,8 @@ export default async function Kartenseite({
           Zählpixel. {mitKacheln
             ? "Der Kartenhintergrund liegt auf unserem eigenen Server."
             : "Gezeichnet wird aus unserem eigenen Schulbestand."}{" "}
-          Deshalb braucht diese Seite auch kein Einwilligungsbanner.
+          Für die Karte selbst wird deshalb keine Einwilligung gebraucht
+          (§ 25 Abs. 2 Nr. 2 TDDDG).
         </p>
       </section>
     </>

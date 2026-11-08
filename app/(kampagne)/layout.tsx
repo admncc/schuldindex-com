@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { EMPFEHLUNGSCOOKIE } from "@/domain/empfehlung";
 import { GERAETECOOKIE } from "@/domain/geraetekennung";
+import { bannerLaeuft, Einbettungen } from "../einbettung";
+import { Cookieschalter } from "../(oeffentlich)/cookieschalter";
 import { Kennungsspiegel } from "../(oeffentlich)/kennung";
 import { Markenzeichen } from "../(oeffentlich)/marke";
 
@@ -22,9 +24,11 @@ export const metadata: Metadata = {
  */
 export default async function Kampagnenlayout({ children }: { children: React.ReactNode }) {
   const speicher = await cookies();
+  const banner = await bannerLaeuft();
 
   return (
     <main className="landeplatz">
+      <Einbettungen />
       <Kennungsspiegel
         geraet={speicher.get(GERAETECOOKIE)?.value ?? null}
         refcode={speicher.get(`${EMPFEHLUNGSCOOKIE}_spiegel`)?.value ?? null}
@@ -44,6 +48,7 @@ export default async function Kampagnenlayout({ children }: { children: React.Re
           <li><a href="/verlosung">Teilnahmebedingungen</a></li>
           <li><a href="/datenschutz">Datenschutz</a></li>
           <li><a href="/impressum">Impressum</a></li>
+          {banner ? <li><Cookieschalter /></li> : null}
           <li><a href="/">Zum Portal</a></li>
         </ul>
       </footer>
