@@ -3,8 +3,8 @@
  *
  * Nach der Bestätigung bekommt jede bewertende Person einen kurzen Link auf
  * das Portal. Kommt darüber jemand und gibt selbst eine Bewertung ab, die
- * freigegeben wird, ist die werbende Person im selben Monat für die
- * Super-Verlosung dabei.
+ * freigegeben wird, ist die werbende Person in diesem Monat für den Boost
+ * dabei - und zwar in jedem Monat neu, in dem das wieder geschieht.
  *
  * **Warum nicht mehr als das?** Kein Zähler, keine Rangliste, keine Belohnung
  * je geworbener Person. Ein Portal, das für jede weitere Empfehlung mehr
@@ -16,6 +16,8 @@
  * Kontakts: Aus einem Link darf sich nicht zurückrechnen lassen, wer ihn
  * verschickt hat.
  */
+
+import { VERLOSUNG_LABEL } from "./verlosungsgewinne";
 
 /**
  * Zeichenvorrat ohne Verwechslungspaare.
@@ -77,6 +79,6 @@ export const EMPFEHLUNGSCOOKIE = "schulindex_empfehlung";
 export function teilentext(schulname: string, link: string): string {
   return (
     `Ich habe gerade ${schulname} auf SCHULINDEX bewertet - anonym und geprüft. ` +
-    `Mach mit, dann sind wir beide bei der Super-Verlosung dabei: ${link}`
+    `Mach mit, dann sind wir beide beim ${VERLOSUNG_LABEL.super} dabei: ${link}`
   );
 }

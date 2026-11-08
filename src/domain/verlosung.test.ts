@@ -223,20 +223,28 @@ describe("Drei Ziehungen", () => {
   it("nennt die Gewinne, die auf den Seiten stehen", () => {
     expect(GEWINNE.normal).toEqual({ anzahl: 50, wertEuro: 50, mindestEmpfehlungen: 0 });
     expect(GEWINNE.super).toEqual({ anzahl: 25, wertEuro: 100, mindestEmpfehlungen: 1 });
-    expect(GEWINNE.mega).toEqual({ anzahl: 1, wertEuro: 1000, mindestEmpfehlungen: 100 });
+    expect(GEWINNE.mega).toEqual({ anzahl: 1, wertEuro: 1000, mindestEmpfehlungen: 15 });
   });
 
   it("lässt ohne Empfehlung nur die normale Ziehung zu", () => {
     expect(teilnahmeAn(0, false)).toEqual(["normal"]);
   });
 
-  it("nimmt ab einer geworbenen Person die Super-Verlosung dazu", () => {
+  it("nimmt ab einer geworbenen Person den Boost dazu", () => {
     expect(teilnahmeAn(1, false)).toEqual(["normal", "super"]);
-    expect(teilnahmeAn(99, false)).toEqual(["normal", "super"]);
+    expect(teilnahmeAn(14, false)).toEqual(["normal", "super"]);
   });
 
-  it("nimmt ab hundert geworbenen Personen die Mega-Verlosung dazu", () => {
-    expect(teilnahmeAn(100, false)).toEqual(["normal", "super", "mega"]);
+  it("nimmt ab fuenfzehn geworbenen Personen den Jackpot dazu", () => {
+    expect(teilnahmeAn(GEWINNE.mega.mindestEmpfehlungen, false)).toEqual([
+      "normal",
+      "super",
+      "mega",
+    ]);
+    // Die Schwelle steht im Katalog, nicht im Test: Sie wurde von hundert auf
+    // fuenfzehn gesenkt, und ein Test, der die Zahl selbst mitbringt, haette
+    // das nicht gemerkt - er haette nur behauptet, hundert sei noch richtig.
+    expect(teilnahmeAn(GEWINNE.mega.mindestEmpfehlungen - 1, false)).toEqual(["normal", "super"]);
   });
 
   it("nimmt frühere Gewinner aus der normalen Ziehung, nicht aus den anderen", () => {

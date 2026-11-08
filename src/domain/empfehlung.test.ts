@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { VERLOSUNG_LABEL } from "./verlosungsgewinne";
 import {
   empfehlungslink,
   istEmpfehlungscode,
@@ -65,6 +66,6 @@ describe("Empfehlungslink", () => {
     const text = teilentext("Gymnasium Nord", "https://schulindex.com/e/abcdefghjk");
     expect(text).toContain("Gymnasium Nord");
     expect(text).toContain("https://schulindex.com/e/abcdefghjk");
-    expect(text).toContain("Super-Verlosung");
+    expect(text).toContain(VERLOSUNG_LABEL.super);
   });
 });

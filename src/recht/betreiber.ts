@@ -17,7 +17,27 @@ export interface Betreiberangaben {
   readonly strasse: string | null;
   readonly plz: string | null;
   readonly ort: string | null;
+  /**
+   * Das Land, wenn der Sitz nicht in Deutschland ist.
+   *
+   * Fehlte als Feld, solange ein deutscher Sitz unterstellt war. Eine
+   * Anschrift ohne Land ist aber keine ladungsfähige Anschrift, sobald der
+   * Sitz im Ausland liegt - und § 5 DDG verlangt genau eine solche.
+   */
+  readonly land: string | null;
   readonly vertreten: string | null;
+  /**
+   * Der Vertreter in der Union nach Art. 27 DSGVO und Art. 13 DSA.
+   *
+   * **Keine Formalie.** Wer von ausserhalb der EU Dienste fuer Menschen in der
+   * EU anbietet, muss schriftlich einen Vertreter in einem Mitgliedstaat
+   * benennen und ihn im Impressum und in der Datenschutzerklaerung nennen -
+   * die Aufsichtsbehoerden und Betroffene wenden sich an ihn. Fuer eine
+   * Online-Plattform im Sinne des DSA kommt dieselbe Pflicht ein zweites Mal
+   * aus Art. 13 DSA. Fehlt die Angabe, sagt die Seite das deutlich, statt die
+   * Luecke zu verdecken.
+   */
+  readonly euVertreter: string | null;
   readonly register: string | null;
   readonly registernummer: string | null;
   readonly umsatzsteuerId: string | null;
@@ -46,7 +66,9 @@ export function betreiber(): Betreiberangaben {
     strasse: ausUmgebung("BETREIBER_STRASSE"),
     plz: ausUmgebung("BETREIBER_PLZ"),
     ort: ausUmgebung("BETREIBER_ORT"),
+    land: ausUmgebung("BETREIBER_LAND"),
     vertreten: ausUmgebung("BETREIBER_VERTRETEN"),
+    euVertreter: ausUmgebung("BETREIBER_EU_VERTRETER"),
     register: ausUmgebung("BETREIBER_REGISTER"),
     registernummer: ausUmgebung("BETREIBER_REGISTERNUMMER"),
     umsatzsteuerId: ausUmgebung("BETREIBER_USTID"),
@@ -84,7 +106,9 @@ export const FELDNAME: Readonly<Record<keyof Betreiberangaben, string>> = {
   strasse: "Straße und Hausnummer",
   plz: "Postleitzahl",
   ort: "Ort",
+  land: "Land",
   vertreten: "Vertretungsberechtigte Person",
+  euVertreter: "Vertreter in der EU (Art. 27 DSGVO, Art. 13 DSA)",
   register: "Registergericht",
   registernummer: "Registernummer",
   umsatzsteuerId: "Umsatzsteuer-Identifikationsnummer",

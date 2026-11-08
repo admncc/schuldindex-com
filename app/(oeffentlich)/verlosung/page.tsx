@@ -56,11 +56,21 @@ export default async function Verlosungsseite() {
                 {GEWINNE[art].anzahl} × {GEWINNE[art].wertEuro} Euro
               </td>
               <td data-spalte="Wer dabei ist">
-                {art === "normal"
-                  ? "Alle, die bewertet und teilgenommen haben. Wer hier einmal gewonnen hat, ist bei den weiteren Ziehungen dieser Art nicht mehr dabei."
-                  : GEWINNE[art].mindestEmpfehlungen === 1
-                    ? "Wer im selben Monat mindestens eine Person über den eigenen Link geworben hat, deren Bewertung veröffentlicht wurde."
-                    : `Wer im selben Monat mindestens ${GEWINNE[art].mindestEmpfehlungen} Personen über den eigenen Link geworben hat, deren Bewertungen veröffentlicht wurden.`}
+                {art === "normal" ? (
+                  "Alle, die bewertet und teilgenommen haben. Wer hier einmal gewonnen hat, ist bei den weiteren Ziehungen dieser Art nicht mehr dabei."
+                ) : (
+                  <>
+                    {GEWINNE[art].mindestEmpfehlungen === 1
+                      ? "Wer in diesem Monat mindestens eine Person über den eigenen Link geworben hat, deren Bewertung veröffentlicht wurde."
+                      : `Wer in diesem Monat ${GEWINNE[art].mindestEmpfehlungen} Personen über den eigenen Link geworben hat, deren Bewertungen veröffentlicht wurden.`}{" "}
+                    {/* Der Satz fehlte, und ohne ihn liest sich die Schwelle wie
+                        eine einmalige Huerde. Gerechnet wird aber seit jeher je
+                        Monat - das stand nur nirgends. */}
+                    <strong>Jeden Monat neu:</strong> Wer die Schwelle bis zum Monatsende
+                    erreicht, ist in der Ziehung dieses Monats dabei. Im nächsten Monat beginnt
+                    die Zählung wieder bei null.
+                  </>
+                )}
               </td>
             </tr>
           ))}
@@ -69,7 +79,7 @@ export default async function Verlosungsseite() {
       <p>
         Den eigenen Link bekommst du, sobald deine Bewertung bestätigt ist. Er zählt erst, wenn
         jemand darüber <strong>bewertet</strong> und die Bewertung veröffentlicht wird - ein
-        Klick allein bringt nichts, sonst wäre die Super-Verlosung eine Klickzählung.
+        Klick allein bringt nichts, sonst wäre der {VERLOSUNG_LABEL.super} eine Klickzählung.
       </p>
 
       <h2>Teilnahmebedingungen</h2>
@@ -80,9 +90,17 @@ export default async function Verlosungsseite() {
           ausgeschlossen.
         </li>
         <li>
-          <strong>Wer schon gewonnen hat</strong>, nimmt an der Verlosung nicht
-          erneut teil - an Super- und Mega-Verlosung dagegen weiterhin. Die belohnen nicht das
-          Bewerten, sondern das Weitersagen.
+          <strong>Wer schon gewonnen hat</strong>, nimmt an der {VERLOSUNG_LABEL.normal} nicht
+          erneut teil - an {VERLOSUNG_LABEL.super} und {VERLOSUNG_LABEL.mega} dagegen weiterhin,
+          auch mehrfach. Die belohnen nicht das Bewerten, sondern das Weitersagen, und das lässt
+          sich nicht dadurch entwerten, dass man einmal Glück hatte.
+        </li>
+        <li>
+          <strong>Jeder Monat zählt für sich.</strong> Für {VERLOSUNG_LABEL.super} und{" "}
+          {VERLOSUNG_LABEL.mega} werden ausschließlich die Empfehlungen des laufenden Monats
+          gezählt. Wer die Schwelle bis zum Monatsende erreicht, ist in der Ziehung dieses Monats
+          dabei; danach beginnt die Zählung wieder bei null. Eine erreichte Schwelle gilt also
+          nicht dauerhaft - sie gilt aber auch jeden Monat aufs Neue.
         </li>
         <li>
           <strong>Ein Los je Konto und Monat.</strong> Auch wer mehrere Schulen bewertet, hat ein

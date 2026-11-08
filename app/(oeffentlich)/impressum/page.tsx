@@ -35,6 +35,12 @@ export default function Impressumsseite() {
           <Angabe angaben={a} feld="strasse" />
           <br />
           <Angabe angaben={a} feld="plz" /> <Angabe angaben={a} feld="ort" />
+          {a.land ? (
+            <>
+              <br />
+              {a.land}
+            </>
+          ) : null}
         </dd>
         {a.vertreten ? (
           <>
@@ -65,6 +71,19 @@ export default function Impressumsseite() {
           </>
         ) : null}
       </dl>
+
+      {/* Der Vertreter in der Union gehoert ins Impressum, nicht nur in die
+          Datenschutzerklaerung: Er ist die Stelle, an die sich Behoerden und
+          Betroffene wenden, wenn der Anbieter ausserhalb der EU sitzt. */}
+      {a.land !== null && a.land !== "Deutschland" ? (
+        <>
+          <h2>Vertreter in der Europäischen Union</h2>
+          <p>
+            Nach Art. 27 DSGVO und Art. 13 DSA:{" "}
+            {a.euVertreter ?? <Fehlt feld="euVertreter" />}
+          </p>
+        </>
+      ) : null}
 
       <h2>Verantwortlich für den Inhalt</h2>
       <p>

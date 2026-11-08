@@ -21,10 +21,15 @@
  *    haben. Wer einmal gewonnen hat, ist danach heraus - sonst gewinnt auf
  *    Dauer, wer am längsten dabei ist, und für alle anderen wird die Chance
  *    kleiner statt größer.
- *  - Die **Super-Verlosung** unter denen, die im selben Monat mindestens eine
- *    weitere Person geworben haben, deren Bewertung veröffentlicht wurde.
- *  - Die **Mega-Verlosung** unter denen, die im selben Monat über hundert
- *    solcher Personen geworben haben - ein Gutschein, einmal im Monat.
+ *  - Der **Boost** unter denen, die im selben Monat mindestens eine weitere
+ *    Person geworben haben, deren Bewertung veröffentlicht wurde.
+ *  - Der **Jackpot** unter denen, die im selben Monat fünfzehn solcher
+ *    Personen geworben haben - ein Gutschein, einmal im Monat.
+ *
+ * Beide Schwellen gelten je Monat und nicht ein für alle Mal: Der Topf wird
+ * aus den Empfehlungen **dieses** Monats gebildet, jeder Monat fängt bei null
+ * an, und wer die Schwelle bis zum Monatsende erreicht, ist in der Ziehung
+ * dieses Monats dabei.
  *
  * In den beiden letzten ist auch dabei, wer schon einmal gewonnen hat: Sie
  * belohnen nicht das Bewerten, sondern das Weitersagen, und das lässt sich

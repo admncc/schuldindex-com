@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { GEWINNE, PARTNER } from "@/domain/verlosungsgewinne";
+import { GEWINNE, PARTNER, VERLOSUNG_LABEL } from "@/domain/verlosungsgewinne";
 
 /**
  * Der Teilen-Bereich nach der Bestätigung.
@@ -63,8 +63,10 @@ export function Teilen({
           <p>
             Je mehr aus deiner Schule bewerten, desto mehr sagt die Wertung aus. Und: Sobald{" "}
             <strong>eine einzige Person</strong> über deinen Link bewertet, bist du diesen Monat
-            zusätzlich in der <strong>Super-Verlosung</strong> - {GEWINNE.super.anzahl} Gutscheine
-            über je {GEWINNE.super.wertEuro} Euro von {PARTNER}.
+            zusätzlich beim <strong>{VERLOSUNG_LABEL.super}</strong> dabei - {GEWINNE.super.anzahl}{" "}
+            Gutscheine über je {GEWINNE.super.wertEuro} Euro von {PARTNER}. Und das gilt in{" "}
+            <strong>jedem Monat neu</strong>: Was im letzten Monat zusammenkam, zählt im nächsten
+            nicht mehr mit - dafür fängt auch niemand im Minus an.
           </p>
         </>
       )}
@@ -105,7 +107,7 @@ export function Teilen({
       {kompakt ? null : (
         <p className="fussnote">
           Der Link zählt, sobald jemand darüber eine Bewertung abgibt und diese veröffentlicht
-          wird. Wer ihn nur anklickt, zählt nicht - sonst wäre die Super-Verlosung eine
+          wird. Wer ihn nur anklickt, zählt nicht - sonst wäre der {VERLOSUNG_LABEL.super} eine
           Klickzählung.
         </p>
       )}
