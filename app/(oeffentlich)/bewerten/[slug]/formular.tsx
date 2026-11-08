@@ -33,6 +33,7 @@ import {
 } from "@/domain/scoring";
 import { GEWINNE, VERLOSUNG_LABEL } from "@/domain/verlosungsgewinne";
 import { gesicherteKennungen } from "../../kennung";
+import { Spamhinweis } from "../../spamhinweis";
 
 const ZAHL = new Intl.NumberFormat("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
@@ -362,6 +363,10 @@ export function Bewertungsformular({
           Wir haben dir eine Nachricht an <strong>{gesendet.kontaktAnzeige}</strong> geschickt.
           Bitte bestätige darüber deine Bewertung - der Link ist 24 Stunden gültig.
         </p>
+        {/* Hier hängen sieben Bildschirme Arbeit dran. Wer die Nachricht im
+            Spam nicht findet, hält das Portal für kaputt - und die Bewertung
+            bleibt für immer unbestätigt. */}
+        <Spamhinweis />
         <p className="hinweis">
           Erst nach der Bestätigung wird deine Bewertung geprüft und veröffentlicht. Deine
           Kontaktdaten erscheinen nie öffentlich. Kommt nichts an, kannst du den Link unter{" "}

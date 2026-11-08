@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { zugangAnfordern, type Anfragezustand } from "../aktionen";
+import { Spamhinweis } from "../../spamhinweis";
 
 export default function Anfrageformular({
   slug,
@@ -16,6 +17,10 @@ export default function Anfrageformular({
     return (
       <div className="karte">
         <p>{zustand.meldung}</p>
+        {/* Hier besonders wichtig: Schulpostfächer filtern schärfer als
+            private, und oft entscheidet eine Schulverwaltung mit, was
+            durchkommt. */}
+        <Spamhinweis />
       </div>
     );
   }

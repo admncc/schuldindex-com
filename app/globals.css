@@ -1827,3 +1827,27 @@ pre.schnipsel {
 .verlaufsliste > li { padding-bottom: 1rem; border-bottom: 1px solid var(--linie); }
 .verlaufsliste > li > p { margin: 0; font-size: 0.92rem; }
 .verlaufsliste summary { cursor: pointer; font-size: 0.88rem; color: var(--schrift-3); }
+
+/* --- Hinweis auf den Spamordner -------------------------------------------
+   Signalrot, nicht Fehlerrot: Es ist nichts schiefgegangen, aber der nächste
+   Schritt liegt nicht mehr bei uns. Beide Farbpaare sind auf Kontrast geprüft
+   und im dunklen Schema eigens gesetzt. */
+.spamhinweis {
+  margin: 1rem 0;
+  padding: 0.85rem 1rem;
+  background: var(--signal-sanft);
+  border-left: 3px solid var(--signal);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--signal-schrift);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  text-align: left;
+}
+.spamhinweis strong { font-weight: 700; }
+/* **Doppelter Klassenname, und das ist kein Schreibfehler.** Behälter wie
+   `.leerzustand p` färben ihre Absätze selbst ein und sind mit (0,2,1)
+   spezifischer als eine einzelne Klasse - der Hinweis stand deshalb in
+   gewöhnlichem Grau in einem roten Kasten. Zweimal derselbe Klassenname hebt
+   die Spezifität auf dieselbe Stufe, und weil die Regel später steht, gewinnt
+   sie. Kein `!important`: Das wäre dieselbe Lösung ohne diese Erklärung. */
+p.spamhinweis.spamhinweis { color: var(--signal-schrift); }

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { linkAnfordern, type Anmeldezustand } from "../aktionen";
+import { Spamhinweis } from "../../spamhinweis";
 
 const ARTEN = [
   { id: "whatsapp", label: "WhatsApp" },
@@ -19,8 +20,9 @@ export default function Anmeldeformular() {
     return (
       <div className="karte">
         <p>{zustand.meldung}</p>
+        <Spamhinweis />
         <p className="hinweis">
-          Nichts bekommen? Dann gibt es zu diesem Kontakt kein bestätigtes Konto - oder die
+          Immer noch nichts? Dann gibt es zu diesem Kontakt kein bestätigtes Konto - oder die
           Nachricht ist noch unterwegs.
         </p>
       </div>
