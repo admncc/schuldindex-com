@@ -11,6 +11,7 @@
 import { sql } from "./verbindung";
 import { datenbanklage } from "../geo/mmdb";
 import { PROTOKOLL_STUNDEN } from "../domain/diagnose";
+import { emailEingerichtet, smsEingerichtet, zustellbareArten } from "../versand/wege";
 
 /** Die Variablen, deren Fehlen etwas kaputt macht. Werte stehen hier nie. */
 const PFLICHTVARIABLEN = [
@@ -59,6 +60,18 @@ export interface Systemzustand {
     readonly standAm: string | null;
     readonly groesseMb: number | null;
   };
+  /**
+   * Welche Wege eine Bestätigung tatsächlich zustellen können.
+   *
+   * **Die wichtigste Zahl im ganzen Zustand** - ohne einen davon nimmt das
+   * Portal keine Bewertung mehr an, und das war an genau einem Abend schon
+   * stundenlang der Fall, ohne dass es irgendwo stand.
+   */
+  readonly versand: {
+    readonly email: boolean;
+    readonly sms: boolean;
+    readonly zustellbar: readonly string[];
+  };
   readonly protokoll: {
     readonly stunden: number;
     readonly eintraege: number;
@@ -92,6 +105,16 @@ export async function systemzustand(): Promise<Systemzustand> {
     fassung = kopf?.fassung.split(" ").slice(0, 2).join(" ") ?? null;
     groesse = kopf?.groesse ?? null;
 
+    /**
+     * **Die Spalte `erledigt_am` gab es nie.** Sie stand hier seit dem Bau der
+     * Diagnose - und weil eine einzige falsche Spalte die *ganze* Abfrage
+     * scheitern lässt, kamen `bestand` und `bewertungen` immer leer zurück,
+     * also die Hauptauskunft der Schnittstelle. Aufgefallen ist es erst, als
+     * jemand sie zum ersten Mal wirklich gelesen hat.
+     *
+     * Offen heisst überall sonst im Portal: noch nicht entschieden. Dafür gibt
+     * es sogar einen eigenen Teilindex (`meldungen_offen`).
+     */
     const [zahlen] = await sql<Record<string, number>[]>`
       select
         (select count(*)::int from schulen) as schulen,
@@ -102,7 +125,8 @@ export async function systemzustand(): Promise<Systemzustand> {
         (select count(*)::int from empfehlungen) as empfehlungen,
         (select count(*)::int from verlosungen) as verlosungen,
         (select count(*)::int from verlosungsgewinne) as gewinne,
-        (select count(*)::int from meldungen where erledigt_am is null) as meldungen_offen,
+        (select count(*)::int from meldungen
+          where status in ('eingegangen', 'in_bearbeitung')) as meldungen_offen,
         (select count(*)::int from schulzugaenge) as schulzugaenge,
         (select count(*)::int from moderatoren where aktiv) as moderatoren
     `;
@@ -155,6 +179,11 @@ export async function systemzustand(): Promise<Systemzustand> {
     datenbank: { erreichbar, antwortMs, fassung, groesse, fehler },
     bestand,
     bewertungen,
+    versand: {
+      email: emailEingerichtet(),
+      sms: smsEingerichtet(),
+      zustellbar: zustellbareArten(),
+    },
     geoip: {
       vorhanden: geo.vorhanden,
       art: geo.art,
