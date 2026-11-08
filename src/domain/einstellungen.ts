@@ -194,16 +194,29 @@ export const KATALOG: readonly Einstellungsbeschreibung[] = [
      * „überflogen“ und „gelesen“ liegt also eine ganze Größenordnung - und die
      * alte Grenze lag unter allen dreien, konnte also nie etwas unterscheiden.
      *
-     * **Warum 2000 trotzdem nicht zu streng ist.** Es ist der Median: Die
-     * Hälfte der Antworten darf schneller kommen. Und das Signal wiegt 2, die
-     * Halteschwelle liegt bei 3 - allein hält es nichts an, es braucht immer
-     * ein zweites Signal daneben. Ein zu Unrecht eingestuftes Tempo kostet
-     * damit nichts; ein durchgelassenes Skript kostet die Glaubwürdigkeit
-     * einer Schulwertung.
+     * **Warum 2500 und nicht die geometrische Mitte (≈2100).** Die beiden
+     * langsamen Werte stammen von Leuten, die den Bogen zum ersten Mal sahen -
+     * und das ist hier nicht das langsame Ende, sondern der Normalfall: Rund
+     * neun von zehn Abgaben kommen von Menschen, die genau eine Schule
+     * bewerten. Wer eine zweite bewertet und die Fragen schon kennt, ist
+     * legitim schneller, fällt aber kaum ins Gewicht. Die ehrliche Masse liegt
+     * damit bei 4–7 Sekunden, und darunter ist mehr Platz, als eine Mittelung
+     * zwischen zwei Stichproben nahelegt.
      *
-     * Mit Daten aus ein paar hundert Abgaben gehört der Wert erneut angesehen.
+     * **Und warum nicht noch höher.** Es ist der Median: Die Hälfte der
+     * Antworten darf schneller kommen. Das Signal wiegt 2 bei einer
+     * Halteschwelle von 3 - allein hält es nichts an, es braucht immer ein
+     * zweites daneben. Ein zu Unrecht eingestuftes Tempo kostet deshalb fast
+     * nichts; ein durchgelassenes Skript kostet die Glaubwürdigkeit einer
+     * Schulwertung. Über 3000 käme die Grenze aber in die Nähe der ehrlichen
+     * Werte selbst, und dort ist kein Verhältnis mehr, sondern nur noch
+     * Hoffnung.
+     *
+     * Nach ein paar hundert Abgaben zeigt die Spalte „Tempo" in der
+     * Bewertungsübersicht, wo die Masse wirklich liegt. Dann ist der Wert
+     * keine Schätzung mehr und gehört erneut angesehen.
      */
-    vorgabe: 2000,
+    vorgabe: 2500,
     min: 50,
     max: 5000,
     einheit: "ms",
