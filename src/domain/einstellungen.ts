@@ -53,7 +53,7 @@ export const GRUPPEN_HILFE: Readonly<Record<Einstellungsbeschreibung["gruppe"], 
   zugang:
     "Betrifft nicht die Betrugserkennung, sondern diese Oberfläche selbst. Hinter ihr liegen entschlüsselbare Kontaktdaten, die Freigabe von Bewertungen und die Schwellen darunter - wer hier etwas lockert, lockert den Zugang zu alldem.",
   kontakt:
-    "Über welche Wege sich eine Bewertung bestätigen lässt. Mindestens einer muss anbleiben - sind alle aus, gelten wieder alle, denn ohne Bestätigung nimmt das Portal gar nichts an. Ein abgeschalteter Weg verschwindet aus dem Formular und wird auch dann nicht angenommen, wenn ihn jemand von Hand mitschickt.",
+    "Über welche Wege sich eine Bewertung bestätigen lässt. Ein abgeschalteter Weg verschwindet aus dem Formular und wird auch dann nicht angenommen, wenn ihn jemand von Hand mitschickt. Angehakt heisst aber noch nicht zugestellt: WhatsApp und SMS brauchen Zugangsdaten, die es noch nicht gibt. Bleibt kein Weg übrig, der auch ankommt, nimmt das Portal gar keine Bewertungen mehr an - eine Auswahl, die das zur Folge hätte, wird deshalb nicht gespeichert. Was zustellen kann, steht oben unter „Nachrichtenversand“.",
   tempo:
     "Wer den Fragebogen in Sekunden durchklickt, hat ihn nicht gelesen. Die Gesamtdauer misst der Server selbst über einen signierten Zeitstempel - eine Angabe des Browsers wäre wertlos. Die Abstände zwischen den einzelnen Klicks kommen aus dem Browser und werden gegen diese Dauer geprüft. Gespeichert werden Median und Streuung - und seit dem 27.08.2026 auch die Folge selbst, damit sich Muster nachträglich auswerten lassen; die Datenschutzerklärung weist das aus.",
   abweichung:

@@ -157,3 +157,28 @@ describe("erlaubteKontaktarten", () => {
     expect(erlaubteKontaktarten(keiner)).toEqual(["whatsapp", "sms", "email"]);
   });
 });
+
+describe("Wege der Bestätigung: der Fall, der das Portal stilllegte", () => {
+  /**
+   * Am 08.11.2026 stand `kontakt_email` auf „aus" und `kontakt_whatsapp` auf
+   * „an". Angeboten wurde damit WhatsApp - zustellen konnte nur E-Mail. Die
+   * Schnittmenge war leer, und die Bewertungsseite zeigte für alle nur noch
+   * „Bewerten ist gerade nicht möglich". Im Panel stand nichts.
+   */
+  it("meldet die leere Schnittmenge, aus der der Ausfall entstand", () => {
+    const aus = mitVorgaben({ kontakt_email: 0, kontakt_sms: 0, kontakt_whatsapp: 1 });
+    expect(erlaubteKontaktarten(aus)).toEqual(["whatsapp"]);
+    // Zustellen kann im Betrieb nur E-Mail - also bleibt nichts übrig.
+    expect(erlaubteKontaktarten(aus).filter((a) => ["email"].includes(a))).toEqual([]);
+  });
+
+  it("lässt die richtige Einstellung durch", () => {
+    const an = mitVorgaben({ kontakt_email: 1, kontakt_sms: 0, kontakt_whatsapp: 0 });
+    expect(erlaubteKontaktarten(an).filter((a) => ["email"].includes(a))).toEqual(["email"]);
+  });
+
+  it("fängt den Fall „alle aus“ weiterhin über die alte Regel ab", () => {
+    const keiner = mitVorgaben({ kontakt_email: 0, kontakt_sms: 0, kontakt_whatsapp: 0 });
+    expect(erlaubteKontaktarten(keiner)).toEqual(["whatsapp", "sms", "email"]);
+  });
+});

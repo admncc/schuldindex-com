@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { holeEinstellungen, verlauf } from "@/db/einstellungen";
-import { abweichungen, beschreibung, KATALOG } from "@/domain/einstellungen";
+import {
+  abweichungen,
+  beschreibung,
+  erlaubteKontaktarten,
+  KATALOG,
+} from "@/domain/einstellungen";
+import { zustellbareArten } from "@/versand/wege";
 import { verlangeAnmeldung } from "../sitzung";
 import Einstellungsformular from "./formular";
 import Schluesselblock from "./schluesselblock";
@@ -33,6 +39,9 @@ export default async function Einstellungsseite() {
   ]);
   const geaendert = abweichungen(werte);
   const smtp = smtpAusUmgebung();
+  // Wege, die angeboten werden *und* ankommen. Ist die Schnittmenge leer,
+  // nimmt das Portal gar keine Bewertungen mehr an.
+  const offeneWege = erlaubteKontaktarten(werte).filter((a) => zustellbareArten().includes(a));
 
   return (
     <section className="abschnitt">
@@ -63,6 +72,20 @@ export default async function Einstellungsseite() {
       )}
 
       <Einstellungsformular werte={werte} darfAendern={moderatorin.rolle === "leitung"} />
+
+      {/* **Der lauteste Platz im Panel, und er hat ihn verdient.** Dieser
+          Zustand ist schon einmal eingetreten - E-Mail stand auf „aus",
+          WhatsApp auf „an", und weil WhatsApp nicht zustellen kann, nahm das
+          Portal stundenlang gar keine Bewertungen mehr an. Gemerkt hat es
+          niemand, weil nirgends etwas stand. */}
+      {offeneWege.length === 0 ? (
+        <p className="fehler" role="alert">
+          <strong>Das Portal nimmt zurzeit keine Bewertungen an.</strong> Von den unter „Wege der
+          Bestätigung" angebotenen Wegen kann keiner zustellen - die Bewertungsseite zeigt
+          deshalb nur noch einen Hinweis statt des Formulars. Schalt einen Weg an, der zustellen
+          kann, oder richte den fehlenden Versand ein.
+        </p>
+      ) : null}
 
       {/* Der Versand steht oben, weil ohne ihn nichts von dem wirkt, was
           darunter eingestellt wird: Eine Bewertung ohne zugestellte

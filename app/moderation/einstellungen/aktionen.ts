@@ -2,7 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { speichereEinstellungen } from "@/db/einstellungen";
-import { KATALOG, beschreibung, pruefeWert } from "@/domain/einstellungen";
+import {
+  KATALOG,
+  beschreibung,
+  erlaubteKontaktarten,
+  mitVorgaben,
+  pruefeWert,
+} from "@/domain/einstellungen";
+import { zustellbareArten } from "@/versand/wege";
 import { verlangeAnmeldung } from "../sitzung";
 import { ANTHROPIC, entferneSchluessel, setzeSchluessel } from "@/db/geheimnisse";
 import { sichtbarKeinSchluessel } from "@/domain/geheimnis";
@@ -52,6 +59,36 @@ export async function speichern(
   // hinterher, welche Hälfte gilt.
   if (fehler.length > 0) {
     return { meldung: "Nichts gespeichert - bitte sieh dir die markierten Felder an.", fehler, versuch };
+  }
+
+  /**
+   * **Ein Haken darf das Portal nicht stilllegen.**
+   *
+   * Genau das ist passiert: E-Mail stand auf „aus", WhatsApp auf „an" - und
+   * weil WhatsApp nicht zustellen kann, blieb von den angebotenen Wegen keiner
+   * übrig. Die Bewertungsseite zeigte daraufhin „Bewerten ist gerade nicht
+   * möglich", und zwar für alle, ohne dass im Panel irgendwo etwas gestanden
+   * hätte. Die Regel „sind alle aus, gelten wieder alle" fing das nicht ab:
+   * Sie schützt gegen *alle* aus, nicht gegen „der einzige, der zustellt, ist
+   * aus".
+   *
+   * Geprüft wird deshalb nicht, ob irgendein Haken gesetzt ist, sondern ob am
+   * Ende ein Weg übrig bleibt, der auch ankommt.
+   */
+  const kuenftig = erlaubteKontaktarten(
+    mitVorgaben(Object.fromEntries(aenderungen.map((a) => [a.schluessel, a.wert]))),
+  );
+  const zustellbar = zustellbareArten();
+  if (!kuenftig.some((art) => zustellbar.includes(art))) {
+    const moeglich = zustellbar.length === 0
+      ? "Zurzeit kann kein einziger Weg zustellen - sieh unter „Nachrichtenversand“ nach."
+      : `Zustellen kann zurzeit nur: ${zustellbar.join(", ")}.`;
+    return {
+      meldung:
+        `Nichts gespeichert. Mit dieser Auswahl bliebe kein Weg übrig, über den eine Bestätigung ` +
+        `ankommt - das Portal würde gar keine Bewertungen mehr annehmen. ${moeglich}`,
+      versuch,
+    };
   }
 
   const ergebnis = await speichereEinstellungen(aenderungen, moderatorin.id);
