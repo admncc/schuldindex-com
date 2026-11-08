@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { betreiber, fehlendeAngaben } from "@/recht/betreiber";
-import { Angabe, Fehlt } from "../rechtsteile";
+import { Anschrift, Fehlt } from "../rechtsteile";
 
 export const metadata: Metadata = { title: "Impressum" };
 export const dynamic = "force-dynamic";
@@ -24,53 +24,26 @@ export default function Impressumsseite() {
       ) : null}
 
       <h2>Angaben nach § 5 DDG</h2>
-      <dl>
-        <dt>Betreiber</dt>
-        <dd>
-          <Angabe angaben={a} feld="name" />
-          {a.rechtsform ? ` ${a.rechtsform}` : null}
-        </dd>
-        <dt>Anschrift</dt>
-        <dd>
-          <Angabe angaben={a} feld="strasse" />
-          <br />
-          <Angabe angaben={a} feld="plz" /> <Angabe angaben={a} feld="ort" />
-          {a.land ? (
+      <Anschrift angaben={a} />
+      {a.register && a.registernummer ? (
+        <dl>
+          <dt>Register</dt>
+          <dd>
+            {a.register}, {a.registernummer}
+          </dd>
+          {a.umsatzsteuerId ? (
             <>
-              <br />
-              {a.land}
+              <dt>Umsatzsteuer-ID</dt>
+              <dd>{a.umsatzsteuerId}</dd>
             </>
           ) : null}
-        </dd>
-        {a.vertreten ? (
-          <>
-            <dt>Vertreten durch</dt>
-            <dd>{a.vertreten}</dd>
-          </>
-        ) : null}
-        <dt>E-Mail</dt>
-        <dd>{a.email ? <a href={`mailto:${a.email}`}>{a.email}</a> : <Fehlt feld="email" />}</dd>
-        {a.telefon ? (
-          <>
-            <dt>Telefon</dt>
-            <dd>{a.telefon}</dd>
-          </>
-        ) : null}
-        {a.register && a.registernummer ? (
-          <>
-            <dt>Register</dt>
-            <dd>
-              {a.register}, {a.registernummer}
-            </dd>
-          </>
-        ) : null}
-        {a.umsatzsteuerId ? (
-          <>
-            <dt>Umsatzsteuer-ID</dt>
-            <dd>{a.umsatzsteuerId}</dd>
-          </>
-        ) : null}
-      </dl>
+        </dl>
+      ) : a.umsatzsteuerId ? (
+        <dl>
+          <dt>Umsatzsteuer-ID</dt>
+          <dd>{a.umsatzsteuerId}</dd>
+        </dl>
+      ) : null}
 
       {/* Der Vertreter in der Union gehoert ins Impressum, nicht nur in die
           Datenschutzerklaerung: Er ist die Stelle, an die sich Behoerden und

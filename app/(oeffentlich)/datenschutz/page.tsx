@@ -3,7 +3,7 @@ import { betreiber } from "@/recht/betreiber";
 import { GUELTIG_STUNDEN } from "@/domain/verifizierung";
 import { MINDESTZAHL_FREITEXTE } from "@/ki/pruefung";
 import { fristtext, regel, REGELN } from "@/domain/aufbewahrung";
-import { Angabe, Fehlt } from "../rechtsteile";
+import { Angabe, Anschrift, Fehlt } from "../rechtsteile";
 
 export const metadata: Metadata = { title: "Datenschutz" };
 export const dynamic = "force-dynamic";
@@ -26,17 +26,17 @@ export default function Datenschutzseite() {
       <p className="stand">Stand: 26. August 2026</p>
 
       <h2>1. Wer verantwortlich ist</h2>
-      <p>
-        <Angabe angaben={a} feld="name" />
-        {a.rechtsform ? ` ${a.rechtsform}` : null}, <Angabe angaben={a} feld="strasse" />,{" "}
-        <Angabe angaben={a} feld="plz" /> <Angabe angaben={a} feld="ort" />.
-        {a.email ? (
-          <>
-            {" "}
-            E-Mail: <a href={`mailto:${a.email}`}>{a.email}</a>.
-          </>
-        ) : null}
-      </p>
+      <Anschrift angaben={a} />
+      {/* Der Vertreter in der Union gehoert auch hierher und nicht nur ins
+          Impressum: Art. 27 Abs. 4 DSGVO sagt, dass Betroffene sich an ihn
+          wenden koennen - das muessen sie dort erfahren, wo sie ihre Rechte
+          nachlesen. */}
+      {a.land !== null && a.land !== "Deutschland" ? (
+        <p>
+          Vertreter in der Europäischen Union nach Art. 27 DSGVO:{" "}
+          {a.euVertreter ?? <Fehlt feld="euVertreter" />}
+        </p>
+      ) : null}
       {a.datenschutzbeauftragter ? (
         <p>Datenschutzbeauftragte Person: {a.datenschutzbeauftragter}.</p>
       ) : null}
