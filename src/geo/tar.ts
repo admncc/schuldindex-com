@@ -77,8 +77,28 @@ export function istGzip(daten: Buffer): boolean {
   return daten.length > 2 && daten[0] === 0x1f && daten[1] === 0x8b;
 }
 
-/** Die MaxMind-Datenbank beginnt nicht mit gzip und nicht mit einem tar-Kopf. */
+/**
+ * Sieht das nach einem tar-Archiv aus?
+ *
+ * **Diese Prüfung fehlte, und das war der Fehler.** `istMmdb` sucht die
+ * MaxMind-Kennung in den letzten 100 KB - und in einem Archiv von MaxMind
+ * liegt die `.mmdb` als letztes Mitglied, ihre Kennung also auch dort. Das
+ * entpackte Archiv galt damit selbst als Datenbank, wurde unverändert
+ * geschrieben, und der Leser fand darin brav die Metadaten: richtiger Typ,
+ * richtige Größe. Nur sind sämtliche inneren Verweise um die tar-Kopfzeilen
+ * verschoben, und deshalb schlug **keine einzige Adresse** an.
+ *
+ * Ein tar hat anders als eine `.mmdb` eine Kennung an fester Stelle: „ustar"
+ * ab Byte 257 des ersten Blocks. Danach wird zuerst gefragt.
+ */
+export function istTar(daten: Buffer): boolean {
+  return daten.length >= 512 && daten.subarray(257, 262).toString("ascii") === "ustar";
+}
+
+/** Die MaxMind-Datenbank trägt am Ende diese Kennung. */
 export function istMmdb(daten: Buffer): boolean {
   // Kein eigener Anfangsstempel, aber am Ende steht immer diese Kennung.
+  // **Vorsicht:** Das trifft auch auf ein Archiv zu, das eine `.mmdb` enthält -
+  // deshalb erst `istTar` fragen (siehe dort).
   return daten.subarray(-100_000).includes(Buffer.from("\xab\xcd\xefMaxMind.com", "binary"));
 }

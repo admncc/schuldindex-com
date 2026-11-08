@@ -4,7 +4,7 @@ import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { holeAngemeldete } from "../../sitzung";
 import { datenbankpfad, vergissLeser } from "@/geo/mmdb";
-import { findeInTar, istGzip, istMmdb } from "@/geo/tar";
+import { findeInTar, istGzip, istMmdb, istTar } from "@/geo/tar";
 import { sql } from "@/db/verbindung";
 
 /**
@@ -62,7 +62,13 @@ export async function POST(anfrage: Request): Promise<NextResponse> {
       inhalt = Buffer.from(gunzipSync(inhalt, { maxOutputLength: HOECHSTGROESSE }));
     }
 
-    if (!istMmdb(inhalt)) {
+    // **Erst auf tar prüfen, dann auf mmdb.** Umgekehrt ging es schief: Die
+    // mmdb-Erkennung sucht die MaxMind-Kennung in den letzten 100 KB, und die
+    // steht in einem Archiv von MaxMind auch dort, weil die Datenbank das
+    // letzte Mitglied ist. Das ganze Archiv galt damit als Datenbank und wurde
+    // unverändert geschrieben - mit lesbaren Metadaten und ohne einen einzigen
+    // brauchbaren Treffer.
+    if (istTar(inhalt)) {
       const gefunden = findeInTar(inhalt, ".mmdb");
       if (gefunden === null) {
         return NextResponse.json(
