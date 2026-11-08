@@ -255,10 +255,10 @@ main:focus { outline: none; }
 .suchfilter { display: flex; flex-wrap: wrap; gap: 0.7rem 0.9rem; align-items: flex-end; }
 .suchfilter .feld { font-size: 0.85rem; gap: 0.2rem; }
 .suchfilter .feld > span { color: var(--schrift-3); font-weight: 500; }
-.suchfilter select, .suchfilter input[type="text"] {
+.suchfilter select, .suchfilter input[type="text"], .suchfilter input[type="search"] {
   padding: 0.5rem 0.8rem; border-radius: 999px; font-size: 0.92rem;
 }
-.suchfilter input[type="text"] { min-width: 11rem; }
+.suchfilter input[type="text"], .suchfilter input[type="search"] { min-width: 11rem; }
 /* Der Schalter steht in der Reihe der Auswahlfelder und braucht deshalb
    dieselbe Höhe wie sie - deshalb der Rahmen statt einer nackten Zeile. */
 .suchfilter .schalterfeld,
@@ -1860,3 +1860,37 @@ p.spamhinweis.spamhinweis { color: var(--signal-schrift); }
 .ausnahme { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--linie); }
 .ausnahme > summary { cursor: pointer; font-size: 0.92rem; color: var(--schrift-3); }
 .ausnahme[open] > summary { margin-bottom: 0.75rem; color: var(--schrift-2); }
+
+/* --- Alle Bewertungen ------------------------------------------------------ */
+.bewertungsliste { font-size: 0.88rem; }
+.bewertungsliste td { vertical-align: top; }
+/* Der Befund ist die längste Spalte und darf die Tabelle nicht sprengen. */
+.bewertungsliste .befundspalte { max-width: 22rem; color: var(--schrift-2); }
+.bewertungsliste .demozeile { opacity: 0.6; }
+
+.blaettern {
+  display: flex; align-items: center; justify-content: center;
+  gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;
+}
+
+/* Auf dem Telefon gestapelt statt gerollt - dieselbe Entscheidung wie bei den
+   Rechtstexten, hier aber dringender: Bei neun Spalten lagen sechs davon
+   ausserhalb des Bildes, und nichts wies darauf hin. */
+@media (max-width: 52rem) {
+  .bewertungsliste, .bewertungsliste tbody, .bewertungsliste tr, .bewertungsliste td {
+    display: block;
+  }
+  .bewertungsliste thead { display: none; }
+  .bewertungsliste tr {
+    border: 1px solid var(--linie); border-radius: var(--radius);
+    padding: 0.7rem 0.9rem; margin-bottom: 0.7rem; background: var(--flaeche);
+  }
+  .bewertungsliste td { border: none; padding: 0.15rem 0; }
+  .bewertungsliste td::before {
+    content: attr(data-spalte); display: block;
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--schrift-3);
+  }
+  .bewertungsliste td:last-child { margin-top: 0.6rem; }
+  .bewertungsliste .befundspalte { max-width: none; }
+}

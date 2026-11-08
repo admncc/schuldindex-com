@@ -643,3 +643,105 @@ export async function bestaetigeVonHand(
     return { bewertungen: wartende.length, veroeffentlicht };
   });
 }
+
+/* ------------------------------------------------- Alle Bewertungen, zeitlich */
+
+export interface Bewertungszeile {
+  id: string;
+  erstellt_am: Date;
+  aktualisiert_am: Date;
+  status: Zustand;
+  rolle: string;
+  klassenstufe: number | null;
+  schule_name: string;
+  schule_slug: string;
+  schule_ort: string | null;
+  bundesland: Bundesland;
+  gesamtscore: string | null;
+  hat_freitext: boolean;
+  signalpunkte: number | null;
+  signale: { art: string; erlaeuterung?: string }[] | null;
+  kontaktart: Kontaktart | null;
+  konto_bestaetigt: boolean;
+  version: number;
+  ist_demo: boolean;
+}
+
+export interface Bewertungsfilter {
+  readonly status?: Zustand | undefined;
+  readonly bundesland?: Bundesland | undefined;
+  readonly suche?: string | undefined;
+  readonly seite?: number | undefined;
+  readonly proSeite?: number | undefined;
+}
+
+function bewertungsbedingungen(f: Bewertungsfilter) {
+  return sql`
+    ${f.status ? sql`and b.status = ${f.status}::bewertungsstatus` : sql``}
+    ${f.bundesland ? sql`and s.bundesland = ${f.bundesland}::bundesland` : sql``}
+    ${
+      f.suche
+        ? sql`and s.suchtext ilike ${"%" + maskierePlatzhalter(f.suche) + "%"} escape '\\'`
+        : sql``
+    }
+  `;
+}
+
+/**
+ * Alle Bewertungen, die neueste zuerst.
+ *
+ * **Der Unterschied zur Warteschlange** ist nicht die Technik, sondern die
+ * Frage. Die Warteschlange beantwortet „was muss ich jetzt entscheiden" und
+ * sortiert deshalb die ältesten nach oben - wer nach Verdachtsgrad arbeitet,
+ * lässt die unspektakulären Fälle die Frist reissen. Diese Liste beantwortet
+ * „was passiert gerade" und sortiert deshalb umgekehrt: Sie ist der Blick auf
+ * den Betrieb, nicht der Stapel Arbeit.
+ *
+ * Alles, was eine Zeile zeigt, kommt aus einer Abfrage - auch die Signale.
+ * Eine Übersicht, die je Zeile nachlädt, ist bei zweihundert Zeilen keine
+ * Übersicht mehr.
+ */
+export async function alleBewertungen(f: Bewertungsfilter = {}): Promise<Bewertungszeile[]> {
+  const proSeite = Math.min(Math.max(f.proSeite ?? 100, 1), 500);
+  const seite = Math.max(f.seite ?? 1, 1);
+
+  return sql<Bewertungszeile[]>`
+    select b.id, b.erstellt_am, b.aktualisiert_am, b.status::text as status,
+           b.rolle::text as rolle, b.klassenstufe, b.signalpunkte, b.signale,
+           b.aktuelle_version as version, b.ist_demo,
+           s.name as schule_name, s.slug as schule_slug, s.ort as schule_ort, s.bundesland,
+           v.gesamtscore,
+           v.freitexte <> '{}'::jsonb as hat_freitext,
+           k.kontaktart::text as kontaktart,
+           k.verifiziert_am is not null as konto_bestaetigt
+    from bewertungen b
+    join schulen s on s.id = b.schule_id
+    join bewertung_versionen v on v.bewertung_id = b.id and v.version = b.aktuelle_version
+    left join konten k on k.id = b.konto_id
+    where true
+      ${bewertungsbedingungen(f)}
+    order by b.erstellt_am desc
+    limit ${proSeite} offset ${(seite - 1) * proSeite}
+  `;
+}
+
+/** Wie viele Bewertungen der Filter trifft - und wie sie sich auf die Zustände verteilen. */
+export async function bewertungszahlen(
+  f: Bewertungsfilter = {},
+): Promise<{ gesamt: number; jeZustand: Partial<Record<Zustand, number>> }> {
+  const zeilen = await sql<{ status: Zustand; n: number }[]>`
+    select b.status::text as status, count(*)::int as n
+    from bewertungen b
+    join schulen s on s.id = b.schule_id
+    where true
+      ${bewertungsbedingungen({ ...f, status: undefined })}
+    group by b.status
+  `;
+  const jeZustand: Partial<Record<Zustand, number>> = {};
+  let gesamt = 0;
+  for (const z of zeilen) {
+    jeZustand[z.status] = z.n;
+    gesamt += z.n;
+  }
+  return { gesamt, jeZustand };
+}
