@@ -259,28 +259,29 @@ export async function bewertungAbgeben(
       : "wartet_auf_verifizierung";
 
   /**
-   * Link oder Code - je nach Weg.
+   * Ein sechsstelliger Code - auf jedem Weg.
    *
-   * **Ein Link in einer SMS ist der falsche Weg.** Er wird umgebrochen, von
-   * manchen Geräten nicht erkannt, von Mobilfunkanbietern als Spam
-   * eingestuft - und er reisst die Person aus dem Formular in einen Browser,
-   * womöglich einen anderen als den, in dem sie gerade bewertet hat. Für
-   * Telefonnummern geht deshalb ein sechsstelliger Code hinaus, der im selben
-   * Fenster eingetippt wird. Per E-Mail bleibt es beim Link: Dort ist er einen
-   * Klick wert und spart das Abtippen.
+   * **Warum kein Link mehr, auch nicht per E-Mail.** Für die SMS war er von
+   * vornherein falsch: umgebrochen, als Spam eingestuft, und er reisst die
+   * Person aus dem Formular in einen fremden Browser. Für die E-Mail kam ein
+   * eigenes Problem dazu - Spam- und Virenfilter rufen jeden Link ab, bevor
+   * ein Mensch ihn sieht. Outlook Safe Links tut das, Schulfilter besonders
+   * gründlich, und damit war der Token verbraucht, bevor jemand geklickt
+   * hatte. Dagegen stand eine Sonderbehandlung in der Bestätigungsseite; ein
+   * Code lässt das Problem gar nicht erst entstehen.
+   *
+   * Der Linkpfad bleibt bestehen, solange noch Token aus der alten Fassung
+   * offen sind - er wird nur nicht mehr neu ausgestellt.
    */
-  const token: Bestaetigung =
-    art === "email"
-      ? { ...erzeugeToken(jetzt), zweck: "bestaetigung" }
-      : (() => {
-          const klartext = erzeugeCode();
-          return {
-            klartext,
-            hash: hasheCode(konto.id, klartext),
-            gueltigBis: codeGueltigBis(jetzt),
-            zweck: CODE_ZWECK,
-          };
-        })();
+  const token: Bestaetigung = (() => {
+    const klartext = erzeugeCode();
+    return {
+      klartext,
+      hash: hasheCode(konto.id, klartext),
+      gueltigBis: codeGueltigBis(jetzt),
+      zweck: CODE_ZWECK,
+    };
+  })();
 
   // Die Folge geht als eigenes Feld in die Speicherung, nicht im Huckepack der
   // Eingabe: So steht an der Einfügestelle ausdrücklich, was aufbewahrt wird,

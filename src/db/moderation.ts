@@ -546,11 +546,12 @@ export async function merkeErneutenVersand(
   token: { hash: string; gueltigBis: Date },
 ): Promise<void> {
   await sql.begin(async (tx) => {
-    // Die alten Token des Kontos werden nicht gelöscht: Wer den ersten Link
-    // doch noch findet, soll ihn benutzen können. Beide führen zum selben Ziel.
+    // Die alten Token des Kontos werden nicht gelöscht: Wer die erste
+    // Nachricht doch noch findet, soll sie benutzen können. Geprüft wird
+    // ohnehin der neueste Code (`loeseCodeEin`), der ältere läuft einfach ab.
     await tx`
       insert into verifizierungstoken (konto_id, token_hash, zweck, gueltig_bis)
-      values (${auftrag.kontoId}, ${token.hash}, 'bestaetigung', ${token.gueltigBis})
+      values (${auftrag.kontoId}, ${token.hash}, 'code', ${token.gueltigBis})
     `;
     await tx`
       insert into moderationsprotokoll (aktion, moderator_id, bewertung_id, schule_id, begruendung)

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CODE_STELLEN, istCodeform, normalisiereCode } from "@/domain/codeform";
+import { Spamhinweis } from "../../spamhinweis";
 
 /**
  * Die Code-Eingabe nach einer Abgabe per SMS.
@@ -21,12 +22,16 @@ import { CODE_STELLEN, istCodeform, normalisiereCode } from "@/domain/codeform";
 export function Codefeld({
   bewertungId,
   kontaktAnzeige,
+  kontaktart,
   schulSlug,
 }: {
   bewertungId: string;
   kontaktAnzeige: string;
+  kontaktart: "whatsapp" | "sms" | "email";
   schulSlug: string;
 }) {
+  const weg =
+    kontaktart === "email" ? "E-Mail" : kontaktart === "whatsapp" ? "WhatsApp-Nachricht" : "SMS";
   const [code, setzeCode] = useState("");
   const [fehler, setzeFehler] = useState<string | null>(null);
   const [laeuft, setzeLaeuft] = useState(false);
@@ -72,8 +77,9 @@ export function Codefeld({
     <div className="leerzustand">
       <h2>Code eingeben</h2>
       <p>
-        Wir haben dir eine SMS an <strong>{kontaktAnzeige}</strong> geschickt. Sie enthält{" "}
-        {CODE_STELLEN} Ziffern - trag sie hier ein. Der Code gilt zehn Minuten.
+        Wir haben dir {kontaktart === "email" ? "eine" : "eine"} {weg} an{" "}
+        <strong>{kontaktAnzeige}</strong> geschickt. Sie enthält {CODE_STELLEN} Ziffern - trag sie
+        hier ein. Der Code gilt zehn Minuten.
       </p>
 
       {fehler !== null ? <p className="fehler" role="alert">{fehler}</p> : null}
@@ -99,10 +105,15 @@ export function Codefeld({
         </button>
       </form>
 
+      {kontaktart === "email" ? <Spamhinweis /> : null}
+
       <p className="hinweis" id="codehinweis">
-        Keine SMS bekommen? Sieh nach, ob die Nummer stimmt, und fordere unter{" "}
-        <a href="/konto/anmelden">Deine Bewertungen</a> eine neue an. Erst nach der Bestätigung
-        wird deine Bewertung geprüft und veröffentlicht; deine Nummer erscheint nie öffentlich.
+        {kontaktart === "email"
+          ? "Nichts bekommen? Sieh nach, ob die Adresse stimmt."
+          : "Keine Nachricht bekommen? Sieh nach, ob die Nummer stimmt."}{" "}
+        Unter <a href="/konto/anmelden">Deine Bewertungen</a> kannst du einen neuen Code
+        anfordern. Erst nach der Bestätigung wird deine Bewertung geprüft und veröffentlicht;
+        dein Kontakt erscheint nie öffentlich.
       </p>
     </div>
   );

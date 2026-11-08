@@ -24,8 +24,8 @@ import {
   fuerErneutenVersand,
   merkeErneutenVersand,
 } from "@/db/moderation";
-import { erzeugeToken } from "@/domain/verifizierung";
-import { baueBestaetigung, sende } from "@/versand/nachricht";
+import { codeGueltigBis, erzeugeCode, hasheCode } from "@/domain/bestaetigungscode";
+import { baueCodeNachricht, sende } from "@/versand/nachricht";
 import { versandkette } from "@/versand/wege";
 import { zaehle } from "@/domain/drosselung";
 import { holeEinstellungen } from "@/db/einstellungen";
@@ -253,9 +253,16 @@ export async function bestaetigungErneutSenden(
     };
   }
 
-  const token = erzeugeToken();
-  const basis = process.env["BASIS_URL"] ?? "http://localhost:3000";
-  const nachricht = baueBestaetigung(basis, token.klartext, auftrag.kontaktart);
+  // Derselbe Weg wie bei der Abgabe: ein sechsstelliger Code, kein Link.
+  // Zwei verschiedene Bestätigungsarten für dieselbe Bewertung wären eine
+  // Quelle für Rückfragen, die niemand beantworten kann.
+  const klartext = erzeugeCode();
+  const token = {
+    klartext,
+    hash: hasheCode(auftrag.kontoId, klartext),
+    gueltigBis: codeGueltigBis(),
+  };
+  const nachricht = baueCodeNachricht(klartext, auftrag.kontaktart);
   const ergebnis = await sende(
     versandkette(),
     auftrag.kontaktKlartext,
@@ -267,7 +274,7 @@ export async function bestaetigungErneutSenden(
 
   await merkeErneutenVersand(auftrag, bewertungId, moderatorin.id, token);
   revalidatePath(`/moderation/${bewertungId}`);
-  return { erfolg: `Neuer Bestätigungslink verschickt (${auftrag.kontaktart}).`, versuch };
+  return { erfolg: `Neuer Bestätigungscode verschickt (${auftrag.kontaktart}).`, versuch };
 }
 
 /**

@@ -201,7 +201,7 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
       // Der Code trägt sich selbst, der Link braucht die Basisadresse.
       const nachricht =
         token.zweck === "code"
-          ? baueCodeNachricht(token.klartext)
+          ? baueCodeNachricht(token.klartext, art as Kontaktart)
           : baueBestaetigung(basisUrl, token.klartext, art as Kontaktart);
       const ergebnis = await sende(versandkette(), empfaenger, art as Kontaktart, nachricht);
 

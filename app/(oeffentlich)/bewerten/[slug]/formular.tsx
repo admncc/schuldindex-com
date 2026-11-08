@@ -104,6 +104,7 @@ export function Bewertungsformular({
     versandt: boolean;
     art: "link" | "code";
     bewertungId: string;
+    kontaktart: "whatsapp" | "sms" | "email";
   } | null>(
     null,
   );
@@ -327,6 +328,7 @@ export function Bewertungsformular({
           versandt: ergebnis.nachrichtVersandt !== false,
           art: ergebnis.bestaetigungsart ?? "link",
           bewertungId: ergebnis.bewertungId ?? "",
+          kontaktart: kontaktart ?? "email",
         });
       }
       else setServerfehler(ergebnis.fehler.map((f) => f.meldung));
@@ -376,6 +378,7 @@ export function Bewertungsformular({
       <Codefeld
         bewertungId={gesendet.bewertungId}
         kontaktAnzeige={gesendet.kontaktAnzeige}
+        kontaktart={gesendet.kontaktart}
         schulSlug={schulSlug}
       />
     );
@@ -387,7 +390,7 @@ export function Bewertungsformular({
         <h2>Fast geschafft</h2>
         <p>
           Wir haben dir eine Nachricht an <strong>{gesendet.kontaktAnzeige}</strong> geschickt.
-          Bitte bestätige darüber deine Bewertung - der Link ist 24 Stunden gültig.
+          Bitte bestätige darüber deine Bewertung.
         </p>
         {/* Hier hängen sieben Bildschirme Arbeit dran. Wer die Nachricht im
             Spam nicht findet, hält das Portal für kaputt - und die Bewertung

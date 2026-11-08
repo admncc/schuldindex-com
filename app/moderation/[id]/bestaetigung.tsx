@@ -45,8 +45,8 @@ export default function Bestaetigungsfeld({
     <div className="entscheidung karte">
       <h2>Wartet auf Bestätigung</h2>
       <p className="gedaempft">
-        Die Person hat den Link in der Nachricht noch nicht geöffnet. Bis dahin ist nichts zu
-        entscheiden - erst mit der Bestätigung steht fest, dass der Kontakt echt ist.
+        Die Person hat den Code aus der Nachricht noch nicht eingegeben. Bis dahin ist nichts
+        zu entscheiden - erst mit der Bestätigung steht fest, dass der Kontakt echt ist.
       </p>
 
       {erneut.erfolg ? <p className="erfolg" role="status">{erneut.erfolg}</p> : null}
@@ -55,11 +55,12 @@ export default function Bestaetigungsfeld({
       <form action={erneutAbsenden} key={erneut.versuch ?? 0}>
         <input type="hidden" name="bewertung" value={bewertungId} />
         <button className="knopf" disabled={sendet}>
-          {sendet ? "Verschicke …" : "Bestätigungslink erneut senden"}
+          {sendet ? "Verschicke …" : "Bestätigungscode erneut senden"}
         </button>
         <p className="fussnote">
-          Geht an denselben Kontakt wie beim ersten Mal. Der Kontakt wird dafür entschlüsselt,
-          aber nicht angezeigt - er geht direkt in den Versand. Der alte Link bleibt gültig.
+          Geht an denselben Kontakt wie beim ersten Mal, als sechsstelliger Code. Der Kontakt
+          wird dafür entschlüsselt, aber nicht angezeigt - er geht direkt in den Versand. Der
+          alte Code wird damit hinfällig.
         </p>
       </form>
 
@@ -71,7 +72,7 @@ export default function Bestaetigungsfeld({
           {hand.meldung ? <p className="fehler" role="alert">{hand.meldung}</p> : null}
 
           <p className="fussnote">
-            Ersetzt den Klick auf den Link, <strong>nicht die Prüfung danach</strong>: Die
+            Ersetzt die Eingabe des Codes, <strong>nicht die Prüfung danach</strong>: Die
             Bewertung geht anschliessend denselben Weg wie nach einem echten Klick und landet bei
             auffälligen Signalen weiterhin hier in der Moderation.
           </p>

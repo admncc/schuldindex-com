@@ -467,8 +467,9 @@ export default async function Datenschutzseite() {
           {a.emaildienst ?? <>unseren E-Mail-Dienstleister</>} weiter, als Auftragsverarbeiter
           nach Art. 28 DSGVO. Gibst du stattdessen eine Telefonnummer an, geht sie an{" "}
           {a.smsdienst ?? <>unseren SMS-Dienstleister</>} beziehungsweise an den WhatsApp
-          Business Service (Meta Platforms Ireland Ltd.). Per SMS schicken wir dir einen
-          sechsstelligen Code statt eines Links; er gilt zehn Minuten. Es wird genau ein Weg genutzt - der, den du angibst - und die
+          Business Service (Meta Platforms Ireland Ltd.). Zur Bestätigung schicken wir dir auf
+          beiden Wegen einen sechsstelligen Code, keinen Link; er gilt zehn Minuten und wird nur
+          als Abdruck gespeichert, nie im Klartext. Es wird genau ein Weg genutzt - der, den du angibst - und die
           Angabe wird für nichts anderes verwendet: kein Newsletter, keine Werbung, keine
           Weitergabe.
         </li>

@@ -292,6 +292,29 @@ Messung - der ihn einlösen könnte. Dieselben Seiten senden
 auf der nächsten Seite ankommt. Wer eine neue Route mit einem Geheimnis in der
 Adresse baut, trägt sie dort ein.
 
+### Bestätigung per Code, nicht per Link
+
+Seit dem 08.11.2026 geht auf **beiden** Wegen ein sechsstelliger Code hinaus.
+
+Für die SMS war der Link von vornherein falsch: umgebrochen, von manchen
+Geräten nicht erkannt, als Spam eingestuft - und er reisst die Person aus dem
+Formular in einen fremden Browser. Für die E-Mail kam ein eigenes Problem
+dazu: **Spam- und Virenfilter rufen jeden Link ab, bevor ein Mensch ihn
+sieht.** Outlook Safe Links tut das, Schulfilter besonders gründlich, und
+damit war der Token verbraucht, bevor jemand geklickt hatte. Dagegen stand
+eine Sonderbehandlung in `/bestaetigen` („ein zweiter Aufruf ist keine
+Fehlbedienung"); ein Code lässt das Problem gar nicht erst entstehen.
+
+Was den kurzen Code trägt: zehn Minuten Gültigkeit, fünf Versuche je Code (in
+derselben Transaktion gezählt, in der verglichen wird), und die Bindung an das
+Konto - die Kontokennung geht in den Abdruck ein. Ohne die letzte liesse sich
+ein geratener Code gegen *alle* offenen Bestätigungen zugleich prüfen.
+
+**Der Linkpfad bleibt bestehen**, solange noch Token aus der alten Fassung
+offen sind. Er wird nur nicht mehr neu ausgestellt und kann entfallen, sobald
+`select count(*) from verifizierungstoken where zweck = 'bestaetigung' and
+verbraucht_am is null and gueltig_bis > now()` null ergibt.
+
 ### SMS einrichten (GTX Messaging)
 
 Per SMS geht ein **sechsstelliger Code** hinaus, kein Link: Ein Link wird

@@ -68,13 +68,38 @@ export function baueBestaetigung(basisUrl: string, token: string, art: Kontaktar
  * die Person aus dem Formular in einen Browser, womöglich einen anderen als
  * den, in dem sie gerade bewertet hat. Der Code bleibt im selben Fenster.
  *
+ * **Auch per E-Mail, seit dem 08.11.2026.** Dort war vorher ein Link, und der
+ * hatte ein eigenes Problem: Spam- und Virenfilter rufen jeden Link in einer
+ * Nachricht ab, bevor ein Mensch ihn sieht - Outlook Safe Links tut das, und
+ * Schulfilter tun es besonders gründlich. Damit war der Token verbraucht,
+ * bevor die Person überhaupt geklickt hatte. Dagegen stand bisher eine
+ * Sonderbehandlung („ein zweiter Aufruf ist keine Fehlbedienung"); ein Code
+ * lässt das Problem gar nicht erst entstehen.
+ *
  * **Bewusst ohne Umlaute und ohne Satzzeichen ausserhalb des GSM-Vorrats.**
  * Ein einziges „ä" zwingt die ganze Nachricht in die UCS-2-Kodierung, und
  * damit schrumpft eine SMS von 160 auf 70 Zeichen. Aus einer Nachricht werden
  * zwei, und zwei werden berechnet. Deshalb heisst es hier „Dein Code" und
  * nicht „Dein Bestätigungscode" - und der Text bleibt unter 160 Zeichen.
  */
-export function baueCodeNachricht(code: string): Nachricht {
+export function baueCodeNachricht(code: string, art: Kontaktart = "sms"): Nachricht {
+  if (art === "email") {
+    return {
+      empfaenger: "",
+      // Der Code steht im Betreff: In der Vorschau des Postfachs ist er damit
+      // lesbar, ohne die Nachricht zu öffnen.
+      betreff: `${code} ist dein Code für SCHULINDEX`,
+      text:
+        `Hallo,\n\n` +
+        `dein Bestätigungscode lautet:\n\n    ${code}\n\n` +
+        `Trag ihn in dem Fenster ein, in dem du gerade bewertet hast. ` +
+        `Der Code gilt 10 Minuten.\n\n` +
+        `Wenn du keine Bewertung abgegeben hast, kannst du diese Nachricht ` +
+        `ignorieren - ohne den Code geschieht nichts.\n\n` +
+        `- SCHULINDEX`,
+    };
+  }
+
   return {
     empfaenger: "",
     betreff: "",
