@@ -2,9 +2,15 @@
 
 import { useActionState, useState } from "react";
 import { ABLEHNUNGSGRUENDE } from "@/domain/moderation";
-import { ZUSTAND_LABEL, type Zustand } from "@/domain/bewertungsstatus";
+import { wechsle, ZUSTAND_LABEL, type Zustand } from "@/domain/bewertungsstatus";
 import { RISIKO_LABEL, risikoklasse, risikostufe } from "@/domain/risiko";
-import { analyseStarten, ausAnalyseAblehnen, type Ablehnzustand, type Analysezustand } from "./aktionen";
+import {
+  analyseStarten,
+  ausAnalyseAblehnen,
+  ausAnalyseFreigeben,
+  type Ablehnzustand,
+  type Analysezustand,
+} from "./aktionen";
 
 const ZAHL = new Intl.NumberFormat("de-DE");
 const WERT = new Intl.NumberFormat("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -50,6 +56,10 @@ export default function Risikotabelle({
     analyseStarten,
     {},
   );
+  const [freigabe, freigebenAbsenden, gibtFrei] = useActionState<Ablehnzustand, FormData>(
+    ausAnalyseFreigeben,
+    {},
+  );
   const [ablehnung, ablehnenAbsenden, lehntAb] = useActionState<Ablehnzustand, FormData>(
     ausAnalyseAblehnen,
     {},
@@ -89,6 +99,8 @@ export default function Risikotabelle({
       {analyse.meldung ? <p className="fehler" role="alert">{analyse.meldung}</p> : null}
       {ablehnung.meldung ? <p className="fehler" role="alert">{ablehnung.meldung}</p> : null}
       {ablehnung.erfolg ? <p className="erfolg" role="status">{ablehnung.erfolg}</p> : null}
+      {freigabe.erfolg ? <p className="erfolg" role="status">{freigabe.erfolg}</p> : null}
+      {freigabe.meldung ? <p className="fehler" role="alert">{freigabe.meldung}</p> : null}
 
       {analyse.befund ? (
         <div className="karte">
@@ -126,6 +138,13 @@ export default function Risikotabelle({
             const ki = kiBefund.get(z.id);
             const hoch = stufe === "hoch" || ki?.risiko === "hoch";
             const entschieden = z.status === "abgelehnt" || z.status === "freigegeben";
+            /* **Die Zustandsmaschine entscheidet, welcher Knopf dasteht.**
+               Vorher stand „Ablehnen" auch an Zeilen, die auf die Bestätigung
+               warten - dort ist weder Ablehnen noch Freigeben ein erlaubter
+               Übergang, und der Klick lief in eine Fehlermeldung. Ein Knopf,
+               der nie funktionieren kann, ist schlimmer als keiner. */
+            const darfFreigeben = wechsle(z.status, "moderation_freigeben").ok;
+            const darfAblehnen = wechsle(z.status, "moderation_ablehnen").ok;
 
             return (
               <tr key={z.id} className={hoch ? "hohesrisiko" : stufe === "auffaellig" ? "auffaellig" : ""}>
@@ -155,8 +174,18 @@ export default function Risikotabelle({
                 </td>
                 <td>
                   <a className="knopf zweitrangig klein" href={`/moderation/${z.id}`}>Vorgang</a>{" "}
+                  {darfFreigeben ? (
+                    <form action={freigebenAbsenden} className="reihe" key={freigabe.versuch ?? 0}>
+                      <input type="hidden" name="bewertung" value={z.id} />
+                      <button className="knopf klein" disabled={gibtFrei}>
+                        {gibtFrei ? "…" : "Freigeben"}
+                      </button>
+                    </form>
+                  ) : null}{" "}
                   {z.status === "abgelehnt" ? (
                     <span className="gedaempft">abgelehnt</span>
+                  ) : !darfAblehnen && !darfFreigeben ? (
+                    <span className="gedaempft">wartet auf Bestätigung</span>
                   ) : offen === z.id ? (
                     <form action={ablehnenAbsenden} className="loeschfrage" key={ablehnung.versuch ?? 0}>
                       <input type="hidden" name="bewertung" value={z.id} />
@@ -177,7 +206,7 @@ export default function Risikotabelle({
                         Abbrechen
                       </button>
                     </form>
-                  ) : (
+                  ) : darfAblehnen ? (
                     <button
                       type="button"
                       className="knopf zweitrangig klein"
@@ -185,7 +214,7 @@ export default function Risikotabelle({
                     >
                       {entschieden ? "Zurückziehen" : "Ablehnen"}
                     </button>
-                  )}
+                  ) : null}
                 </td>
               </tr>
             );

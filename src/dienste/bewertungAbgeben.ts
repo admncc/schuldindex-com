@@ -56,6 +56,14 @@ export interface Umgebung {
    * Panel sofort wirkt und nicht erst nach dem nächsten Neustart.
    */
   holeEinstellungen(): Promise<Einstellungen>;
+  /**
+   * Welche Wege im Betrieb tatsächlich zustellen.
+   *
+   * Über die Naht und nicht direkt aus der Umgebung gelesen, weil dieser
+   * Dienst ohne Umgebungsvariablen prüfbar bleiben soll - dieselbe Regel wie
+   * bei den Einstellungen.
+   */
+  zustellbareArten(): readonly ("whatsapp" | "sms" | "email")[];
   /** Bisheriger Stand der Schule - Grundlage des Abweichungssignals. */
   holeSchulmittel(schuleId: string): Promise<{ mittel: number | null; anzahl: number }>;
   speichere(daten: Gespeicherte): Promise<{ bewertungId: string }>;
@@ -123,7 +131,8 @@ export async function bewertungAbgeben(
   const art = eingabe.kontaktart!;
   // Ein im Panel abgeschalteter Weg wird auch dann nicht angenommen, wenn ihn
   // jemand von Hand mitschickt - das Formular bietet ihn gar nicht erst an.
-  if (!erlaubteKontaktarten(await umgebung.holeEinstellungen()).includes(art)) {
+  const erlaubt = erlaubteKontaktarten(await umgebung.holeEinstellungen());
+  if (!erlaubt.includes(art)) {
     return {
       ok: false,
       fehler: [{ feld: "kontaktart", meldung: "Dieser Weg der Bestätigung steht zurzeit nicht zur Verfügung." }],
@@ -182,6 +191,12 @@ export async function bewertungAbgeben(
       antworten: eingabe.antworten,
       freitextAuffaellig: freitexte.length > 0 && (await umgebung.pruefeFreitext(freitexte)),
       kontoPerEmail: art === "email",
+      // Nur wenn eine Nummer überhaupt zur Wahl stand, sagt die Wahl der
+      // Adresse etwas aus (`domain/betrugspruefung.ts`).
+      telefonwegMoeglich: erlaubt.some(
+        (a: "whatsapp" | "sms" | "email") =>
+          a !== "email" && umgebung.zustellbareArten().includes(a),
+      ),
       // Vom Server gemessen, nicht vom Browser gemeldet - siehe
       // `domain/formularstempel.ts`. Ohne gültigen Stempel bleibt es leer,
       // und das Tempo-Signal entfällt, statt zu raten.

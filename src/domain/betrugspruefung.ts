@@ -104,6 +104,18 @@ export interface Pruefkontext {
   readonly freitextAuffaellig: boolean;
   /** Konten per E-Mail sind billiger anzulegen als solche mit Telefonnummer. */
   readonly kontoPerEmail: boolean;
+  /**
+   * Ob überhaupt ein Telefonweg zur Wahl stand.
+   *
+   * **Ohne diese Angabe war das E-Mail-Signal wertlos.** Es soll den Unterschied
+   * messen zwischen „hat die bequeme Adresse genommen" und „hat die Nummer
+   * hergegeben" - und dafür muss die Nummer eine Möglichkeit gewesen sein.
+   * Solange E-Mail der einzige zustellbare Weg ist, schlägt es bei *jeder*
+   * Abgabe an: Es unterscheidet dann nichts mehr, sondern senkt nur die
+   * Halteschwelle für alle um einen Punkt. Zusammen mit einem einzigen weiteren
+   * Signal landete damit jede Bewertung in der Moderation.
+   */
+  readonly telefonwegMoeglich: boolean;
 }
 
 export interface Pruefergebnis {
@@ -290,9 +302,10 @@ export function pruefe(k: Pruefkontext, e: Einstellungen = VORGABEN): Pruefergeb
     });
   }
 
-  if (k.kontoPerEmail) {
+  if (k.kontoPerEmail && k.telefonwegMoeglich) {
     // Kein Vorwurf, nur weniger Vertrauensvorschuss: eine E-Mail-Adresse ist in
     // Sekunden neu angelegt, eine Telefonnummer nicht (Entscheidung E6).
+    // Nur, wenn die Nummer auch eine Wahl war - siehe `telefonwegMoeglich`.
     signale.push({
       art: "konto_per_email",
       gewicht: 1,

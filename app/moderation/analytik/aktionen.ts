@@ -147,3 +147,61 @@ export async function ausAnalyseAblehnen(
     ? { erfolg: "Abgelehnt. Die Schulwertung wurde neu gerechnet.", versuch }
     : { meldung: "Die Bewertung war inzwischen in einem anderen Zustand.", versuch };
 }
+
+/**
+ * Gibt eine Bewertung aus der Auswertung heraus frei.
+ *
+ * **Das Gegenstück, das fehlte.** Die Tabelle konnte ablehnen und sonst
+ * nichts - wer eine angehaltene Bewertung für in Ordnung hielt, musste sie
+ * einzeln im Vorgang öffnen. Bei einer Schule, deren Bewertungen reihenweise
+ * wegen „Absender nicht lokalisierbar" hängen, ist das der häufigste Fall und
+ * nicht der seltene.
+ *
+ * **Kein Grund nötig, anders als beim Ablehnen.** Eine Ablehnung ist eine
+ * Entscheidung gegen jemanden und muss sich erklären lassen; eine Freigabe
+ * stellt nur den Zustand her, den die Bewertung ohne Signal ohnehin gehabt
+ * hätte. Im Protokoll steht sie trotzdem, mit Namen und Zeitpunkt.
+ *
+ * **Keine Sammelfreigabe.** Wer hundert Bewertungen auf einmal freigibt, hat
+ * keine davon angesehen - dieselbe Festlegung wie in der Warteschlange.
+ */
+export async function ausAnalyseFreigeben(
+  vorher: Ablehnzustand,
+  formular: FormData,
+): Promise<Ablehnzustand> {
+  const moderatorin = await verlangeAnmeldung();
+  const versuch = (vorher.versuch ?? 0) + 1;
+
+  const bewertungId = String(formular.get("bewertung") ?? "");
+  if (!istKennung(bewertungId)) return { meldung: "Diese Bewertung gibt es nicht.", versuch };
+
+  const [zustand] = await sql<{ status: Zustand }[]>`
+    select status::text as status from bewertungen where id = ${bewertungId}
+  `;
+  if (zustand === undefined) return { meldung: "Diese Bewertung gibt es nicht mehr.", versuch };
+
+  // Dieselbe Zustandsprüfung wie beim Ablehnen. Sie fängt vor allem den Fall
+  // „wartet auf Bestätigung" ab: Dort hat noch niemand bestätigt, dass der
+  // Kontakt echt ist - eine Freigabe wäre die Veröffentlichung einer
+  // unbestätigten Bewertung.
+  const erlaubt = pruefeEntscheidung(zustand.status, { aktion: "freigeben" });
+  if (!erlaubt.ok) {
+    return { meldung: erlaubt.fehler[0]?.meldung ?? "Dieser Schritt ist hier nicht vorgesehen.", versuch };
+  }
+
+  const geaendert = await entscheide({
+    bewertungId,
+    moderatorId: moderatorin.id,
+    aktion: "freigeben",
+    nachStatus: "freigegeben",
+    grundId: null,
+    begruendung: "Aus der Auswertung freigegeben",
+    vonStatus: zustand.status,
+  });
+
+  revalidatePath("/moderation/analytik");
+  revalidatePath("/moderation");
+  return geaendert
+    ? { erfolg: "Freigegeben. Die Schulwertung wurde neu gerechnet.", versuch }
+    : { meldung: "Die Bewertung war inzwischen in einem anderen Zustand.", versuch };
+}

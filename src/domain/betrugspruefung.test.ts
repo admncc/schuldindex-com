@@ -51,6 +51,7 @@ const RUHIG: Pruefkontext = {
   bewertungenDieserSchuleLetzteStunde: 2,
   freitextAuffaellig: false,
   kontoPerEmail: false,
+  telefonwegMoeglich: true,
 };
 
 describe("Antwortmuster", () => {
@@ -259,6 +260,9 @@ describe("pruefe mit den neuen Signalen", () => {
     bewertungenDieserSchuleLetzteStunde: 0,
     freitextAuffaellig: false,
     kontoPerEmail: false,
+    // Im Regelfall der Prüfungen stand ein Telefonweg zur Wahl -
+    // sonst entfiele das E-Mail-Signal (siehe `telefonwegMoeglich`).
+    telefonwegMoeglich: true,
   };
 
   it("hält eine schnelle, stark abweichende Bewertung an", () => {
@@ -292,5 +296,40 @@ describe("pruefe mit den neuen Signalen", () => {
   it("folgt der eingestellten Halteschwelle", () => {
     const kontext = { ...grundlage, dauerSekunden: 420, eigenerScore: 9.8, schulmittel: 3.2, schulAnzahl: 45 };
     expect(pruefe(kontext, mitVorgaben({ halteschwelle: 1 })).halten).toBe(true);
+  });
+});
+
+describe("E-Mail-Signal: nur, wenn eine Nummer zur Wahl stand", () => {
+  /**
+   * **Der Fehler, gegen den das steht.** Das Signal soll den Unterschied
+   * messen zwischen „hat die bequeme Adresse genommen" und „hat die Nummer
+   * hergegeben". Solange E-Mail der einzige zustellbare Weg ist, schlägt es
+   * bei *jeder* Abgabe an - es unterscheidet dann nichts mehr, sondern senkt
+   * die Halteschwelle für alle um einen Punkt. Zusammen mit einem einzigen
+   * weiteren Signal landete damit jede Bewertung in der Moderation; genau das
+   * war am 08.11.2026 im Panel zu sehen.
+   */
+  it("entfällt, wenn E-Mail der einzige Weg ist", () => {
+    const ergebnis = pruefe({ ...RUHIG, kontoPerEmail: true, telefonwegMoeglich: false });
+    expect(ergebnis.signale.map((s) => s.art)).not.toContain("konto_per_email");
+  });
+
+  it("gilt weiter, sobald ein Telefonweg angeboten wird", () => {
+    const ergebnis = pruefe({ ...RUHIG, kontoPerEmail: true, telefonwegMoeglich: true });
+    expect(ergebnis.signale.map((s) => s.art)).toContain("konto_per_email");
+  });
+
+  it("macht aus „nicht lokalisierbar“ allein noch keinen Haltegrund", () => {
+    // Ort unbekannt wiegt 3, die Halteschwelle liegt bei 3 - das Signal hält
+    // also für sich genommen schon an. Der Punkt hier: Ohne den E-Mail-Punkt
+    // liegt die Summe bei 3 statt bei 4, und wer die Schwelle auf 4 stellt,
+    // bekommt damit wieder eine Wahl.
+    const ohneOrt = pruefe({
+      ...RUHIG,
+      geo: { entfernungKm: null, unbekannt: true, haltenWegenEntfernung: true, begruendung: "Absender nicht lokalisierbar" },
+      kontoPerEmail: true,
+      telefonwegMoeglich: false,
+    });
+    expect(ohneOrt.punkte).toBe(3);
   });
 });

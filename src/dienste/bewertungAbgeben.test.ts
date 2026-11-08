@@ -51,6 +51,7 @@ function umgebung(teil: Partial<Umgebung> = {}): Umgebung {
     })),
     ortungDesAbsenders: vi.fn(async () => HAMBURG),
     holeEinstellungen: vi.fn(async () => VORGABEN),
+    zustellbareArten: () => ["whatsapp", "sms", "email"] as const,
     // Ohne Vergleichswert entfällt das Abweichungssignal - der Normalfall für
     // eine Schule, die noch kaum bewertet ist.
     holeSchulmittel: vi.fn(async () => ({ mittel: null, anzahl: 0 })),

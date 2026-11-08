@@ -1851,3 +1851,7 @@ pre.schnipsel {
    die Spezifität auf dieselbe Stufe, und weil die Regel später steht, gewinnt
    sie. Kein `!important`: Das wäre dieselbe Lösung ohne diese Erklärung. */
 p.spamhinweis.spamhinweis { color: var(--signal-schrift); }
+
+/* Formular als Knopf in einer Tabellenzelle: ohne das steht es als Block und
+   reisst die Zeile auseinander. */
+.reihe { display: inline-block; margin: 0; }

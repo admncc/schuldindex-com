@@ -14,7 +14,7 @@ import type { Aenderungsumgebung } from "./bewertungAendern";
 import { aktualisiereAggregat } from "../db/aggregate";
 import type { Zustand } from "../domain/bewertungsstatus";
 import { baueBestaetigung, sende } from "../versand/nachricht";
-import { versandkette } from "../versand/wege";
+import { versandkette, zustellbareArten } from "../versand/wege";
 import { holeEinstellungen } from "../db/einstellungen";
 import type { Kontaktart } from "../domain/kontakt";
 import type { Punkt } from "../domain/geopruefung";
@@ -149,6 +149,10 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
     },
 
     holeEinstellungen,
+
+    // Aus der Umgebung gelesen, aber über die Naht gereicht: Der Dienst soll
+    // ohne Umgebungsvariablen prüfbar bleiben.
+    zustellbareArten,
 
     /**
      * Der bisherige Stand der Schule, auf der Anzeigeskala 0–10.
