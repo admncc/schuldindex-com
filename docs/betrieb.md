@@ -292,6 +292,44 @@ Messung - der ihn einlösen könnte. Dieselben Seiten senden
 auf der nächsten Seite ankommt. Wer eine neue Route mit einem Geheimnis in der
 Adresse baut, trägt sie dort ein.
 
+### SMS einrichten (GTX Messaging)
+
+Per SMS geht ein **sechsstelliger Code** hinaus, kein Link: Ein Link wird
+umgebrochen, von manchen Geräten nicht erkannt, von Mobilfunkanbietern als
+Spam eingestuft - und er reisst die Person aus dem Formular in einen Browser,
+womöglich einen anderen als den, in dem sie gerade bewertet hat.
+
+In `/srv/schulindex/.env`:
+
+```
+SMS_BENUTZER=…
+SMS_KENNWORT=…
+SMS_ABSENDER=SCHULINDEX
+BETREIBER_SMSDIENST="GTX Messaging GmbH, Bonn, Deutschland"
+```
+
+Danach `systemctl restart schulindex`. Der Weg schaltet sich selbst frei:
+`zustellbareArten()` nimmt SMS auf, sobald Zugangsdaten da sind. Im Panel
+unter *Einstellungen → Wege der Bestätigung* muss „SMS" zusätzlich angehakt
+sein.
+
+**Zwei Eigenheiten der GTX-Schnittstelle**, beide im Code berücksichtigt:
+
+* Der Erfolg steht im **Antworttext**, nicht im HTTP-Status. Ein Fehler kommt
+  als HTTP 200 mit `503` im Körper. Wer nur `response.ok` prüft, hält jeden
+  Ausfall für eine Zustellung.
+* Die Nummer geht **ohne `+`** hinaus (`491701717179`).
+
+**Der Nachrichtentext bleibt im GSM-7-Zeichenvorrat.** Ein einziger Umlaut
+zwingt die SMS in UCS-2, und damit schrumpft sie von 160 auf 70 Zeichen - aus
+einer Nachricht werden zwei, und zwei werden berechnet. Wer den Text ändert,
+prüft das nach.
+
+**Missbrauchskosten.** SMS ist der einzige Weg, der bei Missbrauch Geld
+kostet, und die Verlosung ist ein Anreiz. Die Drosselungen greifen je Konto
+und je Absenderadresse; eine Tagesobergrenze über alles gibt es noch **nicht**.
+Behalte die Guthabenanzeige bei GTX im Blick.
+
 ### Der Zähler von Cloudflare
 
 Cloudflare Web Analytics wird in der Cloudflare-Oberfläche ein- und

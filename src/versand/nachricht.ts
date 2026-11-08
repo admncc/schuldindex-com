@@ -61,6 +61,30 @@ export function baueBestaetigung(basisUrl: string, token: string, art: Kontaktar
 }
 
 /**
+ * Die Bestätigung als sechsstelliger Code - für SMS und WhatsApp.
+ *
+ * **Warum kein Link.** In einer SMS wird er umgebrochen, von manchen Geräten
+ * nicht erkannt, von Mobilfunkanbietern als Spam eingestuft - und er reisst
+ * die Person aus dem Formular in einen Browser, womöglich einen anderen als
+ * den, in dem sie gerade bewertet hat. Der Code bleibt im selben Fenster.
+ *
+ * **Bewusst ohne Umlaute und ohne Satzzeichen ausserhalb des GSM-Vorrats.**
+ * Ein einziges „ä" zwingt die ganze Nachricht in die UCS-2-Kodierung, und
+ * damit schrumpft eine SMS von 160 auf 70 Zeichen. Aus einer Nachricht werden
+ * zwei, und zwei werden berechnet. Deshalb heisst es hier „Dein Code" und
+ * nicht „Dein Bestätigungscode" - und der Text bleibt unter 160 Zeichen.
+ */
+export function baueCodeNachricht(code: string): Nachricht {
+  return {
+    empfaenger: "",
+    betreff: "",
+    text:
+      `SCHULINDEX: Dein Code lautet ${code}. Er gilt 10 Minuten. ` +
+      `Hast du nichts bewertet, ignorier diese Nachricht.`,
+  };
+}
+
+/**
  * Anmeldelink für den Kontobereich.
  *
  * Kürzere Frist als die Bestätigung und ein deutlicher Warnsatz: Wer diese

@@ -34,6 +34,7 @@ import {
 import { GEWINNE, VERLOSUNG_LABEL } from "@/domain/verlosungsgewinne";
 import { gesicherteKennungen } from "../../kennung";
 import { Spamhinweis } from "../../spamhinweis";
+import { Codefeld } from "./codefeld";
 
 const ZAHL = new Intl.NumberFormat("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
@@ -98,7 +99,12 @@ export function Bewertungsformular({
   const ersterAufbau = useRef(true);
   const [gezeigt, setGezeigt] = useState(false);
   const [sendet, setSendet] = useState(false);
-  const [gesendet, setGesendet] = useState<{ kontaktAnzeige: string; versandt: boolean } | null>(
+  const [gesendet, setGesendet] = useState<{
+    kontaktAnzeige: string;
+    versandt: boolean;
+    art: "link" | "code";
+    bewertungId: string;
+  } | null>(
     null,
   );
   const [serverfehler, setServerfehler] = useState<string[]>([]);
@@ -302,7 +308,13 @@ export function Bewertungsformular({
         },
       );
       const ergebnis = (await antwort.json()) as
-        | { ok: true; kontaktAnzeige?: string; nachrichtVersandt?: boolean }
+        | {
+            ok: true;
+            kontaktAnzeige?: string;
+            nachrichtVersandt?: boolean;
+            bestaetigungsart?: "link" | "code";
+            bewertungId?: string;
+          }
         | { ok: false; fehler: { feld: string; meldung: string }[] };
 
       if (ergebnis.ok) {
@@ -313,6 +325,8 @@ export function Bewertungsformular({
           // unterwegs; im Betrieb ist sie das derzeit nie, weil noch kein
           // Versandweg eingerichtet ist.
           versandt: ergebnis.nachrichtVersandt !== false,
+          art: ergebnis.bestaetigungsart ?? "link",
+          bewertungId: ergebnis.bewertungId ?? "",
         });
       }
       else setServerfehler(ergebnis.fehler.map((f) => f.meldung));
@@ -352,6 +366,18 @@ export function Bewertungsformular({
         <a className="knopf" href="/konto/anmelden">Bestätigungslink anfordern</a>
         <a className="knopf zweitrangig" href={`/schule/${schulSlug}`}>Zurück zur Schule</a>
       </div>
+    );
+  }
+
+  // Der Code kommt vor dem allgemeinen Abschluss: Bei einer SMS gibt es nichts
+  // anzuklicken, sondern etwas einzutippen - und zwar hier, im selben Fenster.
+  if (gesendet !== null && gesendet.versandt && gesendet.art === "code" && gesendet.bewertungId !== "") {
+    return (
+      <Codefeld
+        bewertungId={gesendet.bewertungId}
+        kontaktAnzeige={gesendet.kontaktAnzeige}
+        schulSlug={schulSlug}
+      />
     );
   }
 

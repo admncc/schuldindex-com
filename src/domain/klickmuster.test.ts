@@ -93,10 +93,45 @@ describe("pruefeKlickmuster", () => {
     expect(e.auswertung).toBeNull();
   });
 
-  it("meldet menschliches Klicken nicht", () => {
+  it("meldet menschliches Klicken nicht, solange die Grenze darunter liegt", () => {
+    // **Gegen die Einstellung geprüft, nicht gegen die Vorgabe.** Die Vorgabe
+    // ist eine Betriebsentscheidung und hat sich schon mehrfach geändert; was
+    // diese Prüfung festhalten soll, ist das Verfahren: Streuen die Abstände
+    // wie bei einem Menschen und liegt der Median über der Grenze, kommt kein
+    // Signal.
     const abstaende = menschlich();
     const dauer = Math.ceil(abstaende.reduce((s, a) => s + a, 0) / 1000);
-    expect(pruefeKlickmuster(abstaende, dauer).signale).toEqual([]);
+    const milde = mitVorgaben({ klick_mindestabstand_ms: 1000 });
+    expect(pruefeKlickmuster(abstaende, dauer, milde).signale).toEqual([]);
+  });
+
+  /**
+   * **Was die aktuelle Vorgabe mit dieser Folge macht - festgehalten, nicht
+   * weggeräumt.**
+   *
+   * Die Folge `menschlich()` ist das Modell dieses Projekts für „so klickt ein
+   * Mensch": Abstände zwischen 1,5 und 12 Sekunden, Median 3 200 ms. Mit der
+   * Vorgabe von 4 000 ms schlägt bei ihr das Tempo-Signal an.
+   *
+   * Das ist kein Fehler im Code, sondern die Folge einer Entscheidung: Die
+   * Grenze wurde am 08.11.2026 in mehreren Schritten von 400 auf 4 000 gezogen,
+   * um eine bewusst schnell durchgeklickte Testabgabe (Median 906 ms) zu
+   * fangen. Zwei echte Abgaben lagen bei 4 808 und 6 848 ms. Diese Folge liegt
+   * mit 3 200 ms dazwischen - und wird jetzt eingestuft.
+   *
+   * Tragbar ist das, weil das Signal 2 wiegt und die Halteschwelle bei 3 liegt:
+   * Allein hält es nichts an. Wer die Vorgabe wieder senkt, darf diese Prüfung
+   * umdrehen - sie soll nicht stillschweigend mitwandern.
+   */
+  it("stuft die menschliche Folge bei der aktuellen Vorgabe ein", () => {
+    const abstaende = menschlich();
+    const dauer = Math.ceil(abstaende.reduce((s, a) => s + a, 0) / 1000);
+    const e = pruefeKlickmuster(abstaende, dauer, VORGABEN);
+    expect(e.auswertung?.medianMs).toBe(3200);
+    expect(e.signale.map((s) => s.art)).toEqual(["zu_schnell_geklickt"]);
+    // Die Gleichmäßigkeit bleibt unauffällig - daran ist die Folge als
+    // menschlich zu erkennen, und dieses Signal wiegt 3.
+    expect(e.signale.map((s) => s.art)).not.toContain("gleichmaessige_klicks");
   });
 
   it("findet das schnelle Durchklicken", () => {
@@ -120,9 +155,10 @@ describe("pruefeKlickmuster", () => {
   it("folgt den eingestellten Grenzwerten", () => {
     // Der Höchstwert des Katalogs - mehr ließe das Panel gar nicht zu.
     const streng = mitVorgaben({ klick_mindestabstand_ms: 5000 });
+    const milde = mitVorgaben({ klick_mindestabstand_ms: 1000 });
     const abstaende = menschlich();
     const dauer = Math.ceil(abstaende.reduce((s, a) => s + a, 0) / 1000);
-    expect(pruefeKlickmuster(abstaende, dauer, VORGABEN).signale).toEqual([]);
+    expect(pruefeKlickmuster(abstaende, dauer, milde).signale).toEqual([]);
     expect(pruefeKlickmuster(abstaende, dauer, streng).signale.map((s) => s.art)).toContain(
       "zu_schnell_geklickt",
     );

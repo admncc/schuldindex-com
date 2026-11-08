@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { sql } from "@/db/verbindung";
 import { PRUEFUNG_HINWEIS, hashe, pruefeToken } from "@/domain/verifizierung";
-import { ausloeserNachBestaetigung } from "@/domain/betrugspruefung";
-import { wechsle } from "@/domain/bewertungsstatus";
 import { zahl } from "@/domain/einstellungen";
 import { holeEinstellungen } from "@/db/einstellungen";
-import { aktualisiereAggregate } from "@/db/aggregate";
+import { bestaetigeKonto } from "@/db/bestaetigung";
 import { einer } from "@/domain/suchparameter";
 import { empfehlungslink, teilentext } from "@/domain/empfehlung";
 import { empfehlungscodeFuer } from "@/db/empfehlungen";
@@ -13,13 +11,6 @@ import { Teilen } from "./teilen";
 
 export const metadata: Metadata = { title: "Bewertung bestätigen" };
 export const dynamic = "force-dynamic";
-
-interface Wartend {
-  id: string;
-  schule_id: string;
-  signalpunkte: number | null;
-  signale: { art: string }[];
-}
 
 interface Gespeichert {
   id: string;
@@ -101,34 +92,12 @@ export default async function Bestaetigungsseite({
   const bearbeitet = schonBestaetigt
     ? { gesamt: 0, veroeffentlicht: 0 }
     : await sql.begin(async (tx) => {
-    await tx`update verifizierungstoken set verbraucht_am = now() where id = ${gespeichert!.id}`;
-    await tx`update konten set verifiziert_am = coalesce(verifiziert_am, now()) where id = ${gespeichert!.konto_id}`;
-
-    const wartende = await tx<Wartend[]>`
-      select id, schule_id, signalpunkte, coalesce(signale, '[]'::jsonb) as signale
-      from bewertungen
-      where konto_id = ${gespeichert!.konto_id} and status = 'wartet_auf_verifizierung'
-      for update
-    `;
-
-    let veroeffentlicht = 0;
-    for (const b of wartende) {
-      const ausloeser = ausloeserNachBestaetigung(b.signalpunkte, b.signale, schwelle);
-      const uebergang = wechsle("wartet_auf_verifizierung", ausloeser);
-      if (!uebergang.ok) continue;
-      if (uebergang.nach === "freigegeben") veroeffentlicht += 1;
-      await tx`
-        update bewertungen set status = ${uebergang.nach}::bewertungsstatus, aktualisiert_am = now()
-        where id = ${b.id}
-      `;
-    }
-
-    // Ohne diese Zeile bleibt die Bewertung sichtbar freigegeben, das
-    // Schulprofil zeigt aber weiter den Stand von vorher. Die Aggregate rechnen
-    // ohnehin nur mit freigegebenen Bewertungen.
-    await aktualisiereAggregate(wartende.map((z) => z.schule_id), tx);
-    return { gesamt: wartende.length, veroeffentlicht };
-  });
+        await tx`update verifizierungstoken set verbraucht_am = now() where id = ${gespeichert!.id}`;
+        // Dieselbe Folge wie beim Code aus der SMS - ein Baustein, zwei Wege
+        // (`src/db/bestaetigung.ts`). Zwei Abschriften hätten früher oder
+        // später verschiedene Regeln enthalten.
+        return bestaetigeKonto(tx, gespeichert!.konto_id, schwelle);
+      });
 
   // Der eigene Link entsteht erst hier - nicht schon bei der Abgabe: Wer
   // bewertet und nie bestätigt, braucht keinen.

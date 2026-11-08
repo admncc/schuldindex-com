@@ -52,6 +52,29 @@ export function normalisiereKontakt(wert: string, art: Kontaktart): string {
   if (ziffern.startsWith("+")) ziffern = ziffern.slice(1);
   else if (ziffern.startsWith("00")) ziffern = ziffern.slice(2);
   else if (ziffern.startsWith("0")) ziffern = "49" + ziffern.slice(1); // deutsche Inlandsform
+
+  /**
+   * Die Null in Klammern hinter der Ländervorwahl.
+   *
+   * `+49 (0)170 1717179` ist die geläufigste deutsche Schreibweise auf
+   * Visitenkarten und Briefköpfen - und sie ergab hier `+4901701717179`, eine
+   * Nummer, die es nicht gibt. Der Fehler blieb unsichtbar: Die Abgabe lief
+   * durch, die Nachricht ging an eine unzustellbare Nummer, und die Person
+   * wartete auf eine Bestätigung, die nicht kommen konnte.
+   *
+   * Die Null ist die nationale Verkehrsausscheidungsziffer - sie gehört
+   * ausschliesslich vor die Inlandsnummer und nie hinter die Ländervorwahl.
+   * In Deutschland beginnt keine Teilnehmernummer mit 0, das Abschneiden ist
+   * also eindeutig. Dasselbe gilt für Österreich (43) und die Schweiz (41),
+   * die hier ebenfalls vorkommen können.
+   */
+  for (const land of ["49", "43", "41"]) {
+    if (ziffern.startsWith(`${land}0`)) {
+      ziffern = land + ziffern.slice(land.length + 1);
+      break;
+    }
+  }
+
   return "+" + ziffern;
 }
 

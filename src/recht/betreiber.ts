@@ -60,6 +60,8 @@ export interface Betreiberangaben {
    * die hier bewertet.
    */
   readonly emaildienst: string | null;
+  /** Wer die Bestätigungscodes per SMS zustellt - bekommt die Telefonnummer. */
+  readonly smsdienst: string | null;
   /** Wie lange die Zugriffsprotokolle des Servers aufbewahrt werden. */
   readonly protokollfrist: string | null;
   /**
@@ -102,6 +104,7 @@ export function betreiber(): Betreiberangaben {
     kiRegion: ausUmgebung("KI_VERARBEITUNGSREGION"),
     hoster: ausUmgebung("BETREIBER_HOSTER"),
     emaildienst: ausUmgebung("BETREIBER_EMAILDIENST"),
+    smsdienst: ausUmgebung("BETREIBER_SMSDIENST"),
     protokollfrist: ausUmgebung("BETREIBER_PROTOKOLLFRIST"),
     // Nur ein ausdrueckliches "an" zaehlt. Eine Messung, die sich
     // versehentlich einschaltet, weil irgendetwas in der Variable stand,
@@ -158,6 +161,7 @@ export const FELDNAME: Readonly<Record<keyof Betreiberangaben, string>> = {
   kiRegion: "Verarbeitungsregion der Claude API",
   hoster: "Hosting-Anbieter",
   emaildienst: "E-Mail-Dienstleister",
+  smsdienst: "SMS-Dienstleister",
   protokollfrist: "Aufbewahrungsfrist der Zugriffsprotokolle",
   cloudflareZaehler: "Reichweitenmessung von Cloudflare",
 };

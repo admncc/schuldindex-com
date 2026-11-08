@@ -12,6 +12,7 @@
 
 import { telefonZustaendig, type Nachricht, type Versandweg, type Zustellergebnis } from "./nachricht";
 import { emailweg, smtpAusUmgebung } from "./email";
+import { smsweg, smsAusUmgebung } from "./sms";
 import type { Kontaktart } from "../domain/kontakt";
 
 /**
@@ -58,9 +59,10 @@ export function protokollweg(art: Versandweg["art"]): Versandweg {
  */
 export function versandkette(): Versandweg[] {
   const smtp = smtpAusUmgebung();
+  const sms = smsAusUmgebung();
   return [
     protokollweg("whatsapp"),
-    protokollweg("sms"),
+    sms === null ? protokollweg("sms") : smsweg(sms),
     smtp === null ? protokollweg("email") : emailweg(smtp),
   ];
 }
@@ -68,6 +70,11 @@ export function versandkette(): Versandweg[] {
 /** Ob der E-Mail-Weg zustellen kann - für die Anzeige im Panel. */
 export function emailEingerichtet(): boolean {
   return smtpAusUmgebung() !== null;
+}
+
+/** Dasselbe für SMS. */
+export function smsEingerichtet(): boolean {
+  return smsAusUmgebung() !== null;
 }
 
 /**
@@ -88,7 +95,8 @@ export function emailEingerichtet(): boolean {
 export function zustellbareArten(): Kontaktart[] {
   const protokollGeht = process.env["NODE_ENV"] !== "production";
   const arten: Kontaktart[] = [];
-  if (protokollGeht) arten.push("whatsapp", "sms");
+  if (protokollGeht) arten.push("whatsapp");
+  if (smsAusUmgebung() !== null || protokollGeht) arten.push("sms");
   if (smtpAusUmgebung() !== null || protokollGeht) arten.push("email");
   return arten;
 }

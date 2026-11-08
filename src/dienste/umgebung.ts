@@ -13,7 +13,7 @@ import { freitexteAlsObjekt, type Umgebung } from "./bewertungAbgeben";
 import type { Aenderungsumgebung } from "./bewertungAendern";
 import { aktualisiereAggregat } from "../db/aggregate";
 import type { Zustand } from "../domain/bewertungsstatus";
-import { baueBestaetigung, sende } from "../versand/nachricht";
+import { baueBestaetigung, baueCodeNachricht, sende } from "../versand/nachricht";
 import { versandkette, zustellbareArten } from "../versand/wege";
 import { holeEinstellungen } from "../db/einstellungen";
 import type { Kontaktart } from "../domain/kontakt";
@@ -144,7 +144,7 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
 
         await tx`
           insert into verifizierungstoken (konto_id, token_hash, zweck, gueltig_bis)
-          values (${daten.kontoId}, ${daten.token.hash}, 'bestaetigung', ${daten.token.gueltigBis})
+          values (${daten.kontoId}, ${daten.token.hash}, ${daten.token.zweck}, ${daten.token.gueltigBis})
         `;
 
         return { bewertungId: bewertung!.id };
@@ -198,7 +198,11 @@ export function umgebungMitDatenbank(basisUrl: string, absenderOrtung: () => Pro
      * danach weg. Jetzt steht der Grund im Ereignisprotokoll.
      */
     async sendeBestaetigung(empfaenger, art, token) {
-      const nachricht = baueBestaetigung(basisUrl, token.klartext, art as Kontaktart);
+      // Der Code trägt sich selbst, der Link braucht die Basisadresse.
+      const nachricht =
+        token.zweck === "code"
+          ? baueCodeNachricht(token.klartext)
+          : baueBestaetigung(basisUrl, token.klartext, art as Kontaktart);
       const ergebnis = await sende(versandkette(), empfaenger, art as Kontaktart, nachricht);
 
       await protokolliere({

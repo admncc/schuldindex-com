@@ -15,6 +15,7 @@ import { pruefeEingabe, type Bewertungseingabe } from "../domain/bewertungseinga
 import { pruefeEinreichung, type Punkt } from "../domain/geopruefung";
 import { pruefe as pruefeBetrug, type Pruefergebnis, type Pruefkontext } from "../domain/betrugspruefung";
 import { erzeugeToken, type Token } from "../domain/verifizierung";
+import { codeGueltigBis, CODE_ZWECK, erzeugeCode, hasheCode } from "../domain/bestaetigungscode";
 import { kontaktHash, normalisiereKontakt, verschleiere, verschluessele } from "../domain/kontakt";
 import type { KategorieId } from "../domain/fragebogen";
 import { erlaubteKontaktarten, zahl, type Einstellungen } from "../domain/einstellungen";
@@ -74,7 +75,19 @@ export interface Umgebung {
    * abgegeben, und daran soll eine unbekannte Empfehlung nichts ändern.
    */
   merkeEmpfehlung(code: string, kontoId: string, bewertungId: string): Promise<void>;
-  sendeBestaetigung(empfaenger: string, art: string, token: Token): Promise<boolean>;
+  sendeBestaetigung(empfaenger: string, art: string, token: Bestaetigung): Promise<boolean>;
+}
+
+/**
+ * Eine ausgestellte Bestätigung - Link oder Code.
+ *
+ * `zweck` trennt die beiden in der Tokentabelle: Ein Code wird nur dort
+ * gesucht, wo ein Code erwartet wird, und ein Link nur dort, wo ein Link
+ * erwartet wird. Ohne diese Trennung liesse sich ein sechsstelliger Code gegen
+ * den Linkpfad prüfen, der keine Versuchsbegrenzung kennt.
+ */
+export interface Bestaetigung extends Token {
+  readonly zweck: "bestaetigung" | "code";
 }
 
 export interface Gespeicherte {
@@ -112,12 +125,21 @@ export interface Gespeicherte {
   readonly dauerSekunden: number | null;
   /** Abdruck der Browserkennung, nicht die Kennung selbst. */
   readonly geraetHash: string | null;
-  readonly token: Token;
+  readonly token: Bestaetigung;
 }
 
 export type Abgabeergebnis =
   | {
       readonly ok: true;
+      /**
+       * Ob die Bestätigung als Link kommt oder als Code zum Eintippen.
+       *
+       * Das Formular muss es wissen: Beim Code zeigt es gleich das Eingabefeld,
+       * beim Link schickt es die Person zum Postfach. Ohne diese Angabe müsste
+       * es aus der Kontaktart raten - und raten hiesse, die Regel an zwei
+       * Stellen zu führen.
+       */
+      readonly bestaetigungsart: "link" | "code";
       readonly bewertungId: string;
       /** Verschleierter Kontakt für die Bestätigungsseite. */
       readonly kontaktAnzeige: string;
@@ -236,7 +258,29 @@ export async function bewertungAbgeben(
         : "in_pruefung_betrug"
       : "wartet_auf_verifizierung";
 
-  const token = erzeugeToken(jetzt);
+  /**
+   * Link oder Code - je nach Weg.
+   *
+   * **Ein Link in einer SMS ist der falsche Weg.** Er wird umgebrochen, von
+   * manchen Geräten nicht erkannt, von Mobilfunkanbietern als Spam
+   * eingestuft - und er reisst die Person aus dem Formular in einen Browser,
+   * womöglich einen anderen als den, in dem sie gerade bewertet hat. Für
+   * Telefonnummern geht deshalb ein sechsstelliger Code hinaus, der im selben
+   * Fenster eingetippt wird. Per E-Mail bleibt es beim Link: Dort ist er einen
+   * Klick wert und spart das Abtippen.
+   */
+  const token: Bestaetigung =
+    art === "email"
+      ? { ...erzeugeToken(jetzt), zweck: "bestaetigung" }
+      : (() => {
+          const klartext = erzeugeCode();
+          return {
+            klartext,
+            hash: hasheCode(konto.id, klartext),
+            gueltigBis: codeGueltigBis(jetzt),
+            zweck: CODE_ZWECK,
+          };
+        })();
 
   // Die Folge geht als eigenes Feld in die Speicherung, nicht im Huckepack der
   // Eingabe: So steht an der Einfügestelle ausdrücklich, was aufbewahrt wird,
@@ -276,6 +320,7 @@ export async function bewertungAbgeben(
 
   return {
     ok: true,
+    bestaetigungsart: token.zweck === "code" ? "code" : "link",
     bewertungId,
     kontaktAnzeige: verschleiere(eingabe.kontakt, art),
     nachrichtVersandt: versandt,

@@ -1894,3 +1894,18 @@ p.spamhinweis.spamhinweis { color: var(--signal-schrift); }
   .bewertungsliste td:last-child { margin-top: 0.6rem; }
   .bewertungsliste .befundspalte { max-width: none; }
 }
+
+/* --- Code-Eingabe nach einer SMS ------------------------------------------
+   Breit gesperrt und mittig: Sechs Ziffern liest man als Gruppe, nicht als
+   Wort, und man vergleicht sie mit einer Benachrichtigung auf demselben
+   Bildschirm. Ziffernbreite fest, damit nichts springt beim Tippen. */
+.codeformular { display: flex; flex-wrap: wrap; gap: 0.8rem; justify-content: center; margin: 1rem 0; }
+.codeeingabe {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.6rem; letter-spacing: 0.35em; text-indent: 0.35em;
+  text-align: center; width: 9rem; padding: 0.6rem 0.5rem;
+  border: 1px solid var(--linie-stark); border-radius: var(--radius);
+  background: var(--flaeche); color: var(--schrift);
+}
+.codeeingabe:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
