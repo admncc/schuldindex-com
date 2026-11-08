@@ -194,7 +194,7 @@ export const KATALOG: readonly Einstellungsbeschreibung[] = [
      * „überflogen“ und „gelesen“ liegt also eine ganze Größenordnung - und die
      * alte Grenze lag unter allen dreien, konnte also nie etwas unterscheiden.
      *
-     * **Warum 3000 und nicht die geometrische Mitte (≈2100).** Die beiden
+     * **Warum 4000 und nicht die geometrische Mitte (≈2100).** Die beiden
      * langsamen Werte stammen von Leuten, die den Bogen zum ersten Mal sahen -
      * und das ist hier nicht das langsame Ende, sondern der Normalfall: Rund
      * neun von zehn Abgaben kommen von Menschen, die genau eine Schule
@@ -208,17 +208,24 @@ export const KATALOG: readonly Einstellungsbeschreibung[] = [
      * Halteschwelle von 3 - allein hält es nichts an, es braucht immer ein
      * zweites daneben. Ein zu Unrecht eingestuftes Tempo kostet deshalb fast
      * nichts; ein durchgelassenes Skript kostet die Glaubwürdigkeit einer
-     * Schulwertung. Das ist der Grund, aus dem der Wert auf Wunsch des
-     * Betreibers dreimal heraufgezogen wurde - zuletzt auf 3000, mit nur noch
-     * Faktor 1,6 Abstand zur langsameren der beiden gemessenen echten
-     * Abgaben. Darüber wird aus dem Verhältnis eine Hoffnung: Die Grenze läge
-     * dann im Bereich der ehrlichen Werte selbst.
+     * Schulwertung. Das ist der Grund, aus dem der Wert auf Entscheidung des
+     * Betreibers in mehreren Schritten auf 4000 gezogen wurde.
+     *
+     * **Was diese Entscheidung kostet, ausdrücklich festgehalten.** Zu den
+     * beiden gemessenen echten Abgaben (4 808 und 6 848 ms) bleiben damit nur
+     * noch Faktor 1,2 beziehungsweise 1,7 Abstand. Eine ehrliche Abgabe, die
+     * etwas flotter ausfällt als die langsamere der beiden, bekommt das Signal.
+     * Tragbar ist das, weil es 2 wiegt und die Halteschwelle bei 3 liegt -
+     * allein hält es nichts an, es kostet also keine Bewertung, sondern
+     * Arbeitszeit in der Moderation. Ab 5000 (dem Höchstwert des Feldes) lägen
+     * beide gemessenen Werte im Signal; dann unterscheidet es nichts mehr,
+     * genau wie die alten 400 in die andere Richtung.
      *
      * Nach ein paar hundert Abgaben zeigt die Spalte „Tempo" in der
      * Bewertungsübersicht, wo die Masse wirklich liegt. Dann ist der Wert
      * keine Schätzung mehr und gehört erneut angesehen.
      */
-    vorgabe: 3000,
+    vorgabe: 4000,
     min: 50,
     max: 5000,
     einheit: "ms",
