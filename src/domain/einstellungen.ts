@@ -194,7 +194,7 @@ export const KATALOG: readonly Einstellungsbeschreibung[] = [
      * „überflogen“ und „gelesen“ liegt also eine ganze Größenordnung - und die
      * alte Grenze lag unter allen dreien, konnte also nie etwas unterscheiden.
      *
-     * **Warum 2500 und nicht die geometrische Mitte (≈2100).** Die beiden
+     * **Warum 3000 und nicht die geometrische Mitte (≈2100).** Die beiden
      * langsamen Werte stammen von Leuten, die den Bogen zum ersten Mal sahen -
      * und das ist hier nicht das langsame Ende, sondern der Normalfall: Rund
      * neun von zehn Abgaben kommen von Menschen, die genau eine Schule
@@ -208,15 +208,17 @@ export const KATALOG: readonly Einstellungsbeschreibung[] = [
      * Halteschwelle von 3 - allein hält es nichts an, es braucht immer ein
      * zweites daneben. Ein zu Unrecht eingestuftes Tempo kostet deshalb fast
      * nichts; ein durchgelassenes Skript kostet die Glaubwürdigkeit einer
-     * Schulwertung. Über 3000 käme die Grenze aber in die Nähe der ehrlichen
-     * Werte selbst, und dort ist kein Verhältnis mehr, sondern nur noch
-     * Hoffnung.
+     * Schulwertung. Das ist der Grund, aus dem der Wert auf Wunsch des
+     * Betreibers dreimal heraufgezogen wurde - zuletzt auf 3000, mit nur noch
+     * Faktor 1,6 Abstand zur langsameren der beiden gemessenen echten
+     * Abgaben. Darüber wird aus dem Verhältnis eine Hoffnung: Die Grenze läge
+     * dann im Bereich der ehrlichen Werte selbst.
      *
      * Nach ein paar hundert Abgaben zeigt die Spalte „Tempo" in der
      * Bewertungsübersicht, wo die Masse wirklich liegt. Dann ist der Wert
      * keine Schätzung mehr und gehört erneut angesehen.
      */
-    vorgabe: 2500,
+    vorgabe: 3000,
     min: 50,
     max: 5000,
     einheit: "ms",
