@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <!--
+    Profilbild für die Facebook-Seite. Facebook zeigt es rund; alles, was
+    zählt, liegt deshalb innerhalb eines Kreises mit 70 % des Durchmessers.
+
+    Dieselbe Form wie das Zeichen in `app/(oeffentlich)/marke.tsx` und
+    `app/icon.svg`: ein Schuldach, darunter drei ansteigende Balken. Der
+    Verlauf ist der der Startseitenüberschrift (Königsblau nach Violett).
+  -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2733d4"/>
+      <stop offset="1" stop-color="#6a3cea"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="1000" fill="url(#g)"/>
+  <!-- Zeichen: viewBox 32 → Faktor 21, zentriert, leicht nach oben gerückt,
+       weil die Balken unten optisch schwerer sind als das Dach oben. -->
+  <g transform="translate(164 140) scale(21)">
+    <path d="M3.5 13.5 16 4l12.5 9.5" stroke="#ffffff" stroke-width="2.6"
+          stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <rect x="7" y="21" width="4.6" height="7" rx="1.6" fill="#ffffff" opacity="0.5"/>
+    <rect x="13.7" y="18" width="4.6" height="10" rx="1.6" fill="#ffffff" opacity="0.75"/>
+    <rect x="20.4" y="14.6" width="4.6" height="13.4" rx="1.6" fill="#ffffff"/>
+  </g>
+</svg>
